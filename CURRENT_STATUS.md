@@ -52,11 +52,28 @@ Corrected M08 evidence will come solely from executing the frozen protocol:
 - Cells: 7500 total (6000 CPU + 1500 TabM GPU)
 - Metric: `paired_harm = full_auc − strict_auc`
 
-### Claim status (until 7500-cell closure)
-- M08: `PENDING FROZEN-PROTOCOL EXECUTION`
-- CL2 / CL3 / CL4 / CL10: `PENDING RECOMPUTATION`
-- Eight-model consistency claim: `WITHDRAWN` (protocol has 5 models; at most a
-  five-model frozen-protocol M08 result can be restored)
+### Frozen protocol EXECUTED — 7500/7500 cells COMPLETE (2026-07-13)
+- Gate SP0: 14/14 frozen hashes verified. SP1: 1500 immutable bundles exported.
+- SP2: 6000 CPU cells (LR/RF/LightGBM/CatBoost) on macOS posix.
+- SP3: 1500 TabM cells on CUDA (RTX 4060) via WSL2 Ubuntu + unmodified frozen
+  runner (14/14 hashes verified in WSL, device=cuda, no fallback).
+- SP4 merge: **7500/7500 SUCCESS, 7500 integrity-verified, 0 fail, 0 dup, 0 missing.**
+- Canonical ledger: `results/structured_prior_replacement_v1/model_cells.csv`
+  (sha256 `e3af534b…`).
+
+### M08 result (frozen protocol, 5 models, 2500 M08 cells)
+- Overall mean paired_harm **+0.0045**, 95% CI **[+0.0035, +0.0054]** (strictly positive).
+- Monotone in strength: S1 −0.0024 → S5 +0.0092.
+- Per-model: catboost +0.0080, rf +0.0057, lr +0.0039, tabm +0.0026,
+  lightgbm +0.0023 (LightGBM CI includes 0 → not distinguishable from zero).
+- Full report: `reports/structured_prior_v1/m08_final_analysis.md`.
+- Status: **M08 FULL RESTORATION COMPLETE (five-model frozen-protocol)**.
+
+### Claim status
+- M08: **COMPLETE (five-model frozen-protocol evidence)**.
+- Eight-model consistency claim: `WITHDRAWN` (protocol has 5 models).
+- CL2 / CL3 / CL4 / CL10: `PENDING RECOMPUTATION` — requires rebuilding the
+  unified cross-mechanism ledger (M08 alone does not upgrade them).
 
 ### Other pending (separate tasks, not this track)
 - Governance (Track B): audit reuse of bundle infra for M06/M09/M10/M11

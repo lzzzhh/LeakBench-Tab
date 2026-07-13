@@ -1,0 +1,6 @@
+model,cells,success,integrity,expected
+catboost,1500,1500,1500,1500
+lightgbm,1500,1500,1500,1500
+lr,1500,1500,1500,1500
+rf,1500,1500,1500,1500
+tabm,1500,1500,1500,1500

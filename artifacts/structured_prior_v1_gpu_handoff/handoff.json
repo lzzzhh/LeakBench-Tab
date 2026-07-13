@@ -1,0 +1,26 @@
+{
+  "gate": "SP3_gpu_tabm_handoff",
+  "model": "tabm",
+  "expected_cells": 1500,
+  "config": "configs/paper/structured_prior_replacement_v1.yaml",
+  "config_sha256": "efc01fc1f21b12e9a32b010e6bd8f5bf355e7c69e68b30e1aa463d9ed792bd96",
+  "task_manifest": "results/structured_prior_replacement_v1/task_bundles/task_manifest.csv",
+  "task_manifest_sha256": "6c50487b3728f02054471643a781bdf0e4efdb74a4f4c4319aad133dac03ba02",
+  "bundle_summary_sha256": "c62101cce17ef18715aca41142655fe3ac08a3cef354e60c80ebcffb8a6e71b9",
+  "freeze_manifest_sha256": "c2a1b188c05f13325c53e1ab6ab1e79d84a53a95a067e6a20906c3b5fcb6c4ce",
+  "runner": "experiments/leakbench/run_structured_prior_v1_bundle.py",
+  "runner_sha256": "a5b1d416fc75f49b75d24dee05c2b49ff5b42268ec26298a6c8096784ada9ec4",
+  "official_tabm_sha256": "d1e9ff88a59ef937afbf8d3edc7e5ee0ce6d2169ad70a99ba2edfa91ea8c0f1b",
+  "injector_sha256": "533cc54232e115a574706cca623732a04d771b2c47f741ce8c4fe1ac2337d8cc",
+  "cpu_result_ledger": "results/structured_prior_replacement_v1/model_cells_cpu.csv",
+  "cpu_result_ledger_sha256": "0347bacc2176c1b089667a1f64bb90b0c0f56eb68ed7ea570d8c28b9ad5284dc",
+  "prohibitions": [
+    "no re-export tasks",
+    "no regenerate dataset",
+    "no modify tabm config",
+    "no modify seed",
+    "no modify strength",
+    "no modify split"
+  ],
+  "gpu_command": "python experiments/leakbench/run_structured_prior_v1_bundle.py --config configs/paper/structured_prior_replacement_v1.yaml --task-manifest results/structured_prior_replacement_v1/task_bundles/task_manifest.csv --models tabm --output results/structured_prior_replacement_v1/model_cells_tabm.csv --device cuda --allow-run"
+}

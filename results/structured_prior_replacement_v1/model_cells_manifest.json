@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "merged_cells": 7500,
+  "expected_cells": 7500,
+  "success_cells": 7500,
+  "failure_cells": 0,
+  "integrity_verified_cells": 7500,
+  "duplicate_cells": 0,
+  "unique_task_variants": 1500,
+  "models": [
+    "catboost",
+    "lightgbm",
+    "lr",
+    "rf",
+    "tabm"
+  ],
+  "cells_per_model": {
+    "catboost": 1500,
+    "lightgbm": 1500,
+    "lr": 1500,
+    "rf": 1500,
+    "tabm": 1500
+  },
+  "cpu_ledger_sha256": "0347bacc2176c1b089667a1f64bb90b0c0f56eb68ed7ea570d8c28b9ad5284dc",
+  "tabm_ledger_sha256": "ea04c3e822df1f1e34c8fd69c99369a189df13488e70a01e7843e217eee01df3",
+  "merged_sha256": "e3af534bb626cec1668a2c28793e3745ba2bebb69f1e70c673af6109aba2b1f9",
+  "metric": "paired_harm = full_auc - strict_auc",
+  "verdict": "COMPLETE_7500"
+}
