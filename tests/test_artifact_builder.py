@@ -56,6 +56,35 @@ def test_selector_level_supersession_is_typed_raw_provenance_only():
     ) in _whole_file_superseded_paths()
 
 
+def test_cluster_lineage_loaders_bind_canonical_task_identity(tmp_path):
+    canonical = tmp_path / "canonical.csv"
+    canonical.write_text(
+        "run_id,dataset_id,mechanism,strength,seed,model\n"
+        "run-1,panel_00,M08,S1,13.0,lr\n",
+        encoding="utf-8",
+    )
+    digest_a, digest_b, digest_c = "a" * 64, "b" * 64, "c" * 64
+    tasks = tmp_path / "tasks.csv"
+    tasks.write_text(
+        "dataset_id,dataset_namespace,mechanism,strength,seed,task_hash,"
+        "split_hash,bundle_path,bundle_sha256\n"
+        f"panel_00,confirmatory,M08,S1,13,{digest_a},{digest_b},"
+        f"results/corrected_v2/task_bundles/panel_00.npz,{digest_c}\n",
+        encoding="utf-8",
+    )
+    assert builder._load_canonical_cluster_contract(canonical) == {
+        "run-1": ("panel_00", "M08", "S1", "13", "lr")
+    }
+    assert builder._load_frozen_task_lineage(tasks) == {
+        ("panel_00", "M08", "S1", "13"): {
+            "task_hash": digest_a,
+            "split_hash": digest_b,
+            "bundle_path": "results/corrected_v2/task_bundles/panel_00.npz",
+            "bundle_sha256": digest_c,
+        }
+    }
+
+
 def test_gpu_interim_access_incident_locks_all_adaptive_responses():
     _validate_gpu_interim_incident()
 
@@ -152,6 +181,27 @@ def test_deep_npz_scanner_rejects_secret_in_member_name(tmp_path):
     with pytest.raises(ValueError, match="huggingface"):
         verify_npz(
             path, secret_patterns=SECRET_PATTERNS,
+            private_patterns=PRIVATE_BYTE_PATTERNS,
+        )
+
+
+def test_deep_npz_scanner_rejects_secret_in_zip_comment_and_numeric_dtype(tmp_path):
+    token = "hf" + "_" + "a" * 24
+    comment_path = tmp_path / "comment.npz"
+    np.savez(comment_path, values=np.asarray([1.0]))
+    with public_verifier.zipfile.ZipFile(comment_path, "a") as archive:
+        archive.comment = token.encode("utf-8")
+    with pytest.raises(ValueError, match="huggingface"):
+        verify_npz(
+            comment_path, secret_patterns=SECRET_PATTERNS,
+            private_patterns=PRIVATE_BYTE_PATTERNS,
+        )
+
+    dtype_path = tmp_path / "dtype.npz"
+    np.savez(dtype_path, values=np.zeros(1, dtype=[(token, "f8")]))
+    with pytest.raises(ValueError, match="huggingface"):
+        verify_npz(
+            dtype_path, secret_patterns=SECRET_PATTERNS,
             private_patterns=PRIVATE_BYTE_PATTERNS,
         )
 

@@ -8,6 +8,7 @@ import csv
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import re
 import shutil
@@ -253,14 +254,17 @@ def _source(path: PurePosixPath) -> Path:
     root_resolved = ROOT.resolve()
     try:
         lexical_relative = source.relative_to(ROOT)
-        source.resolve(strict=True).relative_to(root_resolved)
-    except (FileNotFoundError, RuntimeError, ValueError) as error:
+    except ValueError as error:
         raise FileNotFoundError(source) from error
     cursor = ROOT
     for part in lexical_relative.parts:
         cursor = cursor / part
         if cursor.is_symlink():
             raise FileNotFoundError(f"symlinked source path is forbidden: {source}")
+    try:
+        source.resolve(strict=True).relative_to(root_resolved)
+    except (FileNotFoundError, RuntimeError, ValueError) as error:
+        raise FileNotFoundError(source) from error
     if not source.is_file():
         raise FileNotFoundError(source)
     return source
@@ -549,6 +553,79 @@ def _validate_gpu_interim_incident() -> None:
         _assert_bound_file(name, expected_sha256=digest)
 
 
+def _normalized_integer_text(value: Any, *, field: str) -> str:
+    try:
+        number = float(str(value))
+    except ValueError as error:
+        raise RuntimeError(f"cluster lineage has a non-numeric {field}: {value}") from error
+    if not number.is_integer():
+        raise RuntimeError(f"cluster lineage has a non-integral {field}: {value}")
+    return str(int(number))
+
+
+def _load_canonical_cluster_contract(
+    path: Path,
+) -> dict[str, tuple[str, str, str, str, str]]:
+    required = {"run_id", "dataset_id", "mechanism", "strength", "seed", "model"}
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        if not reader.fieldnames or required - set(reader.fieldnames):
+            raise RuntimeError("canonical cells lack the full cluster lineage columns")
+        result: dict[str, tuple[str, str, str, str, str]] = {}
+        for row in reader:
+            if str(row["mechanism"]) not in {"M08", "M09"}:
+                continue
+            run_id = str(row["run_id"])
+            if not run_id or run_id in result:
+                raise RuntimeError(f"canonical cluster run ID is empty or duplicated: {run_id}")
+            result[run_id] = (
+                str(row["dataset_id"]), str(row["mechanism"]),
+                str(row["strength"]),
+                _normalized_integer_text(row["seed"], field="seed"),
+                str(row["model"]),
+            )
+    return result
+
+
+def _load_frozen_task_lineage(
+    path: Path,
+) -> dict[tuple[str, str, str, str], dict[str, str]]:
+    required = {
+        "dataset_id", "dataset_namespace", "mechanism", "strength", "seed",
+        "task_hash", "split_hash", "bundle_path", "bundle_sha256",
+    }
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        if not reader.fieldnames or required - set(reader.fieldnames):
+            raise RuntimeError("task manifest lacks the full frozen lineage columns")
+        result: dict[tuple[str, str, str, str], dict[str, str]] = {}
+        for row in reader:
+            mechanism = str(row["mechanism"])
+            if mechanism not in {"M08", "M09"}:
+                continue
+            if str(row["dataset_namespace"]) != "confirmatory":
+                raise RuntimeError("cluster task lineage escaped the confirmatory namespace")
+            key = (
+                str(row["dataset_id"]), mechanism, str(row["strength"]),
+                _normalized_integer_text(row["seed"], field="seed"),
+            )
+            if key in result:
+                raise RuntimeError(f"frozen task lineage key is duplicated: {key}")
+            lineage = {
+                "task_hash": str(row["task_hash"]),
+                "split_hash": str(row["split_hash"]),
+                "bundle_path": str(_safe_relative(row["bundle_path"])),
+                "bundle_sha256": str(row["bundle_sha256"]),
+            }
+            if any(
+                not _is_sha256(lineage[field])
+                for field in ("task_hash", "split_hash", "bundle_sha256")
+            ):
+                raise RuntimeError(f"frozen task lineage has an invalid digest: {key}")
+            result[key] = lineage
+    return result
+
+
 def _select_result_sources() -> tuple[dict[PurePosixPath, set[str]], list[dict[str, Any]]]:
     selection: dict[PurePosixPath, set[str]] = {}
     claims_path = PurePosixPath("results/corrected_v2/paper_claims.json")
@@ -657,14 +734,21 @@ def _select_result_sources() -> tuple[dict[PurePosixPath, set[str]], list[dict[s
     if mechanism_counts != Counter({"M08": 2500, "M09": 2500}):
         raise RuntimeError("cluster predictions are not exactly 2,500 M08 + 2,500 M09")
     canonical_path = _source(PurePosixPath("results/corrected_v2/canonical_cells.csv"))
-    with canonical_path.open(newline="", encoding="utf-8") as handle:
-        reader = csv.DictReader(handle)
-        canonical_cluster = {
-            str(row["run_id"]): (str(row["mechanism"]), str(row["model"]))
-            for row in reader if str(row["mechanism"]) in {"M08", "M09"}
-        }
+    canonical_cluster = _load_canonical_cluster_contract(canonical_path)
     if len(canonical_cluster) != 5000 or set(canonical_cluster) != set(run_ids):
         raise RuntimeError("cluster prediction run IDs differ from canonical M08/M09 rows")
+    task_lineage = _load_frozen_task_lineage(
+        _source(PurePosixPath("results/corrected_v2/task_bundles/task_manifest.csv"))
+    )
+    expected_task_keys = {details[:4] for details in canonical_cluster.values()}
+    if len(task_lineage) != 1000 or set(task_lineage) != expected_task_keys:
+        raise RuntimeError("frozen task lineage differs from canonical M08/M09 task keys")
+    models_by_task: dict[tuple[str, str, str, str], set[str]] = {}
+    for details in canonical_cluster.values():
+        models_by_task.setdefault(details[:4], set()).add(details[4])
+    expected_models = {"lr", "rf", "lightgbm", "catboost", "tabm"}
+    if any(models != expected_models for models in models_by_task.values()):
+        raise RuntimeError("canonical cluster tasks do not each contain the five frozen models")
     directory_counts: Counter[str] = Counter()
     for entry, path in zip(predictions, prediction_paths):
         if path.suffix != ".npz":
@@ -672,7 +756,8 @@ def _select_result_sources() -> tuple[dict[PurePosixPath, set[str]], list[dict[s
         parent = path.parent
         if parent not in ALLOWED_PREDICTION_PREFIXES:
             raise RuntimeError(f"prediction escaped final directories: {path}")
-        expected_mechanism, expected_model = canonical_cluster[str(entry["run_id"])]
+        canonical_details = canonical_cluster[str(entry["run_id"])]
+        expected_mechanism, expected_model = canonical_details[1], canonical_details[4]
         expected_parent = (
             ALLOWED_PREDICTION_PREFIXES[1]
             if expected_model == "tabm" else ALLOWED_PREDICTION_PREFIXES[0]
@@ -686,9 +771,14 @@ def _select_result_sources() -> tuple[dict[PurePosixPath, set[str]], list[dict[s
         if not isinstance(entry.get("size_bytes"), int) or entry["size_bytes"] <= 0:
             raise RuntimeError(f"prediction lineage lacks typed size_bytes: {path}")
         bundle_path = _safe_relative(entry.get("bundle_path", ""))
+        expected_lineage = task_lineage[canonical_details[:4]]
         if (
             bundle_path not in expected_bundle_paths
             or entry.get("bundle_sha256") != frozen_hashes[str(bundle_path)]
+            or entry.get("task_hash") != expected_lineage["task_hash"]
+            or entry.get("split_hash") != expected_lineage["split_hash"]
+            or str(bundle_path) != expected_lineage["bundle_path"]
+            or entry.get("bundle_sha256") != expected_lineage["bundle_sha256"]
         ):
             raise RuntimeError(f"prediction bundle lineage differs from freeze: {path}")
         directory_counts[str(parent)] += 1
@@ -965,7 +1055,7 @@ def build_artifact(destination: Path) -> dict[str, Any]:
             "\nVerify an unpacked copy with `python scripts/run_corrected_v2_public_ci.py .`. "
             "Verification requires the pinned Python dependencies in "
             "`requirements-corrected-v2.txt` plus Poppler's `pdftotext` and `pdfinfo` "
-            "(either on PATH or in the bundled Codex runtime).\n",
+            "and `pdffonts` (either on PATH or in the bundled Codex runtime).\n",
             encoding="utf-8",
         )
         scan_paths = [path for path in destination.rglob("*") if path.is_file()]
@@ -1048,12 +1138,14 @@ def build_artifact(destination: Path) -> dict[str, Any]:
         completed = subprocess.run(
             [
                 sys.executable,
+                "-B",
                 str(destination / "scripts/verify_corrected_v2_public_artifact.py"),
                 str(destination),
             ],
             cwd=destination,
             capture_output=True,
             text=True,
+            env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
         )
         if completed.returncode != 0:
             raise RuntimeError(
@@ -1111,6 +1203,7 @@ def main(argv: list[str] | None = None) -> int:
                 completed = subprocess.run(
                     [
                         sys.executable,
+                        "-B",
                         str(unpacked / "scripts/verify_corrected_v2_public_artifact.py"),
                         str(unpacked),
                         "--run-tests",
@@ -1118,6 +1211,7 @@ def main(argv: list[str] | None = None) -> int:
                     cwd=unpacked,
                     capture_output=True,
                     text=True,
+                    env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
                 )
                 if completed.returncode != 0:
                     raise RuntimeError(

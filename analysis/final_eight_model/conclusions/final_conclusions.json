@@ -1,35 +1,5 @@
 {
-  "models": 8,
-  "mechanisms": 11,
-  "simple_mean": 0.0792,
-  "structured_mean": -0.0034,
-  "boundary_mean": 0.053,
-  "gap": 0.0826,
-  "directional": "8/8",
-  "spearman_r": 0.921,
-  "pearson_r": 0.957,
-  "category_r2": 0.956,
-  "full_r2": 0.964,
-  "model_range": "+0.0173 to +0.0680",
-  "c1_dl_xh": "EMPTY",
-  "claims": {
-    "CL1": "CONFIRMED",
-    "CL2": "CONFIRMED",
-    "CL3": "CONFIRMED",
-    "CL4": "CONFIRMED",
-    "CL5b-raw": "REFUTED",
-    "CL5b-derived": "REFUTED",
-    "CL5b-v2": "REFUTED",
-    "CL6": "CONFIRMED",
-    "CL7": "PARTIALLY CONFIRMED",
-    "CL9": "CONFIRMED",
-    "CL10": "CONFIRMED",
-    "CL14-R": "PARTIALLY CONFIRMED",
-    "CL14-G": "UNCONFIRMED",
-    "CL14-T": "PARTIALLY CONFIRMED",
-    "CL16a": "REFUTED",
-    "CL-P1": "REFUTED",
-    "CL-P2": "UNCONFIRMED (EXPLORATORY)",
-    "CL-P3": "REFUTED"
-  }
+  "status": "SUPERSEDED",
+  "note": "Eight-model analysis used mixed pre/post-correction data and invalid TabPFN v2 results. See CURRENT_STATUS.md.",
+  "date": "2026-07-13"
 }

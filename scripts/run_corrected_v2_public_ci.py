@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -17,8 +18,9 @@ def main() -> int:
     if not verifier.is_file():
         raise FileNotFoundError(verifier)
     completed = subprocess.run(
-        [sys.executable, str(verifier), str(artifact), "--run-tests"],
+        [sys.executable, "-B", str(verifier), str(artifact), "--run-tests"],
         cwd=artifact,
+        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
     )
     return completed.returncode
 

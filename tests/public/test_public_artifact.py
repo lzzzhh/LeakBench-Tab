@@ -64,6 +64,10 @@ def test_expanded_scanner_rejects_composed_secret_and_private_endpoint(tmp_path)
 def test_actual_unpacked_artifact_reverifies_without_private_sources():
     if not (ROOT / "ARTIFACT_MANIFEST.json").is_file():
         pytest.skip("runs after the real public artifact has been unpacked")
+    before = {
+        path.relative_to(ROOT).as_posix()
+        for path in ROOT.rglob("*") if path.is_file()
+    }
     completed = subprocess.run(
         [
             sys.executable,
@@ -76,4 +80,13 @@ def test_actual_unpacked_artifact_reverifies_without_private_sources():
         text=True,
     )
     assert completed.returncode == 0, completed.stderr or completed.stdout
-    assert json.loads(completed.stdout)["status"] == "PASS"
+    assert (
+        json.loads(completed.stdout)["status"]
+        == "PARTIAL_DEEP_ARCHIVE_SCAN_SKIPPED"
+    )
+    after = {
+        path.relative_to(ROOT).as_posix()
+        for path in ROOT.rglob("*") if path.is_file()
+    }
+    assert after == before
+    assert not any("__pycache__" in path.split("/") for path in after)

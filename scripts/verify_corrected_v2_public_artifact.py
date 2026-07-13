@@ -4,16 +4,20 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path, PurePosixPath
 import re
 import shutil
 import stat
+import struct
 import subprocess
 import sys
 from typing import Any
 import zipfile
+
+sys.dont_write_bytecode = True
 
 import numpy as np
 
@@ -60,11 +64,20 @@ def verify_npz(path: Path, *, secret_patterns: Any, private_patterns: Any) -> No
     with zipfile.ZipFile(path) as archive:
         if not archive.infolist():
             raise ValueError(f"Empty NPZ archive: {path}")
+        scan_member(
+            b"\n".join(re.findall(rb"[\x09\x0a\x0d\x20-\x7e]{4,}", archive.comment)),
+            "<archive-comment>",
+        )
         if sum(member.file_size for member in archive.infolist()) > 1_000_000_000:
             raise ValueError(f"NPZ uncompressed payload exceeds 1 GB: {path}")
         for member in archive.infolist():
             member_path = safe_relative(member.filename)
             scan_member(member.filename.encode("utf-8"), "<member-name>")
+            metadata = member.comment + b"\n" + member.extra
+            scan_member(
+                b"\n".join(re.findall(rb"[\x09\x0a\x0d\x20-\x7e]{4,}", metadata)),
+                f"{member.filename}:<zip-metadata>",
+            )
             if member_path.parts[0] in {"", "."}:
                 raise ValueError(f"Unsafe NPZ member: {path}:{member.filename}")
             mode = member.external_attr >> 16
@@ -78,8 +91,31 @@ def verify_npz(path: Path, *, secret_patterns: Any, private_patterns: Any) -> No
             ):
                 raise ValueError(f"NPZ member exceeds safety limits: {path}:{member.filename}")
             # Numeric NPY payload bytes can coincidentally spell path patterns.
-            # They are parsed below; only string arrays are content-scanned.
-            if not member.filename.endswith(".npy"):
+            # Scan the structured NPY header, then parse arrays below; numeric
+            # payload bytes themselves are deliberately not searched.
+            if member.filename.lower().endswith(".npy"):
+                with archive.open(member) as handle:
+                    if handle.read(6) != b"\x93NUMPY":
+                        raise ValueError(f"Invalid NPY magic: {path}:{member.filename}")
+                    version = tuple(handle.read(2))
+                    length_size = 2 if version == (1, 0) else 4
+                    if version not in {(1, 0), (2, 0), (3, 0)}:
+                        raise ValueError(
+                            f"Unsupported NPY version: {path}:{member.filename}:{version}"
+                        )
+                    raw_length = handle.read(length_size)
+                    if len(raw_length) != length_size:
+                        raise ValueError(f"Truncated NPY header: {path}:{member.filename}")
+                    header_length = struct.unpack(
+                        "<H" if length_size == 2 else "<I", raw_length
+                    )[0]
+                    if not 0 < header_length <= 1_000_000:
+                        raise ValueError(f"Unsafe NPY header size: {path}:{member.filename}")
+                    header = handle.read(header_length)
+                    if len(header) != header_length:
+                        raise ValueError(f"Truncated NPY header: {path}:{member.filename}")
+                    scan_member(header, f"{member.filename}:<npy-header>")
+            else:
                 scan_member(archive.read(member), member.filename)
     try:
         with np.load(path, allow_pickle=False) as payload:
@@ -87,6 +123,10 @@ def verify_npz(path: Path, *, secret_patterns: Any, private_patterns: Any) -> No
                 array = np.asarray(payload[name])
                 if array.dtype.hasobject:
                     raise ValueError(f"object dtype is forbidden: {name}")
+                dtype_metadata = (
+                    repr(array.dtype.descr) if array.dtype.fields else str(array.dtype)
+                )
+                scan_member(dtype_metadata.encode("utf-8"), f"{name}.npy:<dtype>")
                 if array.dtype.kind in {"S", "U"}:
                     text = "\n".join(str(value) for value in array.reshape(-1))
                     scan_member(text.encode("utf-8"), f"{name}.npy")
@@ -186,12 +226,20 @@ def verify_artifact(root: Path, *, deep_archives: bool = True) -> dict[str, Any]
     manifest_path = root / "ARTIFACT_MANIFEST.json"
     if not root.is_dir() or not manifest_path.is_file():
         raise FileNotFoundError("ARTIFACT_MANIFEST.json is absent from the unpacked artifact")
-    if any(path.is_symlink() for path in root.rglob("*")):
-        raise ValueError("Public artifact contains a symlink")
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            raise ValueError("Public artifact contains a symlink")
+        if not path.is_file() and not path.is_dir():
+            raise ValueError(f"Public artifact contains a special filesystem node: {path}")
 
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
-    from scripts import build_corrected_v2_artifact as builder  # noqa: PLC0415
+    builder_path = root / "scripts/build_corrected_v2_artifact.py"
+    spec = importlib.util.spec_from_file_location(
+        "_leakbench_packaged_artifact_builder", builder_path
+    )
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load the packaged artifact policy: {builder_path}")
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
 
     manifest = load_json(manifest_path)
     if (
@@ -343,6 +391,11 @@ def verify_artifact(root: Path, *, deep_archives: bool = True) -> dict[str, Any]
         raise ValueError("Submission PDFs are absent from the artifact PDF set")
     pdftotext = find_poppler_tool("pdftotext")
     pdfinfo = find_poppler_tool("pdfinfo")
+    pdffonts = find_poppler_tool("pdffonts")
+    submission_entries = {
+        root / paper_build["outputs"][name]["path"]: paper_build["outputs"][name]
+        for name in ("main", "supplement")
+    }
     for pdf in pdfs:
         completed = subprocess.run(
             [pdftotext, str(pdf), "-"], capture_output=True, text=True,
@@ -361,13 +414,50 @@ def verify_artifact(root: Path, *, deep_archives: bool = True) -> dict[str, Any]
         )
         if metadata.returncode != 0:
             raise RuntimeError(f"pdfinfo failed for {pdf}: {metadata.stderr}")
+        info = {
+            key.strip(): value.strip()
+            for line in metadata.stdout.splitlines() if ":" in line
+            for key, value in [line.split(":", 1)]
+        }
+        if info.get("Encrypted") != "no":
+            raise ValueError(f"PDF is encrypted or has unknown encryption state: {pdf}")
+        font_text = ""
+        if pdf in submission_entries:
+            entry = submission_entries[pdf]
+            try:
+                observed_pages = int(info["Pages"])
+            except (KeyError, ValueError) as error:
+                raise ValueError(f"PDF page count is unavailable: {pdf}") from error
+            if (
+                observed_pages != entry["pages"]
+                or info.get("Page size") != "612 x 792 pts (letter)"
+            ):
+                raise ValueError(f"Submission PDF geometry/page attestation differs: {pdf}")
+            fonts = subprocess.run(
+                [pdffonts, str(pdf)], capture_output=True, text=True, timeout=60,
+            )
+            if fonts.returncode != 0:
+                raise RuntimeError(f"pdffonts failed for {pdf}: {fonts.stderr}")
+            font_text = fonts.stdout
+            font_lines = [line.strip() for line in font_text.splitlines() if line.strip()]
+            if len(font_lines) < 3:
+                raise ValueError(f"Submission PDF has no independently parsed fonts: {pdf}")
+            for line in font_lines[2:]:
+                columns = line.split()
+                if (
+                    len(columns) < 7
+                    or columns[-5].lower() != "yes"
+                    or re.search(r"\bType\s+3\b", line, re.IGNORECASE)
+                ):
+                    raise ValueError(f"Submission PDF font policy failed: {pdf}: {line}")
         encoded += b"\n" + metadata.stdout.encode("utf-8")
+        encoded += b"\n" + font_text.encode("utf-8")
         for rule, pattern in (*builder.SECRET_PATTERNS, *builder.PRIVATE_BYTE_PATTERNS):
             if pattern.search(encoded):
                 raise ValueError(f"PDF text matched private/secret rule {rule}: {pdf}")
 
     return {
-        "status": "PASS",
+        "status": "PASS" if deep_archives else "PARTIAL_DEEP_ARCHIVE_SCAN_SKIPPED",
         "artifact": str(root),
         "file_count": len(actual) + 1,
         "artifact_manifest_sha256": sha256(manifest_path),
@@ -386,23 +476,54 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-deep-archive-scan", action="store_true")
     parser.add_argument("--run-tests", action="store_true")
     args = parser.parse_args(argv)
+    if args.run_tests and args.skip_deep_archive_scan:
+        parser.error("--run-tests cannot be combined with --skip-deep-archive-scan")
     artifact = Path(args.artifact).resolve()
     result = verify_artifact(
         artifact, deep_archives=not args.skip_deep_archive_scan,
     )
     if args.run_tests:
+        before_files = {
+            path.relative_to(artifact).as_posix()
+            for path in artifact.rglob("*") if path.is_file()
+        }
         completed = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/public", "-q"],
+            [
+                sys.executable, "-B", "-m", "pytest", "-p", "no:cacheprovider",
+                "tests/public", "tests/test_statistical_amendment.py",
+                "tests/test_statistical_amendment_v2.py", "-q",
+            ],
             cwd=artifact, capture_output=True, text=True,
+            env={
+                **os.environ,
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+            },
         )
         if completed.returncode != 0:
             raise RuntimeError(
                 "Public artifact tests failed:\n"
                 + "\n".join((completed.stdout or completed.stderr).splitlines()[-20:])
             )
+        if not re.search(r"\b[1-9][0-9]* passed\b", completed.stdout):
+            raise RuntimeError("Public artifact tests did not execute a passing test")
+        after_files = {
+            path.relative_to(artifact).as_posix()
+            for path in artifact.rglob("*") if path.is_file()
+        }
+        if after_files != before_files:
+            raise RuntimeError(
+                "Public tests mutated the exact artifact tree: "
+                f"added={sorted(after_files - before_files)}, "
+                f"removed={sorted(before_files - after_files)}"
+            )
         result["public_tests"] = {
             "status": "PASS",
-            "command": f"{sys.executable} -m pytest tests/public -q",
+            "command": (
+                f"{sys.executable} -B -m pytest -p no:cacheprovider tests/public "
+                "tests/test_statistical_amendment.py "
+                "tests/test_statistical_amendment_v2.py -q"
+            ),
             "tail": "\n".join(completed.stdout.splitlines()[-3:]),
         }
     print(json.dumps(result, indent=2, sort_keys=True))
