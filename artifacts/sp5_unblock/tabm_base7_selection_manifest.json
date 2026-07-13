@@ -1,0 +1,35 @@
+{
+  "included_mechanisms": [
+    "M01",
+    "M02",
+    "M03",
+    "M06",
+    "M07",
+    "M09",
+    "M11"
+  ],
+  "excluded_from_confirmatory_run": {
+    "M04": "SP4_FROZEN_EXACT_REPLACEMENT",
+    "M05": "SP4_FROZEN_EXACT_REPLACEMENT",
+    "M08": "SP4_FROZEN_EXACT_REPLACEMENT",
+    "M10": "M10_AMENDMENT_EXACT_REPLACEMENT"
+  },
+  "strengths": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5"
+  ],
+  "seeds": [
+    13,
+    42,
+    2026,
+    3407,
+    7777
+  ],
+  "dataset_count": 20,
+  "model": "tabm",
+  "device": "cuda",
+  "expected_cells": 3500
+}
