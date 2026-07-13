@@ -1,0 +1,8 @@
+source_path,source_type,mechanisms,models,result_hash,classification,notes
+results/corrected_v2/core_cpu_cells.csv,core_cpu,M01-M11,"lr,rf,lightgbm,catboost",aa17514472a83a76,FORMAL_ACTIVE_PARTIAL,22000 cells; clean_auc==strict for non-amended; M04/M05/M08/M10 to be replaced
+results/structured_prior_replacement_v1/model_cells.csv,sp_replacement,"M04,M05,M08","lr,rf,lightgbm,catboost,tabm",e3af534bb626cec1,FORMAL_ACTIVE,SP4 frozen 7500; exact_replacement for M04/M05/M08
+results/corrected_v2/m10_amendment_confirmatory/cpu_cells.csv,m10_amendment,M10,"lr,rf,lightgbm,catboost",615e9d847f083c88,FORMAL_ACTIVE_PARTIAL,2000 CPU cells; replaces core M10 clean->strict; NO TabM
+results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_005228.csv,tabm_confirmatory,M01-M11,tabm,fe8c9efb02b97715,INCOMPLETE,CHECKPOINT ONLY 5228/5500 (272 missing); no finalized file; ~475/mech vs 500
+results/ce2r_neural.csv,legacy_neural,M01-M11,5 models(old),0a61c1986820d4bd,SUPERSEDED_EXCLUDED,"legacy pre-corrected_v2 (2970 rows, 3 seeds); superseded"
+archive/invalid_interim/m08/m08_rerun.csv,interim,M08,4 models,de07c7c233b0e21b,INTERIM_EXCLUDED,interim entity-mean M08
+archive/invalid_interim/m08/m08_neural.csv,interim,M08,"ModernNCA,TabR",0620ec276cb807dc,INTERIM_EXCLUDED,interim entity-mean M08 GPU

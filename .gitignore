@@ -8,3 +8,6 @@ data/
 results/corrected_v2/
 results/ce2r_neural/
 paper/aaai27/tmp/
+
+# SP5-A: excluded code-drift checkpoints (audit record kept via manifest+EXCLUDED.md)
+artifacts/archive/tabm_confirmatory_code_drift/checkpoints/

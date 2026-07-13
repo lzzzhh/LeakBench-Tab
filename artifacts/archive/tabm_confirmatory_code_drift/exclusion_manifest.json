@@ -1,0 +1,192 @@
+{
+  "classification": "CODE_DRIFT_EXCLUDED",
+  "reproducible": false,
+  "claim_eligible": false,
+  "stored_code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+  "current_committed_code_hash": "289e590d03b8ebe5",
+  "reason": "checkpoint produced by unavailable runner version; code_hash mismatch; run_id embeds code_hash; not reproducible from current repo",
+  "max_checkpoint_rows": 5228,
+  "target_cells": 5500,
+  "checkpoints": [
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_000126.csv",
+      "sha256": "de18e867b6609bdef06f98dd21e0e80cf33b34635724515ab38880554c538e20",
+      "rows": 126,
+      "unique_run_id": 126,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783915849.9439795
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_000287.csv",
+      "sha256": "fb0f6b49752323324df5e2ecf25fcdd06114557d3ff46ee1a8e1e30d29b2f060",
+      "rows": 287,
+      "unique_run_id": 287,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783916128.9492657
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_000558.csv",
+      "sha256": "dc3ae9f9874822f955e870a61748c364918f17e48221b0a89e0ac6b0fc06f81d",
+      "rows": 558,
+      "unique_run_id": 558,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783916696.0492158
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_000833.csv",
+      "sha256": "a019875180a36cc3ce150eb5c4767f1a5dd81499b83e53bceb3ed4a404769132",
+      "rows": 833,
+      "unique_run_id": 833,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783917270.6701984
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_001109.csv",
+      "sha256": "8d43c17abec89aaf779c5e472194b4f3b47ff33f5399672bb2cf59784c5a334b",
+      "rows": 1109,
+      "unique_run_id": 1109,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783918004.0305574
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_001379.csv",
+      "sha256": "e14c12bf176a3fbdec1b2fd019c9ac71814cb5ef587a88b73cc98be3b524bb18",
+      "rows": 1379,
+      "unique_run_id": 1379,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783918654.0163288
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_001659.csv",
+      "sha256": "89d7a83581c659a16a01521aafc5464eb23f687085ab378707ed13e206df98d2",
+      "rows": 1659,
+      "unique_run_id": 1659,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783919257.0618193
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_001936.csv",
+      "sha256": "81d8afb6f4c3c30f9f8eb7f0e95ea73f9bd0b2af9837613d7851803d903e2e1d",
+      "rows": 1936,
+      "unique_run_id": 1936,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783919915.2919595
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_002213.csv",
+      "sha256": "52fccb2f7d70ec57bb016d1dc5bfd441343a82aeaf8f2be984255908ee020c21",
+      "rows": 2213,
+      "unique_run_id": 2213,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783920617.0447197
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_002482.csv",
+      "sha256": "521dc9c0020fae531b064bcc425cd79e002f21c4657488da5fafc377a30c0c91",
+      "rows": 2482,
+      "unique_run_id": 2482,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783921322.5649168
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_002759.csv",
+      "sha256": "3243e1e50f691800bce86ad3bfd93fcec28415843b73290ab386064cb9c4c7c6",
+      "rows": 2759,
+      "unique_run_id": 2759,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783922016.4862993
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_003029.csv",
+      "sha256": "703ffd4e656f0cd3f73cfd9087c6305045506a3dd983c687d992e537e73f2736",
+      "rows": 3029,
+      "unique_run_id": 3029,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783922608.2316713
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_003302.csv",
+      "sha256": "56513d20a91ee4bc9d917a4db6cf92b0025ff90717bed16d24e51bac4bb31ca8",
+      "rows": 3302,
+      "unique_run_id": 3302,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783923479.6647952
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_003584.csv",
+      "sha256": "f48de9cdac2a63f84dd05045debc05f3f4c449da426d1458444e0996be0f7f3b",
+      "rows": 3584,
+      "unique_run_id": 3584,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783924259.7980921
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_003856.csv",
+      "sha256": "d8b8c854ae7cab2ca16e4f4645484ad7eb804c1543b3887ae535aa8a800ad01c",
+      "rows": 3856,
+      "unique_run_id": 3856,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783924968.3609931
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_004127.csv",
+      "sha256": "fc96cd7f5915df8a5f310c3460c1a133a3e064bcebf8f467479ad4dd3aec4f77",
+      "rows": 4127,
+      "unique_run_id": 4127,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783925748.688909
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_004409.csv",
+      "sha256": "44cf0e553c5bd203f8a167924dd2efa4023e380302725e0831ce145cf351e603",
+      "rows": 4409,
+      "unique_run_id": 4409,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783926377.6546469
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_004688.csv",
+      "sha256": "84575f3a8452e7e70c925de4d9ad49a7f18e771049549b0a18f2809c3dc33c82",
+      "rows": 4688,
+      "unique_run_id": 4688,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783926870.7412944
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_004954.csv",
+      "sha256": "65f78f7b91293e0f9de9c6f190d280d1a0bf3faa69857c2e240b7c1fbd48a778",
+      "rows": 4954,
+      "unique_run_id": 4954,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783927531.174148
+    },
+    {
+      "file": "results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_005228.csv",
+      "sha256": "fe8c9efb02b97715dde3fe8be4dd05df1b5ce1d3fc32626eed0b130353f9e280",
+      "rows": 5228,
+      "unique_run_id": 5228,
+      "code_hash": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
+      "config_hash": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "mtime": 1783928505.103906
+    }
+  ]
+}

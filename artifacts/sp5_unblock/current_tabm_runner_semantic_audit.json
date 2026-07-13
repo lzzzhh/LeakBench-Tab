@@ -1,0 +1,31 @@
+{
+  "gate": "SP5-A1_current_runner_semantic_audit",
+  "runner_path": "experiments/leakbench/run_corrected_tabm.py",
+  "runner_sha256": "4201ef3c4fa5e5703b6ea675cd5258a70148572bc116d70453f4db801a214292",
+  "config": "configs/paper/corrected_v2.yaml",
+  "config_sha256": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+  "imported_source_hashes": {
+    "src/leakbench/datasets.py": "e09970695c25034d023902f1593dc8ecff3ce3d6ceb113da7d36f55a7547de23",
+    "src/leakbench/mechanisms/__init__.py": "0f1c605ea4afeeb70cb8fa300f58f97c9e347762f6943b3cd93a21f500e9227f",
+    "src/leakbench/models/official_tabm.py": "d1e9ff88a59ef937afbf8d3edc7e5ee0ce6d2169ad70a99ba2edfa91ea8c0f1b"
+  },
+  "invariants_verified": {
+    "strict_view_equals_base_X_for_base7": true,
+    "clean_auc_is_mask_strict_auc": true,
+    "paired_harm_definition": "full_auc - clean_auc == full_auc - strict_auc (base-7)",
+    "split_frozen": true,
+    "cpu_tabm_split_hash_parity": "28/28 match",
+    "split_invariance_guard_present": true,
+    "run_id_includes_code_hash": true,
+    "cuda_fail_closed": true,
+    "no_cpu_mps_fallback": true
+  },
+  "risk_scan": {
+    "runtime_injection": "YES - base LeakBenchInjector, correct impl for base-7 mechanisms",
+    "target_leakage": "none beyond mechanism-designed leak",
+    "silent_dataset_substitution": "none",
+    "automatic_device_fallback": "none (fails closed on cuda unavailable)"
+  },
+  "classification": "PROTOCOL_SEMANTICS_MATCH",
+  "note": "base-7 only (M01,M02,M03,M06,M07,M09,M11). M04/M05/M08 via SP4, M10 via amendment."
+}
