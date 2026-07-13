@@ -1,0 +1,29 @@
+{
+  "gate": "SP5_M10-A_amendment_runner_audit",
+  "runner_path": "experiments/leakbench/run_m10_amendment.py",
+  "runner_sha256": "f14b2d78db9835106ead0287ae16dbcc4021e2dce5cdcad8de9450483335408f",
+  "amendment_config": "configs/paper/m10_amendment_v1.yaml",
+  "amendment_config_sha256": "1a5ee88cd88fdcddcc1929637c2efd05e74135100b7fad52828d463fe95725b4",
+  "amendment_config_matches_cpu": true,
+  "bundle": "results/corrected_v2/task_bundles/task_manifest.csv",
+  "bundle_namespace": "confirmatory",
+  "tabm_supported": true,
+  "tabm_adapter": "src/leakbench/models/official_tabm.py",
+  "tabm_adapter_sha256": "d1e9ff88a59ef937afbf8d3edc7e5ee0ce6d2169ad70a99ba2edfa91ea8c0f1b",
+  "tabm_adapter_matches_frozen": true,
+  "cuda_supported": true,
+  "input_mode": "immutable_npz_bundle + SHA256 + strict/full/mask hash verify",
+  "strict_view": "task.X[:, ~task.leakage_mask] (retains legitimate injected duplicate)",
+  "paired_harm": "full_auc - strict_auc",
+  "replacement_key": [
+    "dataset_index",
+    "mechanism",
+    "strength",
+    "model",
+    "seed"
+  ],
+  "expected_tabm_cells": 500,
+  "note_on_2000": "Directive said 2000; that is the CPU 4-model figure. Frozen config cartesian product for TabM alone = 1 model x 20 ds x 5 str x 5 seed = 500. Per Section 8.1 the frozen config is the sole source of truth.",
+  "classification": "FROZEN_COMPATIBLE",
+  "runner_modification_needed": false
+}

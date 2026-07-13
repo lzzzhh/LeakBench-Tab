@@ -1,0 +1,31 @@
+{
+  "gate": "SP5_M10-B_amendment_tabm",
+  "mechanism": "M10",
+  "model": "tabm",
+  "device": "cuda",
+  "expected_cells": 500,
+  "completed": 500,
+  "success": 500,
+  "failure": 0,
+  "duplicates": 0,
+  "non_finite": 0,
+  "integrity_verified": 500,
+  "cpu_tabm_parity": {
+    "strict_view_hash": "100%",
+    "full_view_hash": "100%",
+    "task_hash": "100%",
+    "split_hash": "100%",
+    "matched_keys": 500
+  },
+  "amendment_config_sha256": "1a5ee88cd88fdcddcc1929637c2efd05e74135100b7fad52828d463fe95725b4",
+  "bundle": "results/corrected_v2/task_bundles/task_manifest.csv",
+  "paired_harm_mean": 0.21042417689497006,
+  "metric": "full_auc - strict_auc",
+  "ledger_sha256": "21284329ef307504f5a51f83e82b3cd2337a28beddf3a4b0dc22af6ec7f4d998",
+  "env": {
+    "wsl": "Ubuntu 6.18",
+    "gpu": "RTX 4060",
+    "torch": "2.5.1+cu121",
+    "tabm": "0.0.3"
+  }
+}
