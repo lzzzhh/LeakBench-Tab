@@ -1,0 +1,162 @@
+{
+  "gate": "SP0_protocol_integrity",
+  "protocol_status": "FROZEN_BEFORE_ANY_MODEL_RUN",
+  "models_executed": 0,
+  "model_results_observed": false,
+  "all_frozen_files_match": true,
+  "frozen_file_count": 14,
+  "files": {
+    "configs/paper/independent_replication_v1.yaml": {
+      "expected_sha256": "5fc1d35db43059142c6ff736fbbcfbce828dbee92d599546b55c3f4b2b646cef",
+      "actual_sha256": "5fc1d35db43059142c6ff736fbbcfbce828dbee92d599546b55c3f4b2b646cef",
+      "hash_match": true,
+      "size_match": true
+    },
+    "configs/paper/structured_prior_replacement_v1.yaml": {
+      "expected_sha256": "efc01fc1f21b12e9a32b010e6bd8f5bf355e7c69e68b30e1aa463d9ed792bd96",
+      "actual_sha256": "efc01fc1f21b12e9a32b010e6bd8f5bf355e7c69e68b30e1aa463d9ed792bd96",
+      "hash_match": true,
+      "size_match": true
+    },
+    "experiments/leakbench/run_structured_prior_v1_bundle.py": {
+      "expected_sha256": "a5b1d416fc75f49b75d24dee05c2b49ff5b42268ec26298a6c8096784ada9ec4",
+      "actual_sha256": "a5b1d416fc75f49b75d24dee05c2b49ff5b42268ec26298a6c8096784ada9ec4",
+      "hash_match": true,
+      "size_match": true
+    },
+    "protocols/structured_prior_v1/independent_replication_v1_tasks.csv": {
+      "expected_sha256": "057a6a2d9c2e58f0255b018f02fde8fdc40cdbc0372f7c5b032c2c8d74b95639",
+      "actual_sha256": "057a6a2d9c2e58f0255b018f02fde8fdc40cdbc0372f7c5b032c2c8d74b95639",
+      "hash_match": true,
+      "size_match": true
+    },
+    "protocols/structured_prior_v1/inference_protocol_v1.json": {
+      "expected_sha256": "6368d95de049146f72c50690766bdc56cc4ac9c4ea8883c93253b97fa1b23200",
+      "actual_sha256": "6368d95de049146f72c50690766bdc56cc4ac9c4ea8883c93253b97fa1b23200",
+      "hash_match": true,
+      "size_match": true
+    },
+    "protocols/structured_prior_v1/structured_prior_replacement_v1_tasks.csv": {
+      "expected_sha256": "7ded0fd882b551c424a711cc9bbba47d927be4eda8cfd8ec605d81d6806dba58",
+      "actual_sha256": "7ded0fd882b551c424a711cc9bbba47d927be4eda8cfd8ec605d81d6806dba58",
+      "hash_match": true,
+      "size_match": true
+    },
+    "scripts/export_structured_prior_v1_tasks.py": {
+      "expected_sha256": "62cb0bd003be2e57aecc48ab4fded8e9405310806bbd2e0044d8598f7796208b",
+      "actual_sha256": "62cb0bd003be2e57aecc48ab4fded8e9405310806bbd2e0044d8598f7796208b",
+      "hash_match": true,
+      "size_match": true
+    },
+    "scripts/freeze_structured_prior_v1.py": {
+      "expected_sha256": "0e6ce100e0452d237b2132f3fc83a8d417438652e27af4a9d3f97986d5ceb7df",
+      "actual_sha256": "0e6ce100e0452d237b2132f3fc83a8d417438652e27af4a9d3f97986d5ceb7df",
+      "hash_match": true,
+      "size_match": true
+    },
+    "src/leakbench/datasets.py": {
+      "expected_sha256": "e09970695c25034d023902f1593dc8ecff3ce3d6ceb113da7d36f55a7547de23",
+      "actual_sha256": "e09970695c25034d023902f1593dc8ecff3ce3d6ceb113da7d36f55a7547de23",
+      "hash_match": true,
+      "size_match": true
+    },
+    "src/leakbench/mechanisms/__init__.py": {
+      "expected_sha256": "0f1c605ea4afeeb70cb8fa300f58f97c9e347762f6943b3cd93a21f500e9227f",
+      "actual_sha256": "0f1c605ea4afeeb70cb8fa300f58f97c9e347762f6943b3cd93a21f500e9227f",
+      "hash_match": true,
+      "size_match": true
+    },
+    "src/leakbench/mechanisms/structured_prior_v1.py": {
+      "expected_sha256": "533cc54232e115a574706cca623732a04d771b2c47f741ce8c4fe1ac2337d8cc",
+      "actual_sha256": "533cc54232e115a574706cca623732a04d771b2c47f741ce8c4fe1ac2337d8cc",
+      "hash_match": true,
+      "size_match": true
+    },
+    "src/leakbench/models/core_models.py": {
+      "expected_sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e",
+      "actual_sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e",
+      "hash_match": true,
+      "size_match": true
+    },
+    "src/leakbench/models/official_tabm.py": {
+      "expected_sha256": "d1e9ff88a59ef937afbf8d3edc7e5ee0ce6d2169ad70a99ba2edfa91ea8c0f1b",
+      "actual_sha256": "d1e9ff88a59ef937afbf8d3edc7e5ee0ce6d2169ad70a99ba2edfa91ea8c0f1b",
+      "hash_match": true,
+      "size_match": true
+    },
+    "src/leakbench/structured_prior_protocol.py": {
+      "expected_sha256": "4ab208df147b37db0d8e5dabc24021407ed8f5f797504d8798cd84dbbc94bc96",
+      "actual_sha256": "4ab208df147b37db0d8e5dabc24021407ed8f5f797504d8798cd84dbbc94bc96",
+      "hash_match": true,
+      "size_match": true
+    }
+  },
+  "key_hashes": {
+    "inference_protocol_sha256": "6368d95de049146f72c50690766bdc56cc4ac9c4ea8883c93253b97fa1b23200",
+    "task_plan_sha256": "7ded0fd882b551c424a711cc9bbba47d927be4eda8cfd8ec605d81d6806dba58",
+    "injector_sha256": "533cc54232e115a574706cca623732a04d771b2c47f741ce8c4fe1ac2337d8cc",
+    "runner_sha256": "a5b1d416fc75f49b75d24dee05c2b49ff5b42268ec26298a6c8096784ada9ec4",
+    "core_models_sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e",
+    "official_tabm_sha256": "d1e9ff88a59ef937afbf8d3edc7e5ee0ce6d2169ad70a99ba2edfa91ea8c0f1b",
+    "protocol_helper_sha256": "4ab208df147b37db0d8e5dabc24021407ed8f5f797504d8798cd84dbbc94bc96",
+    "config_sha256": "efc01fc1f21b12e9a32b010e6bd8f5bf355e7c69e68b30e1aa463d9ed792bd96"
+  },
+  "task_plan": {
+    "total_variants": 1500,
+    "unique_variant_ids": 1500,
+    "duplicate_variant_ids": 0,
+    "datasets": 20,
+    "mechanisms": [
+      "M04",
+      "M05",
+      "M08"
+    ],
+    "strengths": [
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5"
+    ],
+    "seeds": [
+      13,
+      42,
+      2026,
+      3407,
+      7777
+    ],
+    "archetypes": [
+      "drifting",
+      "interaction",
+      "linear",
+      "nonlinear",
+      "sparse"
+    ],
+    "model_ids": [
+      "lr|rf|catboost|lightgbm|tabm"
+    ],
+    "grid_product": 1500,
+    "grid_matches_len": true
+  },
+  "config_cross_check": {
+    "expected_task_variants": 1500,
+    "expected_model_cells": 7500,
+    "expected_cpu_model_cells": 6000,
+    "expected_tabm_model_cells": 1500,
+    "core_models": [
+      "lr",
+      "rf",
+      "catboost",
+      "lightgbm",
+      "tabm"
+    ],
+    "variants_match": true,
+    "mechanisms_match": true,
+    "seeds_match": true,
+    "datasets_match": true
+  },
+  "strict_policy": "task.X[:, ~task.leakage_mask]",
+  "full_policy": "task.X",
+  "paired_harm": "full_auc_minus_strict_auc",
+  "verdict": "READY_TO_RUN"
+}
