@@ -1,0 +1,43 @@
+{
+  "gate": "SP5-A5_base7_formal_run",
+  "model": "tabm",
+  "device": "cuda",
+  "freeze_commit": "915af85",
+  "code_hash": "289e590d03b8ebe5",
+  "included_mechanisms": [
+    "M01",
+    "M02",
+    "M03",
+    "M06",
+    "M07",
+    "M09",
+    "M11"
+  ],
+  "expected_cells": 3500,
+  "completed": 3500,
+  "success": 3500,
+  "failure": 0,
+  "duplicates": 0,
+  "non_finite": 0,
+  "cpu_mps_fallback": 0,
+  "cells_per_mechanism": {
+    "M01": 500,
+    "M02": 500,
+    "M03": 500,
+    "M06": 500,
+    "M07": 500,
+    "M09": 500,
+    "M11": 500
+  },
+  "contains_replacement_mechs": false,
+  "ledger_sha256": "384c30452008c03fcfb2e7d362dfc21b5d64958d993a0b60409db4b2e2217765",
+  "env": {
+    "host": "LAPTOP-5HGON8HL",
+    "wsl": "Ubuntu 6.18-microsoft-standard-WSL2",
+    "gpu": "RTX 4060 Laptop",
+    "driver": "560.94",
+    "torch": "2.5.1+cu121",
+    "tabm": "0.0.3",
+    "python": "3.12.3"
+  }
+}
