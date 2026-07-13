@@ -1,0 +1,12 @@
+mechanism,formal_source,cell_count,multiple_sources,claim_eligible
+M01,BASE7_V2,500,False,True
+M02,BASE7_V2,500,False,True
+M03,BASE7_V2,500,False,True
+M04,SP4_FROZEN,500,False,True
+M05,SP4_FROZEN,500,False,True
+M06,BASE7_V2,500,False,True
+M07,BASE7_V2,500,False,True
+M08,SP4_FROZEN,500,False,True
+M09,BASE7_V2,500,False,True
+M10,M10_AMENDMENT,500,False,True
+M11,BASE7_V2,500,False,True

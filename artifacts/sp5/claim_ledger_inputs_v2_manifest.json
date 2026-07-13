@@ -1,0 +1,49 @@
+{
+  "gate": "SP5-F_evidence_pool",
+  "total_cells": 27500,
+  "expected": 27500,
+  "models": [
+    "catboost",
+    "lightgbm",
+    "lr",
+    "rf",
+    "tabm"
+  ],
+  "mechanisms": [
+    "M01",
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M08",
+    "M09",
+    "M10",
+    "M11"
+  ],
+  "duplicate_primary_keys": 0,
+  "by_source": {
+    "core_cpu": 14000,
+    "sp4_frozen": 7500,
+    "base7_tabm": 3500,
+    "m10_amendment": 2500
+  },
+  "replacement": {
+    "M04_M05_M08": 7500,
+    "M10": 2500,
+    "base_core_cpu": 14000,
+    "base7_tabm": 3500
+  },
+  "cells_not_500": [],
+  "complete": true,
+  "csv_sha256": "3450e1895923403f4b08f8670e1a16f40281154c0a922d9d231333ed5386733c",
+  "parquet_sha256": "9ed1fe5fce9b53d7d9fc9f6da5fc0010c7c3870afddcb9e4dc57d5a32fce9cf5",
+  "source_hashes": {
+    "core_cpu": "aa17514472a83a76b822e9152ab6258e0c1fd3faf6a2868ddb76d4e62dd6d551",
+    "base7_tabm": "384c30452008c03fcfb2e7d362dfc21b5d64958d993a0b60409db4b2e2217765",
+    "sp4": "e3af534bb626cec1668a2c28793e3745ba2bebb69f1e70c673af6109aba2b1f9",
+    "m10_cpu": "615e9d847f083c884d2a7e6ba6dbf099b0bbcd9559da90d35cbec2ec711b212b",
+    "m10_tabm": "21284329ef307504f5a51f83e82b3cd2337a28beddf3a4b0dc22af6ec7f4d998"
+  }
+}
