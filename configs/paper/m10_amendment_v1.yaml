@@ -1,0 +1,46 @@
+amendment:
+  version: m10_strict_mask_v1
+  mechanism: M10
+  purpose: replace_base_clean_with_mask_derived_strict_view
+  strict_policy: "task.X[:, ~task.leakage_mask]"
+  full_policy: "task.X"
+  clean_column_semantics: strict_policy_auc
+  paired_harm_semantics: full_auc_minus_strict_auc
+  confirmatory_namespace: confirmatory
+  pilot_namespace: pilot
+  base_config_path: configs/paper/corrected_v2.yaml
+  base_config_sha256: 71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17
+  confirmatory_task_manifest_path: results/corrected_v2/task_bundles/task_manifest.csv
+  confirmatory_task_manifest_sha256: 996e44837de267d3bfc8918a227f29b5ca823b713814438e2e560a6a2a3bae35
+  confirmatory_bundle_summary_path: results/corrected_v2/task_bundles/bundle_summary.json
+  confirmatory_bundle_summary_sha256: c0b78324c9de071b888ca1dc21c6819fa8f749ab7cd7f1cb6b624be883fa846c
+  source_pilot_task_manifest_path: results/corrected_v2/diagnostic_pilot_tasks/task_manifest.csv
+  source_pilot_task_manifest_sha256: 0de4eb738e9473551d36735d126ae7bebb9232f0512f331905f157950df26bf1
+  source_pilot_bundle_summary_path: results/corrected_v2/diagnostic_pilot_tasks/bundle_summary.json
+  source_pilot_bundle_summary_sha256: 5805c30802c8c622e75a8c3b821e1b20bd04c9b5117559d8b55311430ee05db8
+  pilot_task_manifest_path: results/corrected_v2/m10_amendment_pilot_tasks/task_manifest.csv
+  pilot_cpu_output_path: results/corrected_v2/m10_amendment_pilot/cpu_cells.csv
+  cpu_models: [lr, rf, catboost, lightgbm]
+  official_model: tabm
+  strengths: [S1, S2, S3, S4, S5]
+  seeds: [13, 42, 2026, 3407, 7777]
+  expected_pilot_tasks: 45
+  expected_pilot_cpu_cells: 180
+  expected_confirmatory_tasks: 500
+  expected_confirmatory_cpu_cells: 2000
+  expected_confirmatory_tabm_cells: 500
+  expected_replacement_cells: 2500
+  required_m10_injected_features: 2
+  required_contamination_features: 1
+  required_legitimate_injected_features: 1
+tabm:
+  required_version: 0.0.3
+  device: cuda
+  k: 32
+  learning_rate: 0.003
+  weight_decay: 0.0001
+  max_epochs: 200
+  batch_size: 256
+  inference_batch_size: 1024
+  patience: 20
+  min_delta: 0.00001

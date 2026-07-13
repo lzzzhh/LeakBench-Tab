@@ -1,0 +1,193 @@
+{
+  "frozen_at": "2026-07-13T10:04:22.816887",
+  "files": {
+    "src/graph/risk_graph.py": {
+      "sha256": "3728d08867e34b0121b09e11b23abecfd2779c47e8d81593dec720c6e95c0ff0",
+      "size": 2277
+    },
+    "src/leakbench/__init__.py": {
+      "sha256": "74ab2de2fed25ec9b9ae191240a5e90d8a6babbe9319bca4e44df57721e3362c",
+      "size": 496
+    },
+    "src/leakbench/capacity/__init__.py": {
+      "sha256": "156eb1d99aa6625c72fc602a821521de5578ce410d5dc055b2014a21803cf35b",
+      "size": 1777
+    },
+    "src/leakbench/cli/plan.py": {
+      "sha256": "e40a75a4f19fb191c214d02cd62d40b3e02da34dbc8a591fe2cbdb0839ff1b91",
+      "size": 1995
+    },
+    "src/leakbench/cli/worker.py": {
+      "sha256": "8ac44c90945c7aa0e4377b9665615ad697d9a5ee11ddbd0ef3047a81c6394e49",
+      "size": 15
+    },
+    "src/leakbench/diagnostics/__init__.py": {
+      "sha256": "e45673ed322c222f30ecde926f0327fdfca32b50f38d0f79b8632b23a5f4926a",
+      "size": 4812
+    },
+    "src/leakbench/governance/__init__.py": {
+      "sha256": "fc9001ffe315dcf53c1cd63a62d56a48a7676424de3c51cc4176ab6bf527b911",
+      "size": 4568
+    },
+    "src/leakbench/mechanisms/__init__.py": {
+      "sha256": "ebcf12949ba520601d4de0ceb0dfaf6d2e45a26fed5f20484caa2ebb08f01ac2",
+      "size": 7342
+    },
+    "src/leakbench/models/__init__.py": {
+      "sha256": "8998c1d0f8711ed5f1fd35c7d9ff35ffd539a06c53356ab021598f4740884ff0",
+      "size": 3254
+    },
+    "src/leakbench/models/modern_models.py": {
+      "sha256": "df7f6be3a36f9abd3d4812c6550006c7afb06f17aed2cd5c59d04d9610ab01c8",
+      "size": 5045
+    },
+    "configs/leakbench/audit_template.yaml": {
+      "sha256": "792917cfe4f51017dfb172d92bfa019747fb9912e979aab5ae80029ce2e46ded",
+      "size": 548
+    },
+    "configs/leakbench/mechanism_registry.yaml": {
+      "sha256": "d465c9424e3e47ac473b3309815a3c38785df4930c23469801b66a7631bf7b4f",
+      "size": 4091
+    },
+    "configs/paper/full_matrix.yaml": {
+      "sha256": "7bf28d544b2ccc7a81c459c3ee9d9f6029b87fbec76a0bac85ca26a9c8e70053",
+      "size": 430
+    },
+    "benchmark_v2/__init__.py": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "benchmark_v2/baselines/__init__.py": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "benchmark_v2/core/__init__.py": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "benchmark_v2/core/models.py": {
+      "sha256": "4453c0f39931064ab471fa862940ce7693b8f4beac93a7ce89bcc41e54fab66d",
+      "size": 2033
+    },
+    "benchmark_v2/datasets/__init__.py": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "benchmark_v2/datasets/adapters.py": {
+      "sha256": "89833bf72b36850f9ae2cf780dd8fa2faf612524a2cdbea813ca519472f746a7",
+      "size": 4380
+    },
+    "benchmark_v2/datasets/confirmatory_adapters.py": {
+      "sha256": "0bc83fcbea65c5438d9de490191aee151cfa3eed148562e628e9b2fedddc0e4f",
+      "size": 6131
+    },
+    "benchmark_v2/evaluation/__init__.py": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "benchmark_v2/information_regimes/__init__.py": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "benchmark_v2/information_regimes/controllers.py": {
+      "sha256": "75dcb4a205211798f2a67a05ab6f12ed28e07c68145bf06b01cf23d52f9be797",
+      "size": 2431
+    },
+    "benchmark_v2/models/__init__.py": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "benchmark_v2/models/downstream.py": {
+      "sha256": "5b01d77ad532afd2fa32fc426c069db19756ea832c000880a1b5c8a8e5df5555",
+      "size": 3541
+    },
+    "benchmark_v2/models/tabm.py": {
+      "sha256": "6148ff10c5b6386ae4c7033bce5a037fc11df452752cf0d0945c9daa70e31689",
+      "size": 2854
+    },
+    "benchmark_v2/policies/__init__.py": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "benchmark_v2/policies/audit.py": {
+      "sha256": "87b9f2627875995401f32bbef7aa686e4e1558d4fc7fdf58765facde1828fe46",
+      "size": 1789
+    },
+    "experiments/leakbench/consolidate_three_axis.py": {
+      "sha256": "cfacf0a0997de3141399d98f602e24930e092818bc02af6722381651c64fcc3c",
+      "size": 12252
+    },
+    "experiments/leakbench/run_meta_tier.py": {
+      "sha256": "3b283a761cba1bab52d5985aa30bc7a26e308fc73a6a2c4cd0d8819d6d915bd7",
+      "size": 18522
+    },
+    "experiments/leakbench/run_operational_meta.py": {
+      "sha256": "2bdad59ee6bfbaf20f0aecdc2aedd6ff30297f1115cfed07ab27e9d051b19c34",
+      "size": 14544
+    },
+    "experiments/leakbench/run_phase14.py": {
+      "sha256": "843f32ea4df3754cc8b71aaa5032d345e7c4c6fedc29a2288951ac84551cbb53",
+      "size": 12585
+    },
+    "results/audits/global_experiment_ledger.csv": {
+      "sha256": "381458a74a88fc8a4d93fb3a0341a09347bf8cd5193fd97c772472769d392213",
+      "size": 460
+    },
+    "results/leakbench/catboost_core_matrix.csv": {
+      "sha256": "6b44436d6d85a28c20c554d01bb804b1fe3105997fff73a29454d0ab6c4db028",
+      "size": 80178
+    },
+    "results/leakbench/governance_matrix.csv": {
+      "sha256": "078be518d52570f984737488ade582e6ef747ee1af5f2e835c72224bde452889",
+      "size": 72878
+    },
+    "results/leakbench/governance_v2.csv": {
+      "sha256": "74479f0e92da7bfd3616cd8113f6c825adeadb3e4dc135ffd5168970a741022f",
+      "size": 47215
+    },
+    "results/leakbench/lightgbm_core_matrix.csv": {
+      "sha256": "d6184975ce1d86c2211b6de2b35a0ef7760bc947a0d8fcdc60b5a43573f2d023",
+      "size": 75156
+    },
+    "results/leakbench/profiles/mechanism_profiles.csv": {
+      "sha256": "80550006bb1ad7fa5aa5cf6e5a9adfea4c027d6e2fac0f5e6b378ccacb3292d9",
+      "size": 972
+    },
+    "results/leakbench/profiles/mechanism_profiles_v2.csv": {
+      "sha256": "29c3bd376830d300a73c23216f696e0af7e3fbba58424e7450cef15dc57ef425",
+      "size": 661
+    },
+    "results/leakbench/structured_rescue/structured_rescue_matrix.csv": {
+      "sha256": "c2d9ed342c7ac53a1914f4424be16fcd78850eec5a2d9125689df18438114b6f",
+      "size": 30
+    },
+    "results/leakbench/tier2_modern_audit.csv": {
+      "sha256": "3d0c07acccf7d9dbbe44ba9cfbd0a2189884db105fb55cb32f42d792a527ec15",
+      "size": 122789
+    },
+    "results/leakbench_meta/context/meta_context_results.csv": {
+      "sha256": "0b0b5a4cd4eb37bd07e8250bc4b984e2350e5505bf418710cda32dd43f8ce00b",
+      "size": 34976
+    },
+    "results/leakbench_meta/governance/meta_governance_results.csv": {
+      "sha256": "58925d2196d11e9b3c07a445382b0bedb92e0ac7b344923e25bc0228479df76a",
+      "size": 155109
+    },
+    "results/leakbench_meta_v2_operational/context/operational_context.csv": {
+      "sha256": "584ef93b14fb7863a692e1f60663cee88848748d79784d6b0b24b1d0cae074d3",
+      "size": 36990
+    },
+    "results/leakbench_meta_v2_operational/governance/operational_governance.csv": {
+      "sha256": "9ec17fb0918e481c55686c4460c4f318ab17d9c516efe62b6a4f1d6511fc6a24",
+      "size": 44634
+    },
+    "results/leakbench_meta_v3_robustness/a_version_comparison.csv": {
+      "sha256": "ce01bbc3a34cec35f904cb0485e0aa0e99c786ec12dfcc1ca07d821233b7314a",
+      "size": 15286
+    },
+    "results/leakbench_meta_v3_robustness/natural_transfer.csv": {
+      "sha256": "3e949dce0f114c086353d847028ef353c25cba7ecf65f4f64d534ddad306894b",
+      "size": 229
+    }
+  }
+}

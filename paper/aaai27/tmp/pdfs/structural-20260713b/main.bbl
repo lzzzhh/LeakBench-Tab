@@ -1,0 +1,125 @@
+\begin{thebibliography}{19}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Breiman(2001)}]{breiman2001random}
+Breiman, L. 2001.
+\newblock Random Forests.
+\newblock \emph{Machine Learning}, 45: 5--32.
+
+\bibitem[{{City of Chicago}(2026)}]{chicagoFoodInspections}
+{City of Chicago}. 2026.
+\newblock Food Inspections.
+\newblock Chicago Data Portal.
+\newblock Accessed 2026-07-13.
+
+\bibitem[{{City of New York}(2026)}]{nyc311}
+{City of New York}. 2026.
+\newblock 311 Service Requests from 2020 to Present.
+\newblock NYC Open Data.
+\newblock Accessed 2026-07-13.
+
+\bibitem[{Davis et~al.(2024)Davis, Matheny, Balu, and
+  Sendak}]{davis2024framework}
+Davis, S.~E.; Matheny, M.~E.; Balu, S.; and Sendak, M.~P. 2024.
+\newblock A Framework for Understanding Label Leakage in Machine Learning for
+  Health Care.
+\newblock \emph{Journal of the American Medical Informatics Association},
+  31(1): 274--280.
+
+\bibitem[{Gardner, Popovic, and Schmidt(2023)}]{gardner2023tableshift}
+Gardner, J.; Popovic, Z.; and Schmidt, L. 2023.
+\newblock Benchmarking Distribution Shift in Tabular Data with {TableShift}.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~36.
+
+\bibitem[{Gorishniy, Kotelnikov, and Babenko(2025)}]{gorishniy2025tabm}
+Gorishniy, Y.; Kotelnikov, A.; and Babenko, A. 2025.
+\newblock {TabM}: Advancing Tabular Deep Learning with Parameter-Efficient
+  Ensembling.
+\newblock In \emph{International Conference on Learning Representations}.
+
+\bibitem[{Grinsztajn, Oyallon, and Varoquaux(2022)}]{grinsztajn2022trees}
+Grinsztajn, L.; Oyallon, E.; and Varoquaux, G. 2022.
+\newblock Why Do Tree-Based Models Still Outperform Deep Learning on Typical
+  Tabular Data?
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~35.
+
+\bibitem[{Kapoor and Narayanan(2023)}]{kapoor2023leakage}
+Kapoor, S.; and Narayanan, A. 2023.
+\newblock Leakage and the Reproducibility Crisis in Machine-Learning-Based
+  Science.
+\newblock \emph{Patterns}, 4(9): 100804.
+
+\bibitem[{Kaufman, Rosset, and Perlich(2011)}]{kaufman2011leakage}
+Kaufman, S.; Rosset, S.; and Perlich, C. 2011.
+\newblock Leakage in Data Mining: Formulation, Detection, and Avoidance.
+\newblock In \emph{Proceedings of the 17th ACM SIGKDD International Conference
+  on Knowledge Discovery and Data Mining}, 556--563.
+
+\bibitem[{Ke et~al.(2017)Ke, Meng, Finley, Wang, Chen, Ma, Ye, and
+  Liu}]{ke2017lightgbm}
+Ke, G.; Meng, Q.; Finley, T.; Wang, T.; Chen, W.; Ma, W.; Ye, Q.; and Liu,
+  T.-Y. 2017.
+\newblock {LightGBM}: A Highly Efficient Gradient Boosting Decision Tree.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~30.
+
+\bibitem[{Magar and Schwartz(2022)}]{magar2022contamination}
+Magar, I.; and Schwartz, R. 2022.
+\newblock Data Contamination: From Memorization to Exploitation.
+\newblock In \emph{Proceedings of the 60th Annual Meeting of the Association
+  for Computational Linguistics (Volume 2: Short Papers)}, 157--165.
+
+\bibitem[{McElfresh et~al.(2023)McElfresh, Khandagale, Valverde, C,
+  Ramakrishnan, Goldblum, and White}]{mcelfresh2023tabzilla}
+McElfresh, D.; Khandagale, S.; Valverde, J.; C, V.~P.; Ramakrishnan, G.;
+  Goldblum, M.; and White, C. 2023.
+\newblock When Do Neural Nets Outperform Boosted Trees on Tabular Data?
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~36.
+
+\bibitem[{Prokhorenkova et~al.(2018)Prokhorenkova, Gusev, Vorobev, Dorogush,
+  and Gulin}]{prokhorenkova2018catboost}
+Prokhorenkova, L.; Gusev, G.; Vorobev, A.; Dorogush, A.~V.; and Gulin, A. 2018.
+\newblock {CatBoost}: Unbiased Boosting with Categorical Features.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~31.
+
+\bibitem[{Rosenblatt et~al.(2024)Rosenblatt, Tejavibulya, Jiang, Noble, and
+  Scheinost}]{rosenblatt2024connectome}
+Rosenblatt, M.; Tejavibulya, L.; Jiang, R.; Noble, S.; and Scheinost, D. 2024.
+\newblock Data Leakage Inflates Prediction Performance in Connectome-Based
+  Machine Learning Models.
+\newblock \emph{Nature Communications}, 15: 1829.
+
+\bibitem[{Roth(2026)}]{roth2026leakage}
+Roth, S. 2026.
+\newblock Which Leakage Types Matter? A Quantitative Landscape Across 2,047
+  Benchmark Datasets.
+\newblock arXiv:2604.04199.
+
+\bibitem[{Saito and Rehmsmeier(2015)}]{saito2015precision}
+Saito, T.; and Rehmsmeier, M. 2015.
+\newblock The Precision--Recall Plot Is More Informative than the {ROC} Plot
+  When Evaluating Binary Classifiers on Imbalanced Datasets.
+\newblock \emph{PLOS ONE}, 10(3): e0118432.
+
+\bibitem[{Suboti{\'c}, Bojani{\'c}, and Stoji{\'c}(2022)}]{subotic2022static}
+Suboti{\'c}, P.; Bojani{\'c}, U.; and Stoji{\'c}, M. 2022.
+\newblock Statically Detecting Data Leakages in Data Science Code.
+\newblock In \emph{Proceedings of the 11th ACM SIGPLAN International Workshop
+  on the State Of the Art in Program Analysis}, 16--22.
+
+\bibitem[{{UCI Machine Learning Repository}(2014)}]{uciBankMarketing}
+{UCI Machine Learning Repository}. 2014.
+\newblock Bank Marketing.
+\newblock CC BY 4.0.
+
+\bibitem[{{U.S. Bureau of Transportation Statistics}(2026)}]{btsOnTime}
+{U.S. Bureau of Transportation Statistics}. 2026.
+\newblock Reporting Carrier On-Time Performance Data.
+\newblock TranStats data portal.
+\newblock Accessed 2026-07-13.
+
+\end{thebibliography}

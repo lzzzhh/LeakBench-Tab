@@ -1,0 +1,9 @@
+*.npz
+__pycache__/
+data/raw/lending_club/*.csv.gz
+data/nyc311/*.csv
+data/chicago_food/*.csv
+data/bts/*.zip
+data/
+results/corrected_v2/
+results/ce2r_neural/

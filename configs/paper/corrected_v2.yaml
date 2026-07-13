@@ -1,0 +1,32 @@
+protocol:
+  version: corrected_v2
+  dataset_namespace: confirmatory
+  dataset_count: 20
+  mechanisms: [M01, M02, M03, M04, M05, M06, M07, M08, M09, M10, M11]
+  strengths: [S1, S2, S3, S4, S5]
+  strength_values: {S1: 0.2, S2: 0.4, S3: 0.6, S4: 0.8, S5: 1.0}
+  core_models: [lr, rf, catboost, lightgbm, tabm]
+  seeds: [13, 42, 2026, 3407, 7777]
+  split: chronological_60_20_20
+  primary_metric: paired_auroc_harm
+  diagnostic: train_only_mutual_information
+  expected_model_training_cells: 27500
+  predictions_retained_for: [M08, M09]
+statistics:
+  bootstrap_repetitions: 20000
+  bootstrap_seed: 20260713
+  multiple_testing: holm
+  independent_unit: dataset
+  nested_unit: injection_seed
+mechanism_parameters:
+  M01: {noise_std: 0.0}
+  M02: {noise_std: 0.35}
+  M03: {noise_std: 0.30}
+  M04: {noise_std: 0.08}
+  M05: {noise_std: 0.08, time_offsets: [0.02, 0.02, 0.02, 0.02, 0.02]}
+  M06: {noise_std: 0.20, redundancies: [1, 2, 4, 6, 8]}
+  M07: {noise_std: 0.10, prevalences: [0.05, 0.10, 0.20, 0.35, 0.50]}
+  M08: {noise_std: 0.04, prior_strength: 5.0}
+  M09: {n_sources: 8, min_group_count: 2}
+  M10: {noise_std: 0.30}
+  M11: {noise_std: 0.20, components: [2, 3, 4, 6, 8]}

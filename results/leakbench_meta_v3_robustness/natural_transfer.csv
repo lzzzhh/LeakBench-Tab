@@ -1,0 +1,4 @@
+task,n_leak,n_legit,auprc_i,auprc_iase,rank_i,rank_iase,top5_i,top5_iase,leak_names
+LendingClub,0,8,0.0,0.0,8,8,0,0,[]
+BankPRE,1,19,0.05,0.05,13,13,0,0,['bm_19']
+NYC311,1,41,1.0,0.5,1,2,1,1,['nyc_resolution_action_updated_date']

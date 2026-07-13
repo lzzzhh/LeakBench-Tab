@@ -1,0 +1,80 @@
+# LeakBench-Tab Mechanism Registry — FROZEN
+
+mechanisms:
+  - id: M01
+    name: direct_target_copy
+    label: "Direct Target Copy"
+    category: statistical
+    scope: global
+    requires_time: false
+    strengths: {S1_very_weak: {signal_scale: 0.1}, S2_weak: {signal_scale: 0.3}, S3_medium: {signal_scale: 0.5}, S4_strong: {signal_scale: 0.7}, S5_extreme: {signal_scale: 1.0}}
+  - id: M02
+    name: noisy_target_proxy
+    label: "Noisy Target Proxy"
+    category: statistical
+    scope: global
+    requires_time: false
+    strengths: {S1: {signal_scale: 0.1, noise_scale: 2.0}, S2: {signal_scale: 0.3, noise_scale: 1.0}, S3: {signal_scale: 0.5, noise_scale: 0.5}, S4: {signal_scale: 0.7, noise_scale: 0.2}, S5: {signal_scale: 1.0, noise_scale: 0.05}}
+  - id: M03
+    name: nonlinear_target_transform
+    label: "Nonlinear Target Transform"
+    category: boundary
+    scope: global
+    requires_time: false
+    strengths: {S1: {signal_scale: 0.1, nonlinearity: 0.1}, S2: {signal_scale: 0.3, nonlinearity: 0.3}, S3: {signal_scale: 0.5, nonlinearity: 0.5}, S4: {signal_scale: 0.7, nonlinearity: 0.7}, S5: {signal_scale: 1.0, nonlinearity: 1.0}}
+  - id: M04
+    name: post_outcome_aggregation
+    label: "Post-Outcome Aggregation"
+    category: structured
+    scope: global
+    requires_time: true
+    strengths: {S1: {window_size: 2, signal_scale: 0.1}, S2: {window_size: 5, signal_scale: 0.3}, S3: {window_size: 10, signal_scale: 0.5}, S4: {window_size: 20, signal_scale: 0.7}, S5: {window_size: 50, signal_scale: 1.0}}
+  - id: M05
+    name: temporal_look_ahead
+    label: "Temporal Look-Ahead"
+    category: structured
+    scope: global
+    requires_time: true
+    strengths: {S1: {look_ahead: 0.01, signal_scale: 0.1}, S2: {look_ahead: 0.05, signal_scale: 0.3}, S3: {look_ahead: 0.10, signal_scale: 0.5}, S4: {look_ahead: 0.20, signal_scale: 0.7}, S5: {look_ahead: 0.30, signal_scale: 1.0}}
+  - id: M06
+    name: redundant_leakage_cluster
+    label: "Redundant Leakage Cluster"
+    category: statistical
+    scope: global
+    requires_time: false
+    strengths: {S1: {n_copies: 1, signal_scale: 0.1}, S2: {n_copies: 2, signal_scale: 0.3}, S3: {n_copies: 4, signal_scale: 0.5}, S4: {n_copies: 8, signal_scale: 0.7}, S5: {n_copies: 16, signal_scale: 1.0}}
+  - id: M07
+    name: sparse_subgroup_leakage
+    label: "Sparse Subgroup Leakage"
+    category: boundary
+    scope: subgroup
+    requires_entity: true
+    strengths: {S1: {prevalence: 0.05, signal_scale: 0.3}, S2: {prevalence: 0.10, signal_scale: 0.5}, S3: {prevalence: 0.20, signal_scale: 0.7}, S4: {prevalence: 0.30, signal_scale: 0.9}, S5: {prevalence: 0.50, signal_scale: 1.0}}
+  - id: M08
+    name: entity_leakage
+    label: "Entity Leakage"
+    category: structured
+    scope: entity_specific
+    requires_entity: true
+    strengths: {S1: {n_entities: 100, signal_scale: 0.1}, S2: {n_entities: 50, signal_scale: 0.3}, S3: {n_entities: 20, signal_scale: 0.5}, S4: {n_entities: 10, signal_scale: 0.7}, S5: {n_entities: 5, signal_scale: 1.0}}
+  - id: M09
+    name: source_leakage
+    label: "Source Leakage"
+    category: structured
+    scope: source_specific
+    requires_source: true
+    strengths: {S1: {n_sources: 20, signal_scale: 0.1}, S2: {n_sources: 10, signal_scale: 0.3}, S3: {n_sources: 5, signal_scale: 0.5}, S4: {n_sources: 3, signal_scale: 0.7}, S5: {n_sources: 2, signal_scale: 1.0}}
+  - id: M10
+    name: mixed_leakage
+    label: "Mixed Leakage"
+    category: statistical
+    scope: global
+    requires_time: false
+    strengths: {S1: {leak_ratio: 0.1, signal_scale: 0.3}, S2: {leak_ratio: 0.3, signal_scale: 0.5}, S3: {leak_ratio: 0.5, signal_scale: 0.7}, S4: {leak_ratio: 0.7, signal_scale: 0.9}, S5: {leak_ratio: 0.9, signal_scale: 1.0}}
+  - id: M11
+    name: graph_mediated_leakage
+    label: "Graph-Mediated Leakage"
+    category: boundary
+    scope: global
+    requires_source: true
+    strengths: {S1: {n_components: 1, signal_scale: 0.1}, S2: {n_components: 2, signal_scale: 0.3}, S3: {n_components: 4, signal_scale: 0.5}, S4: {n_components: 6, signal_scale: 0.7}, S5: {n_components: 8, signal_scale: 1.0}}

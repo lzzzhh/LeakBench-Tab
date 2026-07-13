@@ -1,0 +1,127 @@
+{
+  "cell_metric": {
+    "formula": "full_auc - strict_auc",
+    "full_view": "task.X",
+    "higher_value": "greater_permissive_minus_strict_AUROC_difference",
+    "name": "paired_harm",
+    "strict_view": "task.X[:, ~task.leakage_mask]"
+  },
+  "confidence_interval": {
+    "bounds": [
+      0.025,
+      0.975
+    ],
+    "interval": "two_sided_95_percent_percentile",
+    "method": "stratified_nonparametric_percentile_bootstrap",
+    "repetitions": 20000,
+    "resampling": "sample_5_tasks_with_replacement_independently_within_each_of_5_archetypes",
+    "seed": 20260713,
+    "statistic_each_draw": "equal_weight_mean_of_the_5_resampled_archetype_means",
+    "strata": "archetype"
+  },
+  "decision": {
+    "adjustment": "none",
+    "incomplete_or_invalid": "INCOMPLETE_OR_INVALID; never SUPPORTED",
+    "multiplicity_family_size": 1,
+    "otherwise_complete": "NOT_SUPPORTED",
+    "supported_iff": [
+      "all 15000 prespecified model cells are SUCCESS and integrity_verified",
+      "lower endpoint of the frozen 95 percent bootstrap CI is greater than 0",
+      "exact two-sided binomial sign-test p-value is less than or equal to 0.05"
+    ]
+  },
+  "exclusions_and_missingness": {
+    "failed_cell": "invalidates the primary inference",
+    "fallback_model_implementation": "forbidden",
+    "imputation": "forbidden",
+    "mechanism_substitution": "forbidden",
+    "missing_cell": "invalidates the primary inference",
+    "model_substitution": "forbidden",
+    "planned_exclusions": [],
+    "post_hoc_exclusions": "forbidden",
+    "seed_substitution": "forbidden",
+    "task_substitution": "forbidden"
+  },
+  "independent_unit": "generator_task",
+  "outcome_access": {
+    "after_run": "apply this protocol without changing thresholds, weights, tests, or task set",
+    "before_freeze": "generator identities and hashes only; no fitted-model outcomes"
+  },
+  "point_estimate": {
+    "archetype_weights": "equal_0.2_each",
+    "formula": "mean_archetype(mean_task(task_effect))",
+    "task_weights_within_archetype": "equal"
+  },
+  "population": {
+    "archetype_weights": {
+      "drifting": 0.2,
+      "interaction": 0.2,
+      "linear": 0.2,
+      "nonlinear": 0.2,
+      "sparse": 0.2
+    },
+    "archetypes": [
+      "linear",
+      "interaction",
+      "nonlinear",
+      "sparse",
+      "drifting"
+    ],
+    "dataset_namespace": "independent_replication_v1",
+    "sampling_frame": "preselected_generator_indices_1000_through_1024",
+    "task_count": 25,
+    "tasks_per_archetype": 5
+  },
+  "protocol_version": "independent_replication_v1",
+  "schema_version": 1,
+  "sign_test": {
+    "alternative": "two-sided",
+    "exact_zero_rule": "any exactly zero task_effect makes primary inference INVALID; no tie deletion",
+    "method": "scipy.stats.binomtest_exact_two_sided",
+    "null_success_probability": 0.5,
+    "success": "task_effect > 0",
+    "trials": 25
+  },
+  "status": "FROZEN_BEFORE_ANY_MODEL_RUN",
+  "within_task_aggregation": {
+    "cell_weights_within_family": "equal",
+    "cells_per_family_per_task": 300,
+    "cells_per_task": 600,
+    "models": [
+      "lr",
+      "rf",
+      "catboost",
+      "lightgbm",
+      "tabm"
+    ],
+    "order": [
+      "require all 600 prespecified model cells for the task",
+      "arithmetic mean over mechanism, strength, injection seed, and model within each family",
+      "task_effect = simple_family_mean - structured_family_mean"
+    ],
+    "seeds": [
+      13,
+      2026,
+      7777
+    ],
+    "simple_mechanisms": [
+      "M01",
+      "M02",
+      "M06",
+      "M10"
+    ],
+    "strengths": [
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5"
+    ],
+    "structured_mechanisms": [
+      "M04",
+      "M05",
+      "M08",
+      "M09"
+    ]
+  }
+}

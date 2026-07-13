@@ -1,0 +1,13 @@
+# LeakBench-Tab Full Matrix Configuration
+matrix:
+  datasets: 20
+  mechanisms: 11
+  strengths: 5
+  models: ["logistic_regression","random_forest","catboost","mlp","tabm"]
+  seeds: [13,42,2026,3407,7777]
+  total_cells: 27500
+waves:
+  wave1: {models: ["logistic_regression","random_forest"], total: 11000}
+  wave2: {models: ["catboost"], total: 5500}
+  wave3: {models: ["mlp"], total: 5500}
+  wave4: {models: ["tabm"], total: 5500}

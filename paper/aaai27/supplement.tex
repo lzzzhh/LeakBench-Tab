@@ -1,0 +1,473 @@
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2027}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\frenchspacing
+\pdfinfo{
+/TemplateVersion (2027.1)
+/Title (LeakBench-Tab Technical Supplement)
+/Author (Anonymous Submission)
+/Subject (AAAI-27 Supplementary Material)
+}
+
+\input{source_data/result_macros_base.tex}
+\IfFileExists{generated/result_macros.tex}{\input{generated/result_macros.tex}}{}
+
+\title{LeakBench-Tab: Technical Supplement}
+\author{Anonymous Submission}
+\affiliations{}
+
+\begin{document}
+\maketitle
+
+\ifLBResultsReady\else
+\begin{center}
+\fbox{\parbox{0.94\linewidth}{\centering\bfseries
+INTERNAL DRAFT --- RESULTS BLOCKED.\\
+This supplement contains no submission-ready empirical result until the final
+confirmatory claim release generates the evidence macros.}}
+\end{center}
+\fi
+
+\section{Scope and Artifact Contract}
+This supplement covers the corrected controlled benchmark and five fixed
+real-data case studies.  The controlled design contains
+\LBControlledTaskCount{} tasks, \LBMechanismCount{} mechanisms,
+\LBStrengthCount{} strengths, \LBCoreModelCount{} model families, and
+\LBSeedCount{} injection seeds (\LBExpectedCells{} planned cells).  Metadata
+localization and governance experiments are not part of the confirmatory claim
+set and are therefore not reported as paper findings.  A separate
+\LBExpectedDiagnosticCells{}-cell matrix compares
+\LBDiagnosticMethodCount{} oracle-blind, pre-test development rankers on the
+same frozen tasks; diagnostic rows are not counted as model-training cells.
+
+Numerical macros are generated only from
+\texttt{results/corrected\_v2/paper\_claims.json}.  The generator verifies a
+complete confirmatory matrix, final claim statuses, finite ordered intervals,
+the five-model identity set, all \LBExpectedDiagnosticCells{} diagnostic cells,
+and evidence provenance before writing LaTeX.  Its source digest is
+\texttt{\LBSourceSHA}.
+
+\section{Mechanism Contracts and Construction Invariants}
+Every injected task records a contaminated-field mask, timestamps, entity and
+source identifiers, feature-availability metadata, structural groups, graph
+edges, and immutable task and split hashes.  C is fixed by these construction
+contracts before diagnostic or model fitting.
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+IDs & Category & Required invariant & Construction audit \\
+\midrule
+M01, M02 & Simple & Target-derived field; strength changes signal/noise & Separation by strength \\
+M06 & Simple & Redundant fields form one declared contaminated group & Group size matches level \\
+M10 & Simple & Legitimate component equals clean input exactly & Equality plus separate mask \\
+M03 & Boundary & Nonlinear target interaction & Interaction and label audit \\
+M07 & Boundary & Contamination restricted to declared subgroup & Prevalence audit \\
+M11 & Boundary & Contaminated fields form declared graph component & Component audit \\
+M04, M05 & Structured & Current and past rows excluded from future statistic & Temporal index audit \\
+M08 & Structured & Future entity outcome; current label excluded & Leave-one-out/prior audit \\
+M09 & Structured & Outcome-dependent source collection; complete one-hot & Source-ID permutation invariance \\
+\bottomrule
+\end{tabular}
+\caption{Construction invariants that must hold independently of empirical
+effect size.  Final release tables should cite the corresponding automated
+audit and frozen task-manifest hash.}
+\label{tab:construction-invariants}
+\end{table*}
+
+\subsection{Strength Mapping}
+The five generic strength labels map to $\{0.2,0.4,0.6,0.8,1.0\}$.  Mechanisms
+with discrete structural strength use frozen mechanism-specific mappings:
+M06 redundant-field counts $\{1,2,4,6,8\}$, M07 subgroup prevalences
+$\{0.05,0.10,0.20,0.35,0.50\}$, and M11 component sizes
+$\{2,3,4,6,8\}$.  M04, M05, M08, and M09 must be documented with their exact
+future-window, shrinkage, support, and source-assignment parameters from the
+frozen corrected protocol rather than reconstructed from result tables.
+M09 represents one semantic source variable with eight complete one-hot
+columns.  Its AP evaluates encoded-column localization against those eight
+oracle-marked columns; M09 D is therefore representation-conditional and is
+not evidence that a source field is equally detectable under arbitrary
+encodings or field-level scoring rules.
+
+M04 and M05 use row-count windows after stable timestamp sorting, not fixed
+calendar durations.  For a row at time $t$, both begin strictly after every row
+with timestamp $t$ (a right-sided search), so the current row and all
+same-timestamp rows are excluded.  M04 then averages the next
+$\max(2,\lfloor0.05n\rfloor)$ rows.  M05 first skips
+$\max(1,\lfloor n\delta\rfloor)-1$ strictly future rows and averages the next
+$\max(2,\max(1,\lfloor n\delta\rfloor))$ rows, with the frozen
+$\delta=0.02$ at every strength.  A future timestamp tie can be truncated by
+the row-count width.  Consequently these mechanisms are sensitive to sampling
+density and stable order within a future tie; they represent controlled
+row-window contamination rather than an invariant duration-based event-time
+estimand.  If a row has no eligible strictly future observations after the
+declared skip, the constructed future statistic falls back to the leave-one-out
+global label prior; the current row's label is never reintroduced by that
+fallback.
+
+\section{Controlled Task Registry and Splits}
+The task registry contains twenty deterministic panel generators across five
+archetypes.  Generator randomness is independent of injection randomness.
+Rows are ordered chronologically and assigned once to 60\% train, 20\%
+validation, and 20\% test partitions.  The split is invariant to mechanism,
+strength, and downstream learner.  The final camera-ready appendix should list
+for each task: task identifier, archetype, row and feature counts, entity and
+source support, class prevalence, generator seed, and split hash.  These values
+must be imported from the canonical manifest, not manually transcribed.
+
+\section{Model Identity and Preprocessing}
+The core set comprises logistic regression, random forest
+\citep{breiman2001random}, CatBoost \citep{prokhorenkova2018catboost}, LightGBM
+\citep{ke2017lightgbm}, and the official TabM implementation
+\citep{gorishniy2025tabm}.  All scaling and learned preprocessing
+use training rows only.  Strict and permissive views share row partitions,
+labels, optimization seeds, and model hyperparameters.  The official TabM run
+uses immutable serialized task bundles and verifies bundle, task, and split
+hashes before fitting.  The release must include package versions, CUDA and GPU
+identity, determinism settings, optimizer, learning rate, batch size, epoch and
+early-stopping rules, and per-model preprocessing.  Surrogate implementations
+and silent fallbacks are prohibited.
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.10\textwidth}p{0.17\textwidth}p{0.34\textwidth}p{0.31\textwidth}@{}}
+\toprule
+Learner & Train-fitted preprocessing & Frozen fit configuration & Selection / prediction \\
+\midrule
+LR & StandardScaler & $C=1$, max 2,000 iterations & Test positive-class probability \\
+RF & None & 250 trees, min leaf 2, max features $\sqrt{p}$ & Test positive-class probability \\
+CatBoost & None & 250 iterations, rate 0.05, depth 6, CPU & Validation AUC; patience 30 \\
+LightGBM & None & 250 trees, rate 0.05, 31 leaves, depth 6, min child 20 &
+Validation binary log loss; patience 30 \\
+TabM & StandardScaler & Official TabM v0.0.3, $k=32$, AdamW, rate 0.003,
+weight decay $10^{-4}$ & Validation BCE; max 200 epochs, patience 20, batch
+256; mean of per-$k$ sigmoid probabilities \\
+\bottomrule
+\end{tabular}
+\caption{Frozen learner configurations.  Every strict/permissive pair shares
+the split, seed, validation rule, and learner configuration.  CPU learners use
+one thread; official TabM uses deterministic PyTorch algorithms on the declared
+CUDA device.}
+\label{tab:model-configurations}
+\end{table*}
+
+\section{Estimands and Statistical Procedures}
+For a downstream learner $m$, the paired effect is
+\begin{equation}
+X_m = \mathrm{AUROC}_{m,\mathrm{permissive}}
+      -\mathrm{AUROC}_{m,\mathrm{strict}}.
+\end{equation}
+For a feature-localization diagnostic, normalized average precision is
+\begin{equation}
+D = \frac{\mathrm{AP}-\pi}{1-\pi},
+\end{equation}
+where $\pi$ is contaminated-column prevalence.  Mutual-information scores are
+computed from training rows once per injected task with fixed
+\texttt{random\_state=42} and must be identical across all five downstream
+learners.  Three additional oracle-blind rankers---absolute
+correlation, logistic coefficient magnitude, and random-forest permutation
+importance---form a frozen sensitivity suite.  MI, absolute correlation, and
+logistic coefficients use training rows only.  The random forest is fitted on
+training rows, but permutation importance is evaluated against frozen
+validation labels.  Thus all four are pre-test development diagnostics, not
+four training-only diagnostics.  D is always labeled by diagnostic and encoding; a
+per-mechanism maximum is not a deployable selector.
+
+The independent unit is the controlled task.  The 20,000-draw hierarchical
+bootstrap first samples tasks with replacement and then samples injection seeds
+within each selected task.  Task-level sign flips test mechanism effects, with
+Holm adjustment over the eleven-mechanism family.  The three declared category
+contrasts form a separate Holm family.  Model-specific simple-minus-structured
+contrasts form a five-model family.  The category tests are exact two-sided
+sign flips over the 20 task effects, not bootstrap-tail $p$-values.  M08 samples
+one entity vector per dataset and applies it jointly to all 125
+seed-by-model-by-strength cells.  It retains a separate effect for each
+injection seed under that shared entity draw before outer dataset/seed
+resampling.  M09 samples one
+source-category vector per dataset/seed/strength and applies it jointly to all
+five models.  Its eight source IDs are designed categories rather than draws
+from a source population, so the resulting interval is descriptive reweighting
+only.  All failed cells remain in the raw ledger; incomplete matrices are not
+analyzed as confirmatory.
+
+The diagnostic sensitivity matrix crosses twenty tasks, eleven mechanisms,
+five strengths, five seeds, and four rankers, for 22,000 cells.  The first
+three rankers use training rows only; RF permutation trains on training rows
+and evaluates perturbations on the frozen validation split.  Intervals use the
+same task/seed hierarchy as the primary D analysis.  Method comparisons are
+descriptive sensitivity analyses; no paired simultaneous method-comparison
+interval was frozen, and no ranker is chosen after observing contamination
+labels.
+
+\paragraph{Frozen diagnostic RNG amendment.}
+After the confirmatory sensitivity suite was complete, an evidence-chain audit
+found a provenance mismatch: its mutual-information implementation used the
+injection seed, whereas the frozen headline implementation and the
+immutable task manifest used fixed seed 42.  The post-unblinding amendment is
+deterministic and scope-locked: it replaces the AP, normalized-AP, and top-5
+recall fields on every and only the 5,500 mutual-information rows with the
+identity-matched values already stored in the frozen task manifest.  It
+preserves every original field on the other 16,500 rows and does not change
+the four-method set.  The amendment builder reads no
+model-outcome columns and performs no value-dependent row selection or tuning.
+The task-seeded raw suite is retained only for provenance; the paper and
+release validator consume the amended canonical diagnostic table.  All
+diagnostic-method and mechanism-profile comparisons are descriptive; the
+amendment does not authorize thresholded profile conclusions.
+
+\paragraph{Frozen statistical inference amendment.}
+A separate post-unblinding methods audit identified three invalid uncertainty
+constructions in the superseded outputs: category bootstrap tail areas had been
+labeled as $p$-values, D--X intervals resampled X while holding D fixed, and
+cluster draws were independent across cells generated from the same task.  A
+second audit found that the initial cluster amendment still drew entities
+independently across M08 injection seeds that reuse the same test rows, labels,
+and entities.  Before final amended analysis, the second replacement code and
+immutable task registry were hash-frozen.  The replacement uses exact task-level sign flips with Holm
+adjustment for the three category contrasts, jointly resamples D and X with the
+same dataset/seed indices, and synchronizes entity/source-category draws at the
+grouping levels above.  M03, M08, M09, D--X, diagnostic-method, and model-specific
+summaries remain descriptive; only the pre-existing simple-versus-structured
+directional contrast uses the exact Holm-and-CI support rule.  Output manifests
+bind analysis code, canonical data, configuration, all twenty frozen task
+bundles, and every consumed M08/M09 prediction-file hash; row IDs, labels,
+entities, sources, clean/full AUC, and task hashes are checked directly.  The
+release validator deep-reruns every paper-facing statistical table.
+
+After all protocol, amendment, support-rule, and claim-scope freezes, a local
+hyperparameter search unintentionally displayed a truncated subset of
+in-progress GPU checkpoint rows.  The incident is retained in the artifact
+audit trail; it authorized no task exclusion, mechanism change, inferential
+change, threshold change, or manuscript result wording.  All reported values
+are derived only after completion from the fully validated canonical release.
+
+\section{Complete Controlled Results}
+\ifLBResultsReady
+The canonical matrix contains \LBSuccessfulCells{} successful cells
+(\LBCompletionRate\%).  The final supplement must include the complete
+mechanism-by-model point estimates, hierarchical intervals, adjusted
+$p$-values, and strength-response curves generated from the canonical table.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+Profile & Normalized AP & Paired harm & Claim status \\
+\midrule
+M03 & \LBMThreeDetectability{} & \LBMThreeHarm{} & \LBMThreeStatus{} \\
+M08 & \LBMEightDetectability{} & \LBMEightHarm{} & \LBMEightStatus{} \\
+M09 & \LBMNineDetectability{} & \LBMNineHarm{} & \LBMNineStatus{} \\
+\bottomrule
+\end{tabular}
+\caption{Headline crossed profiles.  Full intervals and per-model estimates
+belong in the machine-generated extended table.}
+\label{tab:headline-profiles}
+\end{table}
+
+The simple-minus-structured contrast is
+$\LBSimpleStructuredDifference$ (95\% CI
+$[\LBSimpleStructuredCILow,\LBSimpleStructuredCIHigh]$; Holm-adjusted
+$p=\LBSimpleStructuredHolmP$ from an exact task-level sign-flip test).  It is positive in
+\LBModelPositiveDirectionCount{}/5 model families, with
+\LBModelCIExcludesZeroCount{}/5 model-specific intervals excluding zero.
+\else
+Complete controlled results are intentionally absent from this draft.  No
+pilot estimate is a substitute for the final canonical matrix.
+\fi
+
+\section{Diagnostic-Conditional Detectability}
+\ifLBResultsReady
+The diagnostic matrix contains \LBSuccessfulDiagnosticCells{}/
+\LBExpectedDiagnosticCells{} successful cells
+(\LBDiagnosticCompletionRate\%).  Table~\ref{tab:diagnostic-sensitivity} reports
+the three mechanisms targeted by the frozen sensitivity claim; complete
+eleven-mechanism tables and confidence intervals belong in the archival
+supplement.
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Mechanism & Mutual information & Absolute correlation & LR coefficient & RF permutation & Range \\
+\midrule
+M03 & \LBMThreeMIDetectability{} & \LBMThreeCorrelationDetectability{} &
+\LBMThreeLRCoefficientDetectability{} & \LBMThreeRFPermutationDetectability{} &
+[\LBMThreeDiagnosticMin{}, \LBMThreeDiagnosticMax{}] \\
+M04 & \LBMFourMIDetectability{} & \LBMFourCorrelationDetectability{} &
+\LBMFourLRCoefficientDetectability{} & \LBMFourRFPermutationDetectability{} &
+[\LBMFourDiagnosticMin{}, \LBMFourDiagnosticMax{}] \\
+M05 & \LBMFiveMIDetectability{} & \LBMFiveCorrelationDetectability{} &
+\LBMFiveLRCoefficientDetectability{} & \LBMFiveRFPermutationDetectability{} &
+[\LBMFiveDiagnosticMin{}, \LBMFiveDiagnosticMax{}] \\
+\bottomrule
+\end{tabular}
+\caption{Normalized AP under four frozen oracle-blind, pre-test development
+rankers.  The first three use training rows only; RF permutation uses frozen
+validation labels.  Mutual information is primary.  The comparison status is
+\emph{\LBDiagnosticConditionalStatus{}}; the row-wise maximum is not an
+operational method-selection result.}
+\label{tab:diagnostic-sensitivity}
+\end{table*}
+\else
+Diagnostic sensitivity values remain blocked.  In particular, no pilot
+method-ordering is transcribed into the manuscript.
+\fi
+
+\section{Cluster Sensitivity for M08 and M09}
+\ifLBResultsReady
+For M08, the synchronized entity-cluster hierarchical interval is
+$[\LBMEightClusterCILow,\LBMEightClusterCIHigh]$; each entity draw is shared by
+all five seeds, models, and strengths in its dataset, with seed-specific effects
+retained for outer resampling.  This is descriptive uncertainty, not an
+equivalence or practical-null test.  For M09, the synchronized
+designed-category reweighting interval is
+$[\LBMNineReweightingLow,\LBMNineReweightingHigh]$; each source-category draw is
+shared across models within dataset/seed/strength.  The latter is explicitly
+descriptive because the eight categories exhaust a constructed mechanism and
+are not a sample from a source population.  M09 is therefore only a
+representation-conditional descriptive counterexample within this registry.
+Both analyses use 200 inner draws per shared group and 5,000 outer draws over
+tasks and seeds, with complete 2,500-cell coverage per mechanism.  Sensitivity
+resampling changes uncertainty or reweighting, not the semantic C label.
+\else
+Cluster-sensitive estimates remain blocked pending complete prediction-file
+coverage for all confirmatory M08/M09 cells.
+\fi
+
+\section{Detectability--Exploitability Diagnostics}
+\ifLBResultsReady
+The global mechanism-level Spearman correlation is \LBGlobalSpearman{} (95\%
+joint-paired D--X bootstrap interval
+$[\LBGlobalSpearmanCILow,\LBGlobalSpearmanCIHigh]$); identical dataset/seed draws
+resample both axes.  Category-only and
+category-plus-D in-sample $R^2$ values are \LBCategoryRSquared{} and
+\LBCategoryPlusDRSquared{}, respectively; the within-category permutation
+$p$-value for the increment is \LBIncrementalPermutationP{}.  LOMO $R^2$
+values are \LBCategoryLomoRSquared{} and
+\LBCategoryPlusDLomoRSquared{}.  These diagnostics are labeled
+\emph{\LBRelationStatus{}} regardless of nominal significance because eleven
+designed mechanisms do not establish out-of-registry transfer.
+\else
+Association diagnostics remain blocked and are not populated with pilot
+values.
+\fi
+
+\section{Real-Data Boundary Audits}
+The five fixed cases are UCI Bank Marketing \citep{uciBankMarketing}, a local
+Lending Club accepted-loan mirror, U.S. flight delays \citep{btsOnTime},
+Chicago food inspections \citep{chicagoFoodInspections}, and NYC 311
+\citep{nyc311}.  The final lineage table
+must bind the train-fitted-category preprocessing v2 protocol: category
+vocabularies are learned from training rows, unseen validation/test categories
+map to a reserved unknown value, and globally encoded date strings are dropped.
+The earlier full-table-vocabulary outputs are superseded.  The lineage table
+must include source filename and SHA-256, row-selection rule, chronological
+sort field, prediction boundary, contaminated fields, sample size, split rule,
+and all adapter exclusions.  Lending Club uses accepted applications only;
+its post-origination servicing, last-credit-pull, hardship, and payment-plan
+fields are post-boundary.  The flight-delay boundary is immediately before
+scheduled departure: only an explicit schedule allowlist is legitimate, while
+all actual departure, arrival, and diversion fields are post-event.  Bank
+Marketing uses the canonical full dataset; no synthetic fallback is an
+evaluable real-data row.  These declarations are adapter contracts rather than
+labels inferred from the observed paired harm.
+
+The Bank Marketing record is CC BY 4.0 and the canonical
+\texttt{bank-additional-full} table contains 41,188 rows.  BTS, Chicago, and
+NYC entries cite their official government portals.  The Lending mirror
+\texttt{accepted\_2007\_to\_2018Q4} has no verified upstream provenance or
+license in the current artifact: it is local-only and must not be redistributed
+unless the authors supply and verify both.
+
+\ifLBResultsReady
+Across \LBNaturalTaskCount{} cases and \LBNaturalModelCount{} CPU learners,
+mean paired harm is \LBNaturalMeanHarm{} with descriptive task-bootstrap
+interval $[\LBNaturalCILow,\LBNaturalCIHigh]$ and exact task-level sign-flip
+$p=\LBNaturalSignFlipP$.  All task effects positive: \LBNaturalAllPositive{}.
+The evidence status is \emph{\LBNaturalStatus{}} and must not be rewritten as a
+population-level, transfer, or detector-generalization result.
+\else
+Real-data numerical summaries remain blocked pending the same final claim
+release as the controlled results.
+\fi
+
+\section{Negative, Superseded, and Out-of-Scope Evidence}
+Legacy eight-model summaries, surrogate neural-model outputs, the pre-bundle
+TabM partial run, old 10,083/4,032-cell ledgers, and earlier natural-transfer
+tables are superseded evidence and cannot source this paper.  Corrected results
+must live under the independent corrected-v2 namespace with checksums.  A
+negative result for the pre-existing directional category claim remains
+reportable as \texttt{NOT\_SUPPORTED}; a
+\texttt{PENDING}, \texttt{REFUTED}, \texttt{INTEGRITY\_HOLD}, or incomplete
+claim cannot generate a paper macro.
+
+\paragraph{Frozen M10 protocol amendment.}
+The original M10 strict-view constructor incorrectly removed the injected
+legitimate duplicate together with the fields marked by
+\texttt{leakage\_mask}; the strict and permissive views therefore did not share
+the same legitimate base.  The frozen amendment defines the strict matrix as
+\texttt{task.X[:, \string~leakage\_mask]}.  The original 2,000 CPU and 500 TabM
+M10 rows are superseded and replaced under this corrected pairing.  Canonical
+validation excludes every original M10 run identifier and still requires
+exactly 27,500 model-training cells.  Superseded M10 rows cannot source a claim,
+table, or figure.
+
+Operational metadata and governance modules are engineering/audit work outside
+the main confirmatory claim set.  Their omission is not evidence for or against
+their efficacy.
+
+\section{Claim--Evidence Matrix}
+The final release should map each main-paper statement to (i) a stable claim
+identifier, (ii) its scope and, only for the directional category contrast, its
+support rule, (iii) final status, (iv) exact
+metric fields, (v) canonical source hashes, and (vi) allowed and prohibited
+wording.  The paper generator consumes only the six controlled claim IDs and
+the case-study-only natural block.  Every other state is excluded by design.
+
+\section{Complete Machine-Generated Tables}
+\ifLBResultsReady
+\IfFileExists{generated/result_tables.tex}{%
+\input{generated/result_tables.tex}}{%
+\PackageError{LeakBench-Tab}{Missing final result tables}{Run
+source_data/generate_result_tables.py from the final claim release.}}
+\else
+Complete registry, mechanism, model, diagnostic, strength, natural-case, and
+claim-scope tables are blocked with the numerical results.  Pilot tables are
+not rendered in their place.
+\fi
+
+\section{Reproducibility Checklist and Ledger}
+The archival package should provide the frozen corrected protocol, task-bundle
+manifest, canonical 27,500-cell table, raw failure-preserving CPU and official
+TabM tables, retained M08/M09 predictions, the raw and amended canonical
+diagnostic tables, the diagnostic RNG amendment freeze and impact audit,
+the statistical-amendment freeze and input/output hash manifests,
+natural-task lineage, all statistics tables, \texttt{paper\_claims.json},
+generated macro source hash, environment
+locks, and a release validator.  Reproduction commands must distinguish CPU
+and official GPU runs and must never regenerate task bundles in a different
+dependency environment.
+
+\section{Limitations and Ethical Considerations}
+The benchmark uses synthetic controlled tasks, designed mechanisms, binary
+classification, and a limited model set.  The real-data component contains five
+selected boundary audits rather than a random task sample.  Leakage findings
+can reveal risky data practices; releases should avoid exposing credentials,
+personal information, or restricted raw data.  Task manifests and derived
+statistics should be public only when their source licenses permit it.
+
+\bibliography{references}
+\end{document}

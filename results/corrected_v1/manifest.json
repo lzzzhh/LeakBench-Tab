@@ -1,0 +1,18 @@
+{
+  "version": "corrected_v1",
+  "cells": 270,
+  "mechanisms": [
+    "M08",
+    "M09",
+    "M10"
+  ],
+  "datasets": 5,
+  "models": [
+    "catboost",
+    "lr"
+  ],
+  "seeds": [
+    42
+  ],
+  "timestamp": "2026-07-13T10:27:51"
+}

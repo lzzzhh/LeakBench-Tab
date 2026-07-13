@@ -1,0 +1,92 @@
+{
+  "date": "2026-07-13T11:13:02.263229",
+  "project": "LeakBench-Tab",
+  "status": "NOT FROZEN \u2014 CE-1 CORRECTED CLAIMS FROZEN",
+  "claims": {
+    "CL1": {
+      "old": "CONFIRMED",
+      "new": "CONFIRMED",
+      "change": "UNCHANGED"
+    },
+    "CL2": {
+      "old": "CONFIRMED",
+      "new": "CONFIRMED",
+      "change": "UNCHANGED"
+    },
+    "CL3": {
+      "old": "CONFIRMED",
+      "new": "PARTIALLY CONFIRMED",
+      "change": "DOWNGRADED"
+    },
+    "CL4": {
+      "old": "CONFIRMED",
+      "new": "PARTIALLY CONFIRMED",
+      "change": "DOWNGRADED"
+    },
+    "CL5a": {
+      "old": "CONFIRMED",
+      "new": "AUDIT PENDING",
+      "change": "PENDING"
+    },
+    "CL5b-raw": {
+      "old": "CONFIRMED",
+      "new": "REFUTED",
+      "change": "REFUTED"
+    },
+    "CL5b-derived": {
+      "old": "CONFIRMED",
+      "new": "REFUTED",
+      "change": "REFUTED"
+    },
+    "CL6": {
+      "old": "CONFIRMED",
+      "new": "LINEAGE PENDING",
+      "change": "PENDING"
+    },
+    "CL7": {
+      "old": "CONFIRMED",
+      "new": "PARTIALLY CONFIRMED",
+      "change": "DOWNGRADED"
+    },
+    "CL9": {
+      "old": "CONFIRMED",
+      "new": "CONFIRMED",
+      "change": "UNCHANGED"
+    },
+    "CL10": {
+      "old": "CONFIRMED",
+      "new": "PARTIALLY CONFIRMED",
+      "change": "DOWNGRADED"
+    },
+    "CL14": {
+      "old": "REFUTED",
+      "new": "PENDING",
+      "change": "INVALIDATED"
+    },
+    "CL14a": {
+      "old": "CONFIRMED",
+      "new": "PENDING",
+      "change": "PENDING"
+    },
+    "CL14b": {
+      "old": "REFUTED",
+      "new": "PENDING",
+      "change": "INVALIDATED"
+    },
+    "CL14c": {
+      "old": "REFUTED",
+      "new": "PENDING",
+      "change": "INVALIDATED"
+    },
+    "CL16a": {
+      "old": "REFUTED",
+      "new": "PENDING",
+      "change": "PENDING"
+    }
+  },
+  "unchanged": 3,
+  "downgraded": 4,
+  "refuted_new": 2,
+  "invalidated": 3,
+  "pending": 4
+}

@@ -1,0 +1,556 @@
+\documentclass[letterpaper]{article}
+\usepackage[submission]{aaai2027}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\frenchspacing
+
+\pdfinfo{
+/TemplateVersion (2027.1)
+/Title (LeakBench-Tab: Separating Contamination Validity, Statistical Detectability, and Model Exploitability in Tabular Learning)
+/Author (Anonymous Submission)
+/Subject (AAAI-27 Main Technical Track Submission)
+}
+
+\setcounter{secnumdepth}{2}
+\input{source_data/result_macros_base.tex}
+\IfFileExists{generated/result_macros.tex}{\input{generated/result_macros.tex}}{}
+
+\title{LeakBench-Tab: Separating Contamination Validity, Statistical Detectability, and Model Exploitability in Tabular Learning}
+\author{Anonymous Submission}
+\affiliations{}
+
+\begin{document}
+
+\maketitle
+
+\ifLBResultsReady\else
+\begin{center}
+\fbox{\parbox{0.94\linewidth}{\centering\bfseries
+INTERNAL DRAFT --- RESULTS BLOCKED.\\
+The complete confirmatory \texttt{paper\_claims.json} has not passed the
+fail-closed paper-number generator.  No empirical value in this PDF is
+submission-ready.}}
+\end{center}
+\fi
+
+\begin{abstract}
+Prediction-time feature contamination can invalidate tabular model evaluation,
+yet an invalid feature need not be statistically conspicuous or useful to a
+particular learner.  We present LeakBench-Tab, a measurement benchmark that
+separates prediction-time validity (C), statistical detectability (D), and
+model exploitability (X).  Its frozen controlled design crosses
+\LBControlledTaskCount{} panel tasks, \LBMechanismCount{} mechanisms,
+\LBStrengthCount{} strengths, \LBCoreModelCount{} model families, and
+\LBSeedCount{} injection seeds, for \LBExpectedCells{} paired model-training
+cells.  Mechanism-level construction invariants enforce the declared prediction
+boundary, and hierarchical inference treats the task rather than the cell as
+the independent unit.  A separate \LBExpectedDiagnosticCells{}-cell sensitivity
+matrix compares \LBDiagnosticMethodCount{} oracle-blind, pre-test development
+rankers; mutual information is the frozen primary diagnostic.
+\ifLBResultsReady
+The final release contains \LBSuccessfulCells{} successful cells
+(\LBCompletionRate\% completion).  The declared simple-minus-structured
+harm contrast is \LBSimpleStructuredStatus{} ($\Delta=
+\LBSimpleStructuredDifference$, 95\% CI
+$[\LBSimpleStructuredCILow,\LBSimpleStructuredCIHigh]$), while M03, M08, and
+M09 expose mechanism-level profiles that cannot be summarized by one leakage
+severity score.  Five fixed real-data case studies provide bounded consistency
+checks only; they are not used for population-level or
+zero-shot-transfer claims.
+\else
+Empirical findings are intentionally withheld until the complete confirmatory
+release passes the frozen integrity and claim-status checks.
+\fi
+\end{abstract}
+
+\section{Introduction}
+Prediction-time leakage arises when a model is trained or evaluated with
+information that would not be valid at its declared decision boundary.  Direct
+copies of the target are obvious, but practical contamination also enters
+through post-outcome fields, future-window aggregates, and entity or source
+statistics whose legitimacy depends on lineage and timing
+\citep{kaufman2011leakage,kapoor2023leakage,davis2024framework}.  Such fields can
+make offline performance optimistic and comparisons between models misleading.
+
+Association alone does not establish invalidity.  Conversely, an invalid field
+may be hard to locate from samples alone, and a near-zero performance change
+does not make that field legitimate.  We therefore separate three questions:
+\emph{contamination validity} (C), determined by the prediction boundary;
+\emph{statistical detectability} (D), measured as localization quality; and
+\emph{model exploitability} (X), measured by paired permissive-versus-strict
+performance inflation.
+
+We ask: \textbf{RQ1:} Which prediction-time contamination mechanisms can
+oracle-blind, pre-test development diagnostics locate, and how
+diagnostic-conditional is that conclusion?  \textbf{RQ2:} Which mechanisms are
+exploited across linear, tree-ensemble, boosting, and neural tabular learners?
+\textbf{RQ3:} Which C/D/X profiles persist across mechanism strengths, model
+families, and explicitly bounded real-data case studies?
+
+Our contribution is a benchmark-level operationalization rather than a new
+definition of leakage or a new detector.  First, LeakBench-Tab records C, D, and
+X as distinct estimands tied to a declared prediction boundary.  Second, it
+provides \LBMechanismCount{} construction-audited mechanisms on
+\LBControlledTaskCount{} deterministic controlled panel tasks, with paired
+strict and permissive evaluation.  Third, it freezes exact task-level inference
+for the directional category contrast and task-hierarchical uncertainty
+analyses for descriptive mechanism, diagnostic, and model-family summaries.
+Fourth, it supplements
+controlled evidence with
+\LBNaturalTaskCount{} fixed real-data case studies whose scope is explicitly
+limited to bounded consistency checks.  Metadata localization and governance
+interventions are outside the confirmatory claim set reported here.
+
+\section{Related Work}
+\label{sec:related}
+\paragraph{Leakage semantics and scientific validity.}
+Prediction-time legitimacy and the ``no time machine'' principle precede this
+work \citep{kaufman2011leakage}.  Later analyses connect leakage to failures of
+scientific reproducibility and domain-specific label leakage
+\citep{kapoor2023leakage,davis2024framework}.  Controlled neuroimaging audits
+also show that different leakage forms can produce large or minor performance
+inflation \citep{rosenblatt2024connectome}.  Most closely, a recent tabular
+study applies 29 workflow perturbations across 2,047 i.i.d. and 129 temporal
+datasets to compare leakage-type effect sizes \citep{roth2026leakage}.  That
+work provides substantially broader dataset coverage; our complementary
+resolution is within-task feature localization, construction-audited
+prediction boundaries, and paired diagnostic/model profiles for eleven fixed
+mechanisms.
+LeakBench-Tab does not redefine
+these concepts or claim that variable inflation is new.  Its distinct scope is
+a domain-agnostic tabular mechanism registry that jointly evaluates semantic
+validity, feature-level localization, and paired inflation across diagnostic
+and downstream model families.
+
+\paragraph{Tabular model evaluation.}
+Broad comparisons such as TableShift and TabZilla study distribution shift and
+model-family performance across tabular tasks
+\citep{gardner2023tableshift,mcelfresh2023tabzilla}.  Other work establishes
+strong tree baselines and modern neural alternatives
+\citep{grinsztajn2022trees,gorishniy2025tabm}.  Our axis of comparison is
+different: every learner receives paired views of the same frozen injected
+task, so the estimand is contamination harm rather than unpaired predictive
+rank.
+
+\paragraph{Diagnostics versus exploitation.}
+The distinction between contamination, memorization, and downstream
+exploitation is not new: \citet{magar2022contamination} showed in NLP
+pretraining that memorized contaminated examples need not be exploited after
+fine-tuning.  Our use of ``exploitability'' therefore claims no conceptual
+priority.  We operationalize a different setting: prediction-time tabular
+feature contamination C, localization of encoded contaminated columns D, and
+paired strict-versus-permissive degradation X.  Static program analysis offers
+a complementary route by detecting leakage-prone data-science code before
+execution \citep{subotic2022static}; our D diagnostics instead localize
+contaminated columns in a frozen task.
+Feature-level precision--recall summaries are appropriate when contaminated
+fields are sparse \citep{saito2015precision}, but successful localization does
+not imply that every learner will exploit the field.  We use mutual information
+as the primary D measure and compare it with absolute correlation, logistic
+coefficient magnitude, and random-forest permutation importance.  All four are
+oracle-blind and pre-test: the first three use training rows only, while the
+forest is fitted on training rows and permutation importance is evaluated with
+the frozen validation labels.  Their disagreement is descriptive sensitivity,
+not a procedure for selecting the best ranker after seeing contamination
+labels.  X is reported separately for each downstream model.  The benchmark is measurement
+infrastructure, not a proposal for a universally superior leakage detector or
+governance policy.
+
+\section{Problem Setup and the C/D/X Framework}
+\label{sec:setup}
+Let $\mathcal{D}=\{(\mathbf{x}_i,y_i)\}_{i=1}^{n}$ be a binary tabular task
+with declared prediction time $t_p$.  A field may be invalid because it becomes
+available after $t_p$, encodes future or outcome information, or violates a
+declared lineage or population boundary.  The \emph{strict} view removes all
+mechanism-labeled contaminated fields; the paired \emph{permissive} view retains
+them.  All train, validation, and test row assignments remain fixed between the
+two views.
+
+\subsection{Contamination Validity (C)}
+For field $j$, define
+\begin{equation}
+C_j = \mathbf{1}\!\left[j\text{ is invalid under the declared boundary at }t_p\right].
+\end{equation}
+$C_j$ is fixed by task semantics and the mechanism contract.  It is not inferred
+from mutual information, model importance, attribution, or downstream
+performance.
+
+\subsection{Statistical Detectability (D)}
+An oracle-blind diagnostic assigns a score $s_j$ to every encoded column
+without access to the contamination mask or test rows.
+Localization is evaluated against $C_j$ with feature-level average precision
+(AP), normalized against contaminated-field prevalence $\pi$ as
+\begin{equation}
+D = \frac{\mathrm{AP}-\pi}{1-\pi}.
+\end{equation}
+We also retain top-$5$ recall.  Mutual information is the frozen primary
+ranker used in the headline C/D/X profiles and uses the same fixed
+\texttt{random\_state=42} for every injected task.  A sensitivity suite additionally
+uses absolute correlation, logistic coefficient magnitude, and random-forest
+permutation importance.  MI, correlation, and logistic coefficients use
+training rows only; the forest is trained on training rows and scored by
+permutation on the frozen validation split.  Each method's D is computed once
+per injected task and is therefore invariant to the downstream exploitability
+model.  D is diagnostic- and representation-conditional; no per-task
+best-method maximum is a deployable selector.
+
+\subsection{Model Exploitability (X)}
+For learner $m$ and a metric for which larger is better, paired harm is
+\begin{equation}
+X_m = q_m(\mathcal{D}_{\mathrm{permissive}})
+      -q_m(\mathcal{D}_{\mathrm{strict}}).
+\end{equation}
+We use test AUROC as $q$.  Positive X denotes measured performance inflation;
+near-zero X denotes no material benefit under this protocol.  Negative X is not
+evidence that a learner recognizes or rejects invalidity.
+
+\begin{figure}[t]
+\centering
+\small
+\setlength{\fboxsep}{4pt}
+\fbox{\parbox{0.91\columnwidth}{\centering
+\textbf{Declared prediction-time information boundary}\\
+Which fields and lineage are available when the prediction is made?}}
+\par\vspace{-0.15em}$\downarrow$\par\vspace{-0.15em}
+\fbox{\parbox{0.91\columnwidth}{\centering
+\textbf{C --- Contamination validity}\\
+Semantic construction label; not inferred from association or performance.}}
+\par\vspace{-0.15em}$\swarrow\hspace{0.36\columnwidth}\searrow$\par\vspace{-0.15em}
+\begin{tabular}{@{}cc@{}}
+\fbox{\parbox[t]{0.41\columnwidth}{\centering
+\textbf{D --- Detectability}\\
+Can an oracle-blind diagnostic localize the encoded contaminated columns?}} &
+\fbox{\parbox[t]{0.41\columnwidth}{\centering
+\textbf{X --- Exploitability}\\
+How much does the paired permissive view inflate held-out AUROC?}}
+\end{tabular}
+\caption{C is fixed by the declared information boundary.  D and X are
+separate empirical measurements conditional on a diagnostic, representation,
+and learner; neither determines C or the other empirical axis.}
+\label{fig:cdx-framework}
+\end{figure}
+
+\section{LeakBench-Tab Design}
+\label{sec:design}
+\subsection{Controlled Tasks and Mechanisms}
+The controlled registry contains \LBControlledTaskCount{} deterministic panel
+tasks spanning five data-generating archetypes.  Each task includes ordered
+timestamps and sufficient entity and source support for the structured
+mechanisms.  Generator seeds are separated from injection seeds, and every
+mechanism-strength-seed tuple has a content hash and a fixed chronological
+60/20/20 split.
+
+Table~\ref{tab:mechanisms} groups mechanisms by construction rather than by
+observed performance.  Strict-future mechanisms exclude the current row; M08
+uses future entity outcomes with shrinkage and a leave-one-out prior; M09 uses
+outcome-dependent source collection with a complete one-hot representation and
+a random permutation of source category IDs to prevent ordinal encoding; and
+M10 keeps its legitimate component exactly equal
+to a clean input while labeling the contaminated component separately.  These
+invariants make C auditable before any model is fitted.
+M09's D localizes eight encoded one-hot columns representing one source
+variable, so its detectability is representation-conditional rather than a
+field-level generality claim across encodings.
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+ID & Mechanism & Category & Invalidity source / structure \\
+\midrule
+M01 & Direct target copy & Simple & Target-derived global field \\
+M02 & Noisy target proxy & Simple & Noisy target-derived global field \\
+M06 & Redundant leakage cluster & Simple & Correlated target proxies \\
+M10 & Mixed leakage & Simple & Legitimate and contaminated components \\
+M03 & Nonlinear target interaction & Boundary & Nonlinear target-derived interaction \\
+M07 & Sparse subgroup leakage & Boundary & Contamination restricted to a subgroup \\
+M11 & Graph-mediated leakage & Boundary & Connected contamination component \\
+M04 & Post-outcome aggregation & Structured & Strictly post-outcome temporal aggregate \\
+M05 & Temporal look-ahead & Structured & Strictly future-window information \\
+M08 & Entity-conditioned leakage & Structured & Future entity-outcome statistic \\
+M09 & Source-conditioned leakage & Structured & Outcome-dependent source assignment \\
+\bottomrule
+\end{tabular}
+\caption{Frozen mechanism taxonomy.  Categories are declared by construction
+and are not reassigned after observing model performance.}
+\label{tab:mechanisms}
+\end{table*}
+
+\subsection{Models}
+The five core learners are logistic regression, random forest
+\citep{breiman2001random}, CatBoost \citep{prokhorenkova2018catboost}, LightGBM
+\citep{ke2017lightgbm}, and the official TabM implementation
+\citep{gorishniy2025tabm}.  Scaling, preprocessing, and diagnostics are fit on
+training data only.  The TabM tasks are serialized locally and verified by task,
+split, and bundle hashes before GPU fitting; no surrogate implementation or
+silent model fallback is accepted.
+
+\subsection{Real-Data Case Studies}
+Five fixed case studies---UCI Bank Marketing \citep{uciBankMarketing}, a local
+Lending Club accepted-loan mirror, U.S. flight delays \citep{btsOnTime}, Chicago
+food inspections \citep{chicagoFoodInspections}, and NYC 311
+\citep{nyc311}---declare a prediction boundary and audit-confirmed post-boundary
+fields before evaluation.  They use the four CPU core models.  These studies
+fit categorical vocabularies on training rows only, map unseen validation/test
+levels to a reserved unknown value, and exclude globally encoded date strings.
+The earlier full-table-vocabulary run is superseded and cannot source claims.
+These studies
+ask whether paired harm appears under specific real task boundaries; they do
+not train a cross-task detector, test zero-shot metadata transfer, or justify
+population inference from five selected tasks.  The Lending mirror is treated
+as local-only and non-redistributable until its source and license are verified.
+
+\section{Experimental Protocol}
+\label{sec:protocol}
+The frozen controlled matrix crosses \LBControlledTaskCount{} tasks,
+\LBMechanismCount{} mechanisms, \LBStrengthCount{} strengths,
+\LBCoreModelCount{} learners, and \LBSeedCount{} injection seeds, yielding
+\LBExpectedCells{} paired model-training cells.  The primary estimand is mean
+paired AUROC harm.  Clean-model results are cached only within an identical
+task/model/seed key, and every failed cell is retained rather than silently
+dropped.
+
+The task is the independent unit.  Confirmatory intervals use a 20,000-draw
+hierarchical bootstrap that resamples tasks and then injection seeds.  Mechanism
+tests use task-level sign flips with Holm correction over the declared family;
+the three category contrasts use exact task-level sign flips and form a separate
+Holm family.  M08 entity sensitivity shares each entity draw across all models
+and strengths within a task/seed group before outer resampling.  M09 shares each
+source-category draw across models within a task/seed/strength group, but its
+eight source IDs are constructed categories rather than sampled population
+clusters; that interval is descriptive designed-category reweighting only.
+Because the 20 tasks are a designed registry rather than a random
+sample from a defined task population, these intervals quantify stability to
+registry reweighting; they do not support population inference to arbitrary
+tabular tasks.  Association between mean D and X is explicitly descriptive: we
+report global rank correlation, category-only and category-plus-D fits,
+within-category permutation, and leave-one-mechanism-out (LOMO) diagnostics.
+The separate sensitivity matrix contains
+\LBControlledTaskCount{}$\times$\LBMechanismCount{}$\times$
+\LBStrengthCount{}$\times$\LBSeedCount{}$\times$
+\LBDiagnosticMethodCount{}$=\LBExpectedDiagnosticCells{}$ diagnostic cells on
+the same immutable tasks.  It is complete only when all
+\LBSuccessfulDiagnosticCells{} cells pass integrity checks; its rows are not
+added to the \LBExpectedCells{} model-training count.
+
+Post-unblinding evidence reconciliation found that the original sensitivity
+runner had used the injection seed for its mutual-information rows, while the
+headline analysis and frozen task manifest used the fixed seed above.  A
+scope-locked amendment therefore replaces all and only the 5,500 MI rows with
+the already-frozen task-manifest localization metrics; the other 16,500 rows
+and the method set are unchanged.  The raw suite remains in the
+archive as provenance but is not paper-facing evidence.
+
+A second post-unblinding methodological audit found that bootstrap tail areas
+had been labeled as category-contrast $p$-values, D--X intervals had resampled X
+while holding D fixed, and cluster draws had been made independently per model
+cell.  A second audit then found that the initial cluster amendment still drew
+M08 entities independently across five injection seeds that reuse the same test
+rows, labels, and entities.  The final scope-locked amendment replaces those summaries:
+exact task sign flips with Holm adjustment are used for category tests, D and X
+are jointly resampled, and cluster/category draws are synchronized at their
+shared task level.  For M08, one entity draw is shared across all five seeds,
+models, and strengths within a dataset while seed-specific effects are retained
+for outer resampling.  Prediction arrays and task hashes are checked directly
+against the frozen bundles.  Mechanism-profile comparisons remain descriptive
+because no decision thresholds for them were bound by the original protocol;
+both superseded cluster summaries are barred from claim provenance.
+
+\ifLBResultsReady
+The canonical manifest contains \LBSuccessfulCells{}/\LBExpectedCells{}
+successful cells (\LBCompletionRate\%).
+\else
+Completion is not asserted in this draft because the final confirmatory claim
+release is absent.
+\fi
+
+\section{Results}
+\label{sec:results}
+\ifLBResultsReady
+\subsection{The Frozen Category Contrast}
+The simple-minus-structured mean harm contrast was
+$\LBSimpleStructuredDifference$ (95\% hierarchical bootstrap CI
+$[\LBSimpleStructuredCILow,\LBSimpleStructuredCIHigh]$; Holm-adjusted
+$p=\LBSimpleStructuredHolmP$ from an exact two-sided task-level sign-flip test).
+\ifLBSimpleStructuredSupported
+This satisfies the declared release criterion.
+\else
+This does not satisfy the declared release criterion and is reported as a
+negative confirmatory result.
+\fi
+The direction was positive for \LBModelPositiveDirectionCount{} of five
+learners; \LBModelCIExcludesZeroCount{} model-specific intervals excluded zero.
+These model-specific counts are descriptive and do not enter the support rule.
+This category average is not interpreted as a universal separation because the
+structured set contains a declared counterexample.
+
+\subsection{Crossed Mechanism Profiles}
+For M03, normalized AP was \LBMThreeDetectability{} (95\% CI
+$[\LBMThreeDetectabilityCILow,\LBMThreeDetectabilityCIHigh]$) and paired harm
+was \LBMThreeHarm{} (95\% CI
+$[\LBMThreeHarmCILow,\LBMThreeHarmCIHigh]$).  This profile is descriptive;
+we do not apply a post hoc low-D or high-X threshold.
+For M08, normalized AP was \LBMEightDetectability{} (95\% CI
+$[\LBMEightDetectabilityCILow,\LBMEightDetectabilityCIHigh]$) and paired harm
+was \LBMEightHarm{} (95\% CI
+$[\LBMEightHarmCILow,\LBMEightHarmCIHigh]$); the synchronized entity-cluster sensitivity CI
+was $[\LBMEightClusterCILow,\LBMEightClusterCIHigh]$.
+This interval is descriptive uncertainty under registry reweighting and is not
+an equivalence or practical-null test.
+
+Within this fixed registry and encoded source representation, M09 is a
+descriptive structured counterexample to a uniform structured-harmlessness
+pattern.  Its normalized AP was
+\LBMNineDetectability{} (95\% CI
+$[\LBMNineDetectabilityCILow,\LBMNineDetectabilityCIHigh]$) and paired harm was
+\LBMNineHarm{} (95\% CI
+$[\LBMNineHarmCILow,\LBMNineHarmCIHigh]$).
+Here D is encoded-column localization over an eight-column one-hot
+representation of one semantic source field; it must not be generalized to
+field-level detectability under other representations.  Reweighting the eight
+constructed source categories gives the descriptive interval
+$[\LBMNineReweightingLow,\LBMNineReweightingHigh]$; it is not a source-population
+cluster confidence interval and is not a support criterion for this claim.
+It does not establish a population-level source effect or transfer to another
+source encoding.
+
+\begin{figure}[t]
+\centering
+\IfFileExists{\LBCDXScatterPath}{%
+\includegraphics[width=\columnwidth]{\LBCDXScatterPath}}{%
+\PackageError{LeakBench-Tab}{Missing final C-D-X scatter}{Generate it from the
+canonical confirmatory summaries; pilot figures are forbidden.}}
+\caption{Mechanism-level primary-MI detectability (D) and paired harm (X), with
+task-hierarchical intervals and construction categories.  M03, M08, and M09 are
+descriptive registry profiles; no post hoc profile threshold determines their
+status.}
+\label{fig:cdx-scatter}
+\end{figure}
+
+\subsection{Model-Family Heterogeneity}
+The paired design also exposes learner-conditional exploitation: the same
+construction label and diagnostic score can accompany different harm across
+linear, bagged-tree, boosted-tree, and neural learners.  We report these
+differences as model-family summaries, not causal capacity effects.
+
+\begin{figure}[t]
+\centering
+\IfFileExists{\LBMechanismModelHeatmapPath}{%
+\includegraphics[width=\columnwidth]{\LBMechanismModelHeatmapPath}}{%
+\PackageError{LeakBench-Tab}{Missing final mechanism-model heatmap}{Generate it
+from the canonical frozen table; pilot figures are forbidden.}}
+\caption{Paired harm by mechanism and model family under a common scale.  All
+55 fixed mechanism--model cells are retained; the contrasts are descriptive.}
+\label{fig:mechanism-model}
+\end{figure}
+
+\subsection{Detectability Is Diagnostic-Conditional}
+Across the four oracle-blind, pre-test development rankers, normalized AP ranged from
+\LBMThreeDiagnosticMin{} to \LBMThreeDiagnosticMax{} for M03, from
+\LBMFourDiagnosticMin{} to \LBMFourDiagnosticMax{} for M04, and from
+\LBMFiveDiagnosticMin{} to \LBMFiveDiagnosticMax{} for M05.  These ranges are
+reported as descriptive method sensitivity around the primary MI analysis.
+Without paired simultaneous method-comparison intervals, we do not attach an
+inferential detector-ranking claim.  We do not
+select a ranker per mechanism and do not interpret the maximum as an operational
+detector.
+
+\begin{figure}[t]
+\centering
+\IfFileExists{\LBStrengthDiagnosticPath}{%
+\includegraphics[width=\columnwidth]{\LBStrengthDiagnosticPath}}{%
+\PackageError{LeakBench-Tab}{Missing final strength/diagnostic figure}{Generate
+it from the complete confirmatory diagnostic matrix; pilot figures are
+forbidden.}}
+\caption{Strength-response and descriptive diagnostic sensitivity under four
+frozen oracle-blind, pre-test development rankers.  The first three use
+training rows only; RF permutation is evaluated on the frozen validation
+split.  Mutual information remains primary; the best observed
+ranker per mechanism is not a deployment rule.}
+\label{fig:diagnostic-robustness}
+\end{figure}
+
+\subsection{D--X Association Is Descriptive, Not a Transfer Rule}
+Across the eleven mechanism means, Spearman $\rho$ was \LBGlobalSpearman{}
+(95\% joint-paired D--X bootstrap interval
+$[\LBGlobalSpearmanCILow,\LBGlobalSpearmanCIHigh]$).  The same task/seed draws
+resample both axes.  Category alone
+had in-sample $R^2=\LBCategoryRSquared$; adding D yielded
+$R^2=\LBCategoryPlusDRSquared$ (increment \LBIncrementalRSquared{},
+within-category permutation $p=\LBIncrementalPermutationP$).  The corresponding
+LOMO values were \LBCategoryLomoRSquared{} and
+\LBCategoryPlusDLomoRSquared{} (increment \LBIncrementalLomoRSquared{}).
+These eleven points describe this mechanism registry; they do not establish a
+zero-shot predictor of exploitability.
+
+\subsection{Fixed Real-Data Boundary Checks}
+Across \LBNaturalTaskCount{} fixed case studies and \LBNaturalModelCount{} CPU
+learners, whether every task-level effect was positive was
+\LBNaturalAllPositive{}.  Mean paired harm was \LBNaturalMeanHarm{} (descriptive
+task-bootstrap interval $[\LBNaturalCILow,\LBNaturalCIHigh]$; exact task-level
+sign-flip $p=\LBNaturalSignFlipP$).
+These are descriptive results for the five fixed cases.  Neither the interval
+nor the five-task sign test is used as a support decision or population claim.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}p{0.67\columnwidth}p{0.25\columnwidth}@{}}
+\toprule
+Paper-facing evidence & Claim scope \\
+\midrule
+Simple minus structured: $\Delta=\LBSimpleStructuredDifference$,
+95\% CI $[\LBSimpleStructuredCILow,\LBSimpleStructuredCIHigh]$,
+Holm $p=\LBSimpleStructuredHolmP$ & \LBSimpleStructuredStatus \\
+M03, M08, and M09 crossed C/D/X profiles & descriptive only \\
+D--X association over eleven fixed mechanisms & \LBRelationStatus \\
+Five selected real-data boundary checks & \LBNaturalStatus \\
+\bottomrule
+\end{tabular}
+\caption{Claim scope is part of the result: only the pre-existing directional
+category contrast receives a binary support decision.}
+\label{tab:claim-scope}
+\end{table}
+\else
+\paragraph{Blocked draft.}
+No confirmatory result is rendered because
+\texttt{generated/result\_macros.tex} has not been produced from a complete,
+confirmatory, non-pending \texttt{paper\_claims.json}.  Pilot estimates are
+deliberately excluded from the manuscript.
+\fi
+
+\section{Limitations and Conclusion}
+\label{sec:conclusion}
+The controlled tasks are synthetic panel generators, not twenty real datasets.
+The registry covers eleven designed mechanisms and four oracle-blind, pre-test
+development rankers; neither set is exhaustive.  AUROC harm addresses binary discrimination
+and does not replace calibration, decision-utility, or deployment monitoring.
+The five real-data audits are selected, boundary-specific case studies with
+sparse contamination labels, so their uncertainty intervals are descriptive
+and their conclusions do not generalize to an unspecified task population.
+Model coverage is limited to five core families, and differences between
+families are associational rather than causal.  Metadata localization and
+governance comparisons remain outside this paper's confirmatory evidence.
+
+\ifLBResultsReady
+Within these limits, LeakBench-Tab shows why validity, detectability, and
+exploitability should be reported separately: validity is semantic, D and X are
+empirical, and mechanism-level crossed profiles prevent either empirical axis
+from serving as a universal leakage-severity score.
+\else
+The non-empirical conclusion is limited to the benchmark design; the final
+empirical conclusion remains blocked pending the confirmatory release.
+\fi
+
+\FloatBarrier
+\label{lb:last-main-content-page}
+\bibliography{references}
+
+\end{document}

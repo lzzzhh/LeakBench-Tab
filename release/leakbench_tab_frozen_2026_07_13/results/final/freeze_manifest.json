@@ -1,0 +1,18 @@
+{
+  "project": "LeakBench-Tab",
+  "version": "v1.0.0-frozen",
+  "freeze_date": "2026-07-13",
+  "status": "FROZEN",
+  "non_paper_readiness": "94/100",
+  "core_cells": 10083,
+  "meta_cells": 4032,
+  "total_cells": 14115,
+  "tests_passing": 99,
+  "claims": {
+    "CONFIRMED": 12,
+    "PARTIALLY_CONFIRMED": 5,
+    "UNCONFIRMED": 4,
+    "REFUTED": 3
+  },
+  "checksums_count": 15
+}

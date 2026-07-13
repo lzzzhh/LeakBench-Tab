@@ -1,0 +1,54 @@
+protocol:
+  version: structured_prior_replacement_v1
+  study_kind: corrected_v2_cell_replacement
+  study_namespace: structured_prior_replacement_v1
+  dataset_namespace: confirmatory
+  dataset_indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+  dataset_count: 20
+  mechanisms: [M04, M05, M08]
+  strengths: [S1, S2, S3, S4, S5]
+  strength_values: {S1: 0.2, S2: 0.4, S3: 0.6, S4: 0.8, S5: 1.0}
+  core_models: [lr, rf, catboost, lightgbm, tabm]
+  seeds: [13, 42, 2026, 3407, 7777]
+  split: chronological_60_20_20
+  injector: src.leakbench.mechanisms.structured_prior_v1.StructuredPriorV1Injector
+  injector_amendment: structured_constant_prior_v1
+  structured_prior: {type: outcome_independent_constant, value: 0.5}
+  strict_policy: "task.X[:, ~task.leakage_mask]"
+  full_policy: task.X
+  paired_harm: full_auc_minus_strict_auc
+  predictions_retained_for: [M08]
+  expected_task_variants: 1500
+  expected_cpu_model_cells: 6000
+  expected_tabm_model_cells: 1500
+  expected_model_cells: 7500
+  frozen_task_plan: protocols/structured_prior_v1/structured_prior_replacement_v1_tasks.csv
+  bundle_output: results/structured_prior_replacement_v1/task_bundles
+  result_output: results/structured_prior_replacement_v1/model_cells.csv
+  execution_gate: explicit_allow_run
+
+analysis:
+  role: exact_replacement_only
+  replaces_corrected_v2_mechanisms: [M04, M05, M08]
+  replacement_key: [dataset_index, mechanism, strength, model, seed]
+  exclusions: none
+  missingness: any_missing_or_failed_cell_makes_replacement_incomplete
+  substitution: forbidden
+  inference_claim: none_new
+
+mechanism_parameters:
+  M04: {noise_std: 0.08}
+  M05: {noise_std: 0.08, time_offsets: [0.02, 0.02, 0.02, 0.02, 0.02]}
+  M08: {noise_std: 0.04, prior_strength: 5.0}
+
+tabm:
+  required_version: 0.0.3
+  device: cuda
+  k: 32
+  learning_rate: 0.003
+  weight_decay: 0.0001
+  max_epochs: 200
+  batch_size: 256
+  inference_batch_size: 1024
+  patience: 20
+  min_delta: 0.00001

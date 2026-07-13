@@ -1,0 +1,12 @@
+mechanism_id,mechanism_name,category,contamination,i_only_auprc,aligned_harm_mean,harm_gt_001_rate,detectability_class,exploitability_class,final_profile
+M01,Direct Target Copy,simple,True,1.0,0.093,1.0,HIGH,HIGH,C1-DH-XH
+M02,Noisy Target Proxy,simple,True,1.0,0.033,0.8,HIGH,HIGH,C1-DH-XH
+M03,Nonlinear Target Transform,boundary,True,0.111,-0.003,0.0,LOW,LOW,C1-DL-XL
+M04,Post-Outcome Aggregation,structured,True,0.048,0.0009,0.11,LOW,LOW,C1-DL-XL
+M05,Temporal Look-Ahead,structured,True,0.069,0.0016,0.11,LOW,LOW,C1-DL-XL
+M06,Redundant Leakage Cluster,simple,True,1.0,0.043,0.9,HIGH,HIGH,C1-DH-XH
+M07,Sparse Subgroup Leakage,boundary,True,0.453,0.025,0.3,MEDIUM,CONDITIONAL,C1-DM-XC
+M08,Entity Leakage,structured,True,0.048,0.0043,0.22,LOW,CONDITIONAL,C1-DL-XC
+M09,Source Leakage,structured,True,0.048,0.0022,0.17,LOW,LOW,C1-DL-XL
+M10,Mixed Leakage,simple,True,1.0,0.042,0.8,HIGH,HIGH,C1-DH-XH
+M11,Graph-Mediated Leakage,boundary,True,0.819,0.032,0.6,HIGH,HIGH,C1-DH-XH

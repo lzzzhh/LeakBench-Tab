@@ -1,0 +1,9 @@
+experiment,datasets,mechanisms,strengths,model,seeds,expected,completed,note
+lr_full,20,11,5,lr,3,3300,3300,
+rf_full,20,11,5,rf,3,3300,3300,
+catboost_core,10,11,3,catboost,3,990,990,"10 datasets, S1/S3/S5"
+lightgbm_core,10,11,3,lightgbm,3,990,990,"10 datasets, S1/S3/S5"
+tabm_rep,8,11,3,tabm,3,792,726,66 UNCOMPLETED (OOM/timeout)
+modernnca_audit,6,7,3,modernnca,3,378,378,
+tabr_audit,6,7,3,tabr,3,378,378,
+tabpfn_audit,3,7,2,tabpfnv2,1,42,21,EXPLORATORY ONLY

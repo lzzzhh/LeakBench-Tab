@@ -1,0 +1,7 @@
+# LeakBench-Tab Feature Availability Audit Template
+audit_template:
+  required_fields: [feature_name,description,generation_stage,prediction_time_available,human_label,evidence,confidence]
+  generation_stages: [pre_application,application,underwriting,approval,origination,post_origination,repayment,default,closed,unknown]
+  human_labels: [LEGITIMATE,LEAKAGE,AMBIGUOUS,IDENTIFIER_RISK,SOURCE_RISK,UNKNOWN]
+  evidence_levels: [DIRECT_DOCUMENTATION,DATA_LINEAGE,TIMESTAMP_LOGIC,FIELD_SEMANTICS,EMPIRICAL_ONLY]
+  confidence_levels: [high,medium,low]

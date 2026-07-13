@@ -1,0 +1,23 @@
+file,line,category,match
+src/leakbench/mechanisms/__init__.py,80,leak_mask_peeking,leak_mask[
+src/leakbench/models/modern_models.py,52,silent_fallback,"except Exception as e:
+        return"
+src/leakbench/models/modern_models.py,117,silent_fallback,"except Exception as e:
+        return"
+src/leakbench/models/modern_models.py,24,hardcoded_seed,seed=42)
+src/leakbench/models/modern_models.py,57,hardcoded_seed,seed=42)
+src/leakbench/models/modern_models.py,94,hardcoded_seed,seed=42)
+src/leakbench/capacity/__init__.py,20,hardcoded_seed,seed=42)
+experiments/leakbench/consolidate_three_axis.py,60,silent_fallback,"except:
+            pass"
+experiments/leakbench/run_meta_tier.py,171,column_boundary_peeking,j >= n_clean
+experiments/leakbench/run_meta_tier.py,172,column_boundary_peeking,j >= n_clean
+experiments/leakbench/run_meta_tier.py,174,column_boundary_peeking,j >= n_clean
+experiments/leakbench/run_meta_tier.py,176,column_boundary_peeking,j >= n_clean
+experiments/leakbench/run_meta_tier.py,160,leak_mask_peeking,leak_mask[
+experiments/leakbench/run_meta_tier.py,315,leak_mask_peeking,leak_mask[
+experiments/leakbench/run_meta_tier.py,217,leak_mask_peeking,"task[""leak_mask""]"
+experiments/leakbench/run_meta_tier.py,266,leak_mask_peeking,"task[""leak_mask""]"
+experiments/leakbench/run_meta_tier.py,353,leak_mask_peeking,"task[""leak_mask""]"
+experiments/leakbench/run_meta_tier.py,354,leak_mask_peeking,"task[""leak_mask""]"
+experiments/leakbench/run_meta_tier.py,355,leak_mask_peeking,"task[""leak_mask""]"
