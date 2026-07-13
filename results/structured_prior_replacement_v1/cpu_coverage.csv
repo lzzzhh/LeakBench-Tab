@@ -1,0 +1,6 @@
+model,expected,completed,success,failure,integrity_verified,duplicates,status
+lr,1500,1500,1500,0,1500,0,COMPLETE
+rf,1500,1500,1500,0,1500,0,COMPLETE
+lightgbm,1500,1500,1500,0,1500,0,COMPLETE
+catboost,1500,1500,1500,0,1500,0,COMPLETE
+tabm,1500,0,0,0,0,0,PENDING_GPU

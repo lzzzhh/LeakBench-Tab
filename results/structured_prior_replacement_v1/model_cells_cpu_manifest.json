@@ -1,0 +1,70 @@
+{
+  "adapter_hash": "5f80d5dda00100003558a26ebae1dd8039186921c3c2023be7be33c9d6f62f49",
+  "bundle_summary_sha256": "c62101cce17ef18715aca41142655fe3ac08a3cef354e60c80ebcffb8a6e71b9",
+  "code_hash": "1501fd92121226484b6909fd983bd4f4db7dfc96e1d162cff3b9afd6807c4678",
+  "config_path": "configs/paper/structured_prior_replacement_v1.yaml",
+  "config_sha256": "efc01fc1f21b12e9a32b010e6bd8f5bf355e7c69e68b30e1aa463d9ed792bd96",
+  "dataset_namespace": "confirmatory",
+  "datasets": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "explicit_run_authorized": true,
+  "failure_cells": 0,
+  "freeze_manifest_sha256": "c2a1b188c05f13325c53e1ab6ab1e79d84a53a95a067e6a20906c3b5fcb6c4ce",
+  "frozen_files_verified": 14,
+  "full_policy": "task.X",
+  "integrity_verified_cells": 6000,
+  "mechanisms": [
+    "M04",
+    "M05",
+    "M08"
+  ],
+  "models": [
+    "lr",
+    "rf",
+    "lightgbm",
+    "catboost"
+  ],
+  "protocol_version": "structured_prior_replacement_v1",
+  "requested_cells": 6000,
+  "result_sha256": "0347bacc2176c1b089667a1f64bb90b0c0f56eb68ed7ea570d8c28b9ad5284dc",
+  "schema_version": 1,
+  "seeds": [
+    13,
+    42,
+    2026,
+    3407,
+    7777
+  ],
+  "strengths": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5"
+  ],
+  "strict_policy": "task.X[:, ~task.leakage_mask]",
+  "study_namespace": "structured_prior_replacement_v1",
+  "success_cells": 6000,
+  "task_manifest_path": "results/structured_prior_replacement_v1/task_bundles/task_manifest.csv",
+  "task_manifest_sha256": "6c50487b3728f02054471643a781bdf0e4efdb74a4f4c4319aad133dac03ba02"
+}
