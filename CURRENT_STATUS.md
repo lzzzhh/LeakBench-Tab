@@ -29,13 +29,36 @@
 
 ## 2026-07-13 Update
 
-### Fixed
-- **M08**: structured_prior_v1 implementation verified. Feature has real entity-level structure (corr=0.28). Rerun on 4 CPU models shows inflation +0.037 (vs old broken ~0.000).
-- **Bank adapter**: recursive CSV search added.
-- **Lending adapter**: already uses `use_file` (no fix needed).
+### Interim M08 runs EXCLUDED (INVALID_PROTOCOL_SUBSTITUTION)
+Ad-hoc CPU/GPU M08 runs were produced before discovering that corrected M08 is
+governed by the frozen `structured_prior_replacement_v1` protocol. They violated
+the frozen protocol on every dimension (mechanism/seed/strength/task/dataset/
+metric/model substitution, no integrity hashes) and are **withdrawn**.
 
-### Pending
-- Rerun M08 on TabM/ModernNCA/TabR/TabICL (needs GPU)
-- Fix governance scripts (run_meta_tier.py still uses old implementation)
-- Rerun natural tasks with fixed adapters
-- Recompute CL3/CL4/CL10/CL14/CL16/CL5b with corrected M08
+- Excluded files archived under `archive/invalid_interim/m08/` (not consumed by
+  any script, glob, or validator).
+- Exclusion record: `reports/excluded_results/m08_temporary_runs_exclusion.md`.
+- Withdrawn numbers (must not be cited): interim `+0.037`, six-model `+0.0277`,
+  `ModernNCA −0.0092`, and per-model interim inflations.
+
+### Canonical M08 path (frozen protocol)
+Corrected M08 evidence will come solely from executing the frozen protocol:
+- Protocol: `protocols/structured_prior_v1/inference_protocol_v1.json`
+  (`FROZEN_BEFORE_ANY_MODEL_RUN`)
+- Task plan: `structured_prior_replacement_v1_tasks.csv` (1500 task variants)
+- Injector: `StructuredPriorV1Injector` (constant 0.5 prior)
+- Runner: `run_structured_prior_v1_bundle.py --allow-run` (read-only, hash-verified)
+- Scope: M04/M05/M08 × S1–S5 × seeds [13,42,2026,3407,7777] × {lr,rf,catboost,lightgbm,tabm}
+- Cells: 7500 total (6000 CPU + 1500 TabM GPU)
+- Metric: `paired_harm = full_auc − strict_auc`
+
+### Claim status (until 7500-cell closure)
+- M08: `PENDING FROZEN-PROTOCOL EXECUTION`
+- CL2 / CL3 / CL4 / CL10: `PENDING RECOMPUTATION`
+- Eight-model consistency claim: `WITHDRAWN` (protocol has 5 models; at most a
+  five-model frozen-protocol M08 result can be restored)
+
+### Other pending (separate tasks, not this track)
+- Governance (Track B): audit reuse of bundle infra for M06/M09/M10/M11
+- Natural tasks (Bank/Lending adapters): deferred to a separate task
+- Old eight-model aggregates remain `SUPERSEDED`
