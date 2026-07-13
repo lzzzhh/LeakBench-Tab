@@ -9,6 +9,7 @@ import scripts.verify_corrected_v2_public_artifact as public_verifier
 from scripts.verify_corrected_v2_public_artifact import verify_npz
 
 from scripts.build_corrected_v2_artifact import (
+    CANONICAL_BUILDER,
     PRIVATE_BYTE_PATTERNS,
     PRIVATE_NATURAL_PATHS,
     PUBLIC_NATURAL_PATHS,
@@ -34,6 +35,16 @@ def test_artifact_builder_is_allowlisted_fail_closed_and_requires_fresh_release(
     assert "_sanitize_text_bytes(original)" not in source
     assert len(PRIVATE_NATURAL_PATHS) == 5
     assert len(PUBLIC_NATURAL_PATHS) == 5
+
+
+def test_canonical_manifest_builder_binding_is_fail_closed():
+    source = Path("scripts/build_corrected_v2_artifact.py").read_text(encoding="utf-8")
+    assert str(CANONICAL_BUILDER) == "scripts/build_canonical_corrected_v2.py"
+    assert "canonical manifest is not bound to the packaged canonical builder" in source
+    claim_source = Path("scripts/build_corrected_v2_claim_state.py").read_text(
+        encoding="utf-8"
+    )
+    assert "Canonical manifest is not bound to the current canonical builder" in claim_source
 
 
 def test_selector_level_supersession_is_typed_raw_provenance_only():

@@ -22,6 +22,14 @@ def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def builder_identity():
+    path = Path(__file__).resolve()
+    return {
+        "path": str(path.relative_to(ROOT.resolve())),
+        "sha256": sha256(path),
+    }
+
+
 def _assert_single_value(frame, field, expected, label):
     actual = set(frame[field].dropna().astype(str))
     if actual != {str(expected)}:
@@ -431,6 +439,7 @@ def main(argv=None):
     manifest = {
         "schema_version": 1,
         "status": "CANONICAL",
+        "builder": builder_identity(),
         "cells": len(canonical),
         "successful_cells": int((canonical["status"] == "SUCCESS").sum()),
         "datasets": int(canonical["dataset_id"].nunique()),

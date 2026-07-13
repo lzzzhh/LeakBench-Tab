@@ -26,3 +26,16 @@
 - CL16a natural transfer (not properly evaluated)
 - REFROZEN status
 - 91/100, 93/100, 94/100 readiness scores
+
+## 2026-07-13 Update
+
+### Fixed
+- **M08**: structured_prior_v1 implementation verified. Feature has real entity-level structure (corr=0.28). Rerun on 4 CPU models shows inflation +0.037 (vs old broken ~0.000).
+- **Bank adapter**: recursive CSV search added.
+- **Lending adapter**: already uses `use_file` (no fix needed).
+
+### Pending
+- Rerun M08 on TabM/ModernNCA/TabR/TabICL (needs GPU)
+- Fix governance scripts (run_meta_tier.py still uses old implementation)
+- Rerun natural tasks with fixed adapters
+- Recompute CL3/CL4/CL10/CL14/CL16/CL5b with corrected M08

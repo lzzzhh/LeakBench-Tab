@@ -27,6 +27,7 @@ DEFAULT_DESTINATION = ROOT / "release/leakbench_tab_corrected_v2_aaai27"
 PAPER_BUILD_MANIFEST = PurePosixPath(
     "paper/aaai27/output/pdf/paper_build_manifest.json"
 )
+CANONICAL_BUILDER = PurePosixPath("scripts/build_canonical_corrected_v2.py")
 INVENTORY_POLICY_VERSION = "corrected_v2_public_allowlist_v1"
 
 PAPER_BUILD_STATIC_INPUTS = {
@@ -654,6 +655,11 @@ def _select_result_sources() -> tuple[dict[PurePosixPath, set[str]], list[dict[s
 
     canonical_manifest_path = PurePosixPath("results/corrected_v2/canonical_manifest.json")
     canonical_manifest = _load_json(_source(canonical_manifest_path))
+    if canonical_manifest.get("builder") != {
+        "path": str(CANONICAL_BUILDER),
+        "sha256": sha256(_source(CANONICAL_BUILDER)),
+    }:
+        raise RuntimeError("canonical manifest is not bound to the packaged canonical builder")
     expected_sources = {
         "cpu": PurePosixPath("results/corrected_v2/core_cpu_cells.csv"),
         "tabm": PurePosixPath("results/corrected_v2/tabm_bundle_confirmatory/tabm_cells.csv"),

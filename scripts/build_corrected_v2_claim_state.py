@@ -669,6 +669,11 @@ def validate_canonical(
 
     if manifest.get("status") != "CANONICAL" or manifest.get("cells") != expected_cells:
         raise ValueError("Canonical manifest is incomplete")
+    canonical_builder = ROOT / "scripts/build_canonical_corrected_v2.py"
+    if manifest.get("builder") != {
+        "path": relative(canonical_builder), "sha256": sha256(canonical_builder),
+    }:
+        raise ValueError("Canonical manifest is not bound to the current canonical builder")
     if manifest.get("successful_cells") != expected_cells or manifest.get("canonical_sha256") != sha256(paths.canonical):
         raise ValueError("Canonical manifest hash/success count mismatch")
     if manifest.get("config_sha256") != sha256(paths.config):
