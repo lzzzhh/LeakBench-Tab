@@ -1,0 +1,15 @@
+{
+  "model": "modernnca",
+  "cells": 5500,
+  "success": 5500,
+  "failure": 0,
+  "duplicates": 0,
+  "non_finite": 0,
+  "cpu_fallback": 0,
+  "mechanisms": 11,
+  "cells_per_mechanism": 500,
+  "device": "cuda",
+  "train_only_verified": true,
+  "strict_full_isolated": true,
+  "ledger_sha256": "67c39afbdd8f820218d8fbc5e64f249ac025241876ca1b72e027fa9653539143"
+}

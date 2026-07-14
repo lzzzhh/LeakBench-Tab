@@ -1,0 +1,11 @@
+{
+  "sp5_core_rows": 27500,
+  "sp6_expansion_rows": 5500,
+  "combined_rows": 33000,
+  "sp5_rows_modified": 0,
+  "sp6_models": [
+    "modernnca"
+  ],
+  "extended_csv_sha256": "55bb7718de0195955f9abd6ab2aa19461d45c4ff913f622341207b917f833b76",
+  "sp5_source_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4"
+}

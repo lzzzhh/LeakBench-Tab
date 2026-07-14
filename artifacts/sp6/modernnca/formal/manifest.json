@@ -1,0 +1,31 @@
+{
+  "gate": "SP6-D_modernnca_formal",
+  "expected": 5500,
+  "completed": 5500,
+  "upstream_commit": "08301d670a7c854bcf3a73298763484ba58eecdb",
+  "upstream_model_sha256": "02fce6a107998ab7212774507998e77535f630fbf4ee328acf8519ad7c10632f",
+  "runner_sha256": "53572fa4dfab6b01aa910ab585e0ab688490b908189222451510c33ddf8d8272",
+  "adapter_sha256": "67e3a82b99acf38e002c349b58ed2f5480ea457a69b26201ca57d75edd3a0148",
+  "config_sha256": "17bfbcce47b366b316749a2a5922823eb9e736655d820824c68475af4892394a",
+  "ledger_sha256": "67c39afbdd8f820218d8fbc5e64f249ac025241876ca1b72e027fa9653539143",
+  "per_mechanism_mean": {
+    "M01": 0.179,
+    "M02": 0.2058,
+    "M03": 0.2748,
+    "M04": -0.0052,
+    "M05": -0.0073,
+    "M06": 0.284,
+    "M07": 0.1161,
+    "M08": 0.001,
+    "M09": 0.2341,
+    "M10": 0.2316,
+    "M11": 0.2855
+  },
+  "overall_mean": 0.1636,
+  "env": {
+    "wsl": "Ubuntu 6.18",
+    "gpu": "RTX 4060",
+    "torch": "2.5.1+cu121",
+    "python": "3.12.3"
+  }
+}
