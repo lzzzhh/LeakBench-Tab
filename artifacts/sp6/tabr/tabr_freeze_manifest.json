@@ -1,0 +1,19 @@
+{
+  "gate": "SP6_TabR_bridge_freeze",
+  "bridge_entry": "scripts/sp6/tabr_subprocess_entry.py",
+  "bridge_entry_sha256": "88f400f796d5e831010987b8074c116e98c44b3f9841c917165fcfeec1073f68",
+  "orchestrator": "scripts/sp6/run_sp6_tabr_bridge.py",
+  "orchestrator_sha256": "f65883e910937f3f6c343866db3fc555269a9ce9880c010e575f60187747dc8a",
+  "config": "configs/sp6/tabr_v1.yaml",
+  "config_sha256": "ba7192570439452b82550bc602f73470bbd7f5d5ede73d2a4d014ce1801090ab",
+  "bundle_manifest_sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+  "upstream_commit": "17baa9082506f8e7a0f8d11bb1e08212926a1507",
+  "env": "tabr-official-sp6 (torch 1.13.1, faiss-gpu 1.7.2, cuda 11.7)",
+  "child_receives_y_test": false,
+  "candidate_policy": "train-only, strict/full isolated",
+  "core_code_modification": false,
+  "compatibility_shim": false,
+  "smoke": "12/12 SUCCESS, finite, no y_test, isolated",
+  "expected_cells": 5500,
+  "status": "FROZEN_BEFORE_FORMAL_RUN"
+}

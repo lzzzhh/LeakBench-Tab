@@ -1,0 +1,19 @@
+# SP6 TabR config v1 — official tabular-dl-tabr defaults (numerical, no embeddings)
+# Source: tabular-dl-tabr @17baa90 evaluation configs (d_main, dropout, context_size)
+model:
+  d_main: 96
+  d_multiplier: 2.0
+  encoder_n_blocks: 0
+  predictor_n_blocks: 1
+  mixer_normalization: auto
+  context_dropout: 0.1
+  dropout0: 0.1
+  dropout1: 0.0
+  normalization: LayerNorm
+  activation: ReLU
+  context_size: 96
+  lr: 0.0003
+  weight_decay: 0.0
+  batch_size: 256
+  max_epochs: 100
+  patience: 16
