@@ -1,0 +1,46 @@
+[
+  {
+    "model": "ModernNCA",
+    "old_runner": "src/leakbench/models/modern_models.py::train_evaluate_modernnca",
+    "old_code_hash": "df7f6be3a36f9abd",
+    "implementation_source": "sklearn NeighborhoodComponentsAnalysis + KNeighborsClassifier (NOT the 2024 deep ModernNCA)",
+    "known_bug": "impersonates deep metric-learning model with classical NCA+kNN; falls back to plain kNN",
+    "protocol_violation": "not the published architecture; scope-audit only per file header",
+    "result_files": "archive/invalid_interim/m08/m08_neural.csv (interim, already excluded)",
+    "exclusion_reason": "IMPLEMENTATION_UNVERIFIED / not official implementation",
+    "status": "SUPERSEDED_FOR_SP6; NON_CLAIM_ELIGIBLE"
+  },
+  {
+    "model": "TabR",
+    "old_runner": "src/leakbench/models/modern_models.py::train_evaluate_tabr",
+    "old_code_hash": "df7f6be3a36f9abd",
+    "implementation_source": "KNeighborsRegressor + variance-scaled features (self-described 'Simplified')",
+    "known_bug": "comment states 'Full TabR would use a learned encoder'; this is a kNN baseline",
+    "protocol_violation": "not retrieval-augmented neural TabR",
+    "result_files": "archive/invalid_interim/m08/m08_neural.csv (interim, already excluded)",
+    "exclusion_reason": "IMPLEMENTATION_UNVERIFIED / simplified kNN, not TabR",
+    "status": "SUPERSEDED_FOR_SP6; NON_CLAIM_ELIGIBLE"
+  },
+  {
+    "model": "TabPFNv2",
+    "old_runner": "src/leakbench/models/modern_models.py::train_evaluate_tabpfn",
+    "old_code_hash": "df7f6be3a36f9abd",
+    "implementation_source": "official tabpfn package call (device=cpu)",
+    "known_bug": "594/594 cells returned constant 0.000 (API failures)",
+    "protocol_violation": "non-functional run; constant output",
+    "result_files": "none valid (all-zero excluded)",
+    "exclusion_reason": "RUNTIME_FAILURE / constant-zero output",
+    "status": "SUPERSEDED_FOR_SP6; NON_CLAIM_ELIGIBLE"
+  },
+  {
+    "model": "TabICL",
+    "old_runner": "NONE",
+    "old_code_hash": "MISSING",
+    "implementation_source": "not present in repository",
+    "known_bug": "no implementation exists",
+    "protocol_violation": "n/a",
+    "result_files": "none",
+    "exclusion_reason": "NOT_IMPLEMENTED",
+    "status": "SUPERSEDED_FOR_SP6; NON_CLAIM_ELIGIBLE"
+  }
+]
