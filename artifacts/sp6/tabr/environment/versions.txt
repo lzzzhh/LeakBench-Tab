@@ -1,0 +1,5 @@
+python 3.9.16
+torch 1.13.1
+cuda 11.7
+faiss 1.7.2
+numpy 1.24.2

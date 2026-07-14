@@ -1,0 +1,30 @@
+{
+  "gate": "SP6_TabR_environment_gate",
+  "decision": "Option (b) dedicated official env",
+  "upstream_repo": "https://github.com/yandex-research/tabular-dl-tabr",
+  "upstream_commit": "17baa9082506f8e7a0f8d11bb1e08212926a1507",
+  "environment_source": "official environment.yaml (full lock, pins mkl=2022.1.0)",
+  "environment_source_reason": "environment-simple.yaml underspecified mkl -> torch 1.13.1 iJIT_NotifyEvent symbol error; full official environment.yaml pins mkl=2022.1.0 and resolves it (Section 10.2 backup file allowed)",
+  "versions": {
+    "python": "3.9.16",
+    "torch": "1.13.1",
+    "cuda": "11.7",
+    "faiss": "1.7.2",
+    "numpy": "1.24.2"
+  },
+  "gate_1_cuda": "PASS (torch 1.13.1, RTX 4060)",
+  "gate_2_faiss_gpu": "PASS (faiss 1.7.2 GPU index search finite)",
+  "gate_3_official_quicktest": "PARTIAL (env+pipeline reach data load; needs repo dataset download, orthogonal to bundle bridge)",
+  "gate_3_direct_forward": "PASS (official TabR Model forward on CUDA, explicit train-only candidates, finite output)",
+  "gate_4_model_import": "PASS (bin.tabr.Model, forward has explicit candidate_x_/candidate_y/context_size)",
+  "environment_lock_hashes": {
+    "environment_resolved.yaml": "e0cd6a43384f90ece54207375da902d1b56d9376df0c3ab12ff72127ca831fe5",
+    "conda_explicit.txt": "b527782677b3c535a7ffac9a8cd7521499c37b967c8471bc75eabdf294be710a",
+    "pip_freeze.txt": "57f20212a791509dcdcfdd6e2a4155d0aec2b4d24f47bfa47c0ba2bc81778d27",
+    "versions.txt": "68ea21efd5b0c3c77caef9aa10d4d1982d95ed68c517af725ee095cbce1db1f8"
+  },
+  "core_code_modifications": "NONE",
+  "compatibility_shim": "NONE",
+  "cpu_fallback": false,
+  "classification": "TABR_ENVIRONMENT_READY"
+}
