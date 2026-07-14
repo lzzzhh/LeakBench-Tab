@@ -1,0 +1,30 @@
+{
+  "upstream_repository": "https://github.com/qile2000/LAMDA-TALENT",
+  "upstream_commit": "08301d670a7c854bcf3a73298763484ba58eecdb",
+  "retrieval_date": "2026-07-14",
+  "paper": "ModernNCA (Revisiting Nearest Neighbor for Tabular Deep Learning)",
+  "license": "MIT",
+  "modified": false,
+  "vendored_files": [
+    {
+      "local": "modernNCA.py",
+      "upstream": "TALENT/model/models/modernNCA.py",
+      "sha256": "02fce6a107998ab7212774507998e77535f630fbf4ee328acf8519ad7c10632f",
+      "byte_identical": true
+    },
+    {
+      "local": "tabr_utils.py",
+      "upstream": "TALENT/model/lib/tabr/utils.py",
+      "sha256": "46f26474f559cdda4eda92c5d28d504905c3180ad0ead1bc3f296af72c74230b",
+      "byte_identical": true
+    },
+    {
+      "local": "TALENT/model/lib/tabr/utils.py",
+      "upstream": "TALENT/model/lib/tabr/utils.py",
+      "sha256": "46f26474f559cdda4eda92c5d28d504905c3180ad0ead1bc3f296af72c74230b",
+      "byte_identical": true,
+      "note": "import-path shim, identical bytes"
+    }
+  ],
+  "license_sha256": "93cf90600c386cb5719779090fbc37080d5833eeec8d1f66cc370ba48af2d422"
+}
