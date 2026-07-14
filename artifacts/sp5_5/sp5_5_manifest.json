@@ -1,0 +1,43 @@
+{
+  "phase": "SP5.5",
+  "freeze_date": "2026-07-14",
+  "git_commit": "e3a0ee142fbcbe11b865741601e98a7cba3fff8b",
+  "evidence_source": "artifacts/sp5/claim_ledger_v2.csv",
+  "evidence_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4",
+  "sp5_manifest_sha256": "ac7da179baa03d7e5561b07feef0a8c87d56de442a4a0f9228cff0270e216f2b",
+  "generated_macros": "paper/aaai27/generated/result_macros.tex",
+  "generated_macros_sha256": "924345f8112ea02ec7cac476c8e9479f8dd055b3cab546e664f6e607d1476591",
+  "artifacts": {
+    "paper_claim_lock_md": "352f1f448e8659e843cfd98509ffff6a98161bd8400fcd1a5ea0fc1e30e315bb",
+    "paper_claim_lock_json": "3f00e602b5dbeae5af5ce3eb977ae31b6556cba9cd5b895ec4721492eaabf80a",
+    "claim_paper_traceability": "d6da6a99ac962264956b6d940e55f5c8b373f354eb4ac82f86716c3d2e5b5251",
+    "figure_table_registry": "f6540886938ed01db62c90241b07c872a0a52531de6ffbd2d68f682d3572e092",
+    "manuscript_text_audit": "622a7335a6beb59ab62275ac5c3e0e9b85d585dd1294c0560ad39610909b3762",
+    "readme": "16e6fa6cabc5a36f8c3ff09574dc48d7f3f69c8d60371dbf13b52805d49295c6"
+  },
+  "text_audit": {
+    "superseded_active": 0
+  },
+  "claims_locked": [
+    "CL2",
+    "CL3",
+    "CL4",
+    "CL10"
+  ],
+  "test_summary": {
+    "total_passed": 248,
+    "total_failed": 7,
+    "new_failures": 0,
+    "sp5_5_tests": 15,
+    "sp5_5_failures": 0
+  },
+  "deferred": {
+    "modern_models": [
+      "ModernNCA",
+      "TabR",
+      "TabPFNv2",
+      "TabICL"
+    ],
+    "track_b": "static inventory only"
+  }
+}

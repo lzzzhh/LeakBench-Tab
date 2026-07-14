@@ -1,0 +1,5 @@
+artifact_id,artifact_type,paper_location,source_script,source_table,source_hash,claim_ids,contains_superseded_value,status
+cl2_forest,figure,Fig strength-diagnostic (LBStrengthDiagnosticPath),render_sp5_figures.py,cl2/cl2_mechanism_summary.csv,81248b8c1efc2742,CL2,no,ACTIVE
+cl3_by_category,figure,Fig CDX scatter (LBCDXScatterPath),render_sp5_figures.py,cl3/cl3_mechanism_points.csv,ebc90a5b2fe83ffb,CL3,no,ACTIVE
+cl4_heatmap,figure,Fig mechanism-model heatmap (LBMechanismModelHeatmapPath),render_sp5_figures.py,cl4/cl4_model_mechanism_matrix.csv,e17b909f68080c55,CL4,no,ACTIVE
+result_macros,macro_table,generated/result_macros.tex (all numeric),generate_sp5_paper_macros.py,claim_ledger_v2.csv,924345f8112ea02e,"CL2,CL3,CL4,CL10",no,ACTIVE

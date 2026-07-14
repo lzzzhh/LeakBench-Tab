@@ -1,0 +1,5 @@
+claim_id,claim_status,abstract,results,figure_ids,evidence_file,evidence_hash
+CL2,DOWNGRADED_PARTIAL,yes (LBSimpleStructured*),sec:results,cl2_forest,artifacts/sp5/claim_evidence_matrix_v2.csv,d2caa5e28c2473ee
+CL3,PARTIALLY_CONFIRMED,macro-gated,sec:results,cl3_by_category,artifacts/sp5/claim_evidence_matrix_v2.csv,d2caa5e28c2473ee
+CL4,CONFIRMED_WITH_REVISED_MAGNITUDES,macro-gated,sec:results,cl4_heatmap,artifacts/sp5/claim_evidence_matrix_v2.csv,d2caa5e28c2473ee
+CL10,BROADLY_CONSISTENT_WITH_EXCEPTIONS,macro-gated,sec:results,cl4_heatmap,artifacts/sp5/claim_evidence_matrix_v2.csv,d2caa5e28c2473ee

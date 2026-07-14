@@ -1,0 +1,5 @@
+file,line,pattern,match,context,status
+supplement.tex,91,old_structured_auprc_005,0.05,"$\{0.05,0.10,0.20,0.35,0.50\}$, and M11 component sizes",COINCIDENTAL
+supplement.tex,150,old_structured_auprc_005,0.05,"CatBoost & None & 250 iterations, rate 0.05, depth 6, CPU & Validation AUC; patience 30 \\",COINCIDENTAL
+supplement.tex,151,old_structured_auprc_005,0.05,"LightGBM & None & 250 trees, rate 0.05, 31 leaves, depth 6, min child 20 &",COINCIDENTAL
+result_macros.tex,21,old_structured_auprc_005,0.05,\renewcommand{\LBIncrementalPermutationP}{<0.05},COINCIDENTAL

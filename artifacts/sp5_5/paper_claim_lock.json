@@ -1,0 +1,42 @@
+[
+  {
+    "claim_id": "CL2",
+    "status": "DOWNGRADED_PARTIAL",
+    "canonical_wording": "Simple contamination is nearly perfectly localizable on average (AUPRC ~0.93), whereas structured contamination is markedly less detectable on average (AUPRC ~0.35) but highly heterogeneous. Temporal M04/M05 remain difficult (~0.13-0.14); entity/source M08/M09 are moderately detectable (~0.43-0.69).",
+    "allowed_short": "Structured contamination is heterogeneous in detectability, not uniformly hard.",
+    "prohibited": "Structured contamination is statistically undetectable / AUPRC 0.05-0.07 / all structured hard to localize.",
+    "numeric": "simple 0.93; structured mean 0.346; M08 0.43; M09 0.69",
+    "ci": "simple-structured 0.584 CI[0.562,0.606]",
+    "source_hash": "ccb2549f490e95cb"
+  },
+  {
+    "claim_id": "CL3",
+    "status": "PARTIALLY_CONFIRMED",
+    "canonical_wording": "Detectability and exploitability exhibit a positive overall association across 11 mechanisms (Pearson r ~0.69), with wide uncertainty (n=11). Category explains substantial variance but detectability retains incremental value (dR2 ~0.11). Strong within simple and structured; boundary is exception (M03 influential).",
+    "allowed_short": "Detectability and exploitability are positively associated; category is not the sole driver.",
+    "prohibited": "Purely category-driven / within-category correlation ~zero / causal.",
+    "numeric": "global Pearson 0.69; Spearman 0.65; incremental dR2 0.11",
+    "ci": "Pearson CI[0.157,0.951]",
+    "source_hash": "ccb2549f490e95cb"
+  },
+  {
+    "claim_id": "CL4",
+    "status": "CONFIRMED_WITH_REVISED_MAGNITUDES",
+    "canonical_wording": "Model family is associated with exploitation magnitude (boosting trees largest, LR smallest, TabM intermediate), but differences are modest (~0.02-0.04 AUROC; ratios ~1.1-1.3x), not 2.2-2.5x.",
+    "allowed_short": "Model family measurably but modestly affects exploitation.",
+    "prohibited": "RF 2.2x / CatBoost 2.5x / capacity causally drives exploitation.",
+    "numeric": "LR 0.134 RF 0.162 LightGBM 0.175 CatBoost 0.175 TabM 0.153",
+    "ci": "ratios RF1.21 CatBoost1.30 TabM1.14",
+    "source_hash": "ccb2549f490e95cb"
+  },
+  {
+    "claim_id": "CL10",
+    "status": "BROADLY_CONSISTENT_WITH_EXCEPTIONS",
+    "canonical_wording": "Three-axis mechanism profiles are broadly consistent across five model families (mean pairwise Spearman ~0.85, Kendall W ~0.88), not universal: TabM slightly negative on M04/M05; disagreement near M02/M03.",
+    "allowed_short": "Profiles broadly consistent with mechanism-specific exceptions.",
+    "prohibited": "Fully consistent / invariant across all models.",
+    "numeric": "mean Spearman 0.845; min 0.591; W 0.876; quadrant 9/11",
+    "ci": "TabM M04 -0.0025, M05 -0.0024",
+    "source_hash": "ccb2549f490e95cb"
+  }
+]
