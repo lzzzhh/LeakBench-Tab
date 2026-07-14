@@ -1,0 +1,52 @@
+{
+  "phase": "SP5-G",
+  "freeze_date": "2026-07-14",
+  "git_commit": "3def6e76a268275677a91e8f78aeff47bebd8ef0",
+  "evidence_pool_cells": 27500,
+  "models": 5,
+  "mechanisms": 11,
+  "source_registry_hash": "56fa99d2e1a2d95c79a3bb658613168cfce76d52f751e2dfc3e50882d97bd598",
+  "ledger_csv_hash": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4",
+  "ledger_parquet_hash": "7491a77bdb05cdbdf83d765ac9b3061607b2b482ba986ab35d23d95cabccd1c6",
+  "mechanism_registry_hash": "58cbb18ad5627dd9b37b2055655245a9cdc6942995e04fc72938afc48c050162",
+  "model_registry_hash": "82b3584338e4fa9bc6ba2fc3dcf474e7b57921f604df66baa9981c20868f7af1",
+  "claim_matrix_hash": "d2caa5e28c2473ee7156e3e702874be5c2bed6bbb5cf8ad87fbc5d00cca17113",
+  "track_b_inventory_hash": "2cc19aea427622ec2a82c2c20a22e29361e5ebe1cbbf6077fa66c75a65b4d190",
+  "claim_outputs": {
+    "cl2": "d9216ad0f7f1aebdd2aecfc9e582417102d813ebfc71b33a1379b6478e4bd70e",
+    "cl3": "c34799f199361cf0f407db3fccd67f13efd0a842ad430a2e8e2b27efbc203269",
+    "cl4": "5268ef8b4ac3975470f9fbafe49bf149753c0c29319a8118f76bb6c48f81cf46",
+    "cl10": "1186a8b20d9f33a723e2d791d83f4164e7a4e02c18c5a47ac6866068356c6482"
+  },
+  "bootstrap_config": {
+    "seed": 20260714,
+    "primary_reps": 10000,
+    "unit": "dataset_index"
+  },
+  "test_summary": {
+    "total_passed": 233,
+    "total_failed": 7,
+    "new_failures": 0,
+    "pre_existing_failures": 7,
+    "sp5_tests": 14,
+    "sp5_failures": 0
+  },
+  "claim_status_changes": {
+    "CL2": "DOWNGRADED_PARTIAL",
+    "CL3": "PARTIALLY_CONFIRMED",
+    "CL4": "CONFIRMED_WITH_REVISED_MAGNITUDES",
+    "CL10": "BROADLY_CONSISTENT_WITH_EXCEPTIONS"
+  },
+  "known_limitations": [
+    "n=11 mechanisms -> wide CL3 CIs",
+    "Track B not run",
+    "modern models excluded"
+  ],
+  "input_hashes": {
+    "results/corrected_v2/core_cpu_cells.csv": "aa17514472a83a76b822e9152ab6258e0c1fd3faf6a2868ddb76d4e62dd6d551",
+    "results/corrected_v2/tabm_confirmatory_base7_v2/formal/tabm_base7_cells.csv": "384c30452008c03fcfb2e7d362dfc21b5d64958d993a0b60409db4b2e2217765",
+    "results/structured_prior_replacement_v1/model_cells.csv": "e3af534bb626cec1668a2c28793e3745ba2bebb69f1e70c673af6109aba2b1f9",
+    "results/corrected_v2/m10_amendment_confirmatory/cpu_cells.csv": "615e9d847f083c884d2a7e6ba6dbf099b0bbcd9559da90d35cbec2ec711b212b",
+    "results/corrected_v2/m10_amendment_confirmatory_tabm/formal/m10_tabm_cells.csv": "21284329ef307504f5a51f83e82b3cd2337a28beddf3a4b0dc22af6ec7f4d998"
+  }
+}

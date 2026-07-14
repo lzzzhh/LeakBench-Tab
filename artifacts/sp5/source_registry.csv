@@ -1,8 +1,11 @@
-source_path,source_type,mechanisms,models,result_hash,classification,notes
-results/corrected_v2/core_cpu_cells.csv,core_cpu,M01-M11,"lr,rf,lightgbm,catboost",aa17514472a83a76,FORMAL_ACTIVE_PARTIAL,22000 cells; clean_auc==strict for non-amended; M04/M05/M08/M10 to be replaced
-results/structured_prior_replacement_v1/model_cells.csv,sp_replacement,"M04,M05,M08","lr,rf,lightgbm,catboost,tabm",e3af534bb626cec1,FORMAL_ACTIVE,SP4 frozen 7500; exact_replacement for M04/M05/M08
-results/corrected_v2/m10_amendment_confirmatory/cpu_cells.csv,m10_amendment,M10,"lr,rf,lightgbm,catboost",615e9d847f083c88,FORMAL_ACTIVE_PARTIAL,2000 CPU cells; replaces core M10 clean->strict; NO TabM
-results/corrected_v2/tabm_bundle_confirmatory/checkpoints/tabm_cells_checkpoint_005228.csv,tabm_confirmatory,M01-M11,tabm,fe8c9efb02b97715,INCOMPLETE,CHECKPOINT ONLY 5228/5500 (272 missing); no finalized file; ~475/mech vs 500
-results/ce2r_neural.csv,legacy_neural,M01-M11,5 models(old),0a61c1986820d4bd,SUPERSEDED_EXCLUDED,"legacy pre-corrected_v2 (2970 rows, 3 seeds); superseded"
-archive/invalid_interim/m08/m08_rerun.csv,interim,M08,4 models,de07c7c233b0e21b,INTERIM_EXCLUDED,interim entity-mean M08
-archive/invalid_interim/m08/m08_neural.csv,interim,M08,"ModernNCA,TabR",0620ec276cb807dc,INTERIM_EXCLUDED,interim entity-mean M08 GPU
+source_id,source_path,source_type,mechanism,model,result_hash,formal_status,claim_eligible,replacement_role,is_code_drift,is_interim,is_superseded,exclusion_reason
+core_cpu,results/corrected_v2/core_cpu_cells.csv,base,M01-M11(7 used),"lr,rf,lightgbm,catboost",aa17514472a83a76,FORMAL_ACTIVE,True,base,False,False,False,
+base7_tabm,results/corrected_v2/tabm_confirmatory_base7_v2/formal/tabm_base7_cells.csv,base,7 non-amended,tabm,384c30452008c03f,FORMAL_ACTIVE,True,base,False,False,False,
+sp4,results/structured_prior_replacement_v1/model_cells.csv,replacement,"M04,M05,M08",5 models,e3af534bb626cec1,FORMAL_REPLACEMENT,True,exact_replacement,False,False,False,
+sp4_detectability,artifacts/sp5/sp4_detectability.csv,derived,"M04,M05,M08",n/a(task),79de85bc4b772567,FORMAL_REPLACEMENT,True,detectability_for_replacement,False,False,False,
+m10_cpu,results/corrected_v2/m10_amendment_confirmatory/cpu_cells.csv,replacement,M10,4 cpu,615e9d847f083c88,FORMAL_REPLACEMENT,True,exact_replacement,False,False,False,
+m10_tabm,results/corrected_v2/m10_amendment_confirmatory_tabm/formal/m10_tabm_cells.csv,replacement,M10,tabm,21284329ef307504,FORMAL_REPLACEMENT,True,exact_replacement,False,False,False,
+old_tabm_checkpoint,artifacts/archive/tabm_confirmatory_code_drift/,base,M01-M11,tabm,99b17868,CODE_DRIFT_EXCLUDED,False,none,True,False,False,"code_hash mismatch, unreproducible"
+interim_m08,archive/invalid_interim/m08/,interim,M08,various,,INTERIM_EXCLUDED,False,none,False,True,False,protocol substitution
+profiles_v2,results/leakbench/profiles/mechanism_profiles_v2.csv,legacy,M01-M11,aggregate,,SUPERSEDED_EXCLUDED,False,none,False,False,True,pre-correction aggregates
+ce2r_neural,results/ce2r_neural.csv,legacy,M01-M11,old 5,,SUPERSEDED_EXCLUDED,False,none,False,False,True,legacy pre-corrected_v2

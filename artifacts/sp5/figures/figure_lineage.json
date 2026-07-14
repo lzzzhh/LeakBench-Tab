@@ -1,0 +1,37 @@
+{
+  "cl2_structured_auprc_forest": {
+    "source": "cl2/cl2_mechanism_summary.csv",
+    "figure_sha256": "81248b8c1efc2742f70bdcbba5da20092a0a6fb7547d946a5e8efbe6ab862b4b",
+    "ledger_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4"
+  },
+  "cl3_detectability_vs_exploitability_global": {
+    "source": "cl3/cl3_mechanism_points.csv",
+    "figure_sha256": "a545190df310bf7acc94172020a6e3a57a5e746845e6236b0a7efe33920266f3",
+    "ledger_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4"
+  },
+  "cl3_detectability_vs_exploitability_by_category": {
+    "source": "cl3/cl3_mechanism_points.csv",
+    "figure_sha256": "ebc90a5b2fe83ffb85e7d062a585c7a5f1d94fe3e3ddd55282bc02282b605578",
+    "ledger_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4"
+  },
+  "cl4_model_harm_forest": {
+    "source": "cl4/cl4_model_summary.csv",
+    "figure_sha256": "b2d04e96f02d554ef3e4b4992fcb17062d5254c226be4f40cfbdc423809c0bda",
+    "ledger_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4"
+  },
+  "cl4_model_mechanism_heatmap": {
+    "source": "cl4/cl4_model_mechanism_matrix.csv",
+    "figure_sha256": "e17b909f68080c55ec4466627d54853dcf6b9bb8c3294d57d5255c3a94b963b3",
+    "ledger_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4"
+  },
+  "cl10_model_similarity_heatmap": {
+    "source": "cl10/cl10_rank_correlations.csv",
+    "figure_sha256": "c1aab9c75fbf3d64dc728d97571c597acbc36dd9257a800e22190e96351d2ae9",
+    "ledger_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4"
+  },
+  "cl10_three_axis_profiles": {
+    "source": "cl10/cl10_three_axis_profiles.csv",
+    "figure_sha256": "91288d6e533a540c5fcbe5abcb2df52abb5b5591874838c5b96136e14f008dd0",
+    "ledger_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4"
+  }
+}

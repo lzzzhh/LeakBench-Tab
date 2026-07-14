@@ -1,0 +1,6 @@
+models:
+  lr:       {display_name: "Logistic Regression", family: linear}
+  rf:       {display_name: "Random Forest",       family: bagging_tree}
+  lightgbm: {display_name: "LightGBM",            family: boosting_tree}
+  catboost: {display_name: "CatBoost",            family: boosting_tree}
+  tabm:     {display_name: "TabM",                family: neural}

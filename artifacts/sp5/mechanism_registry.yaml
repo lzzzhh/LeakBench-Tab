@@ -1,0 +1,18 @@
+# SP5 canonical mechanism registry (11 mechanisms)
+# Categories per corrected_v2 taxonomy; three-axis C/D/X framework.
+mechanisms:
+  M01: {display_name: "Direct Target Copy",        category: simple,     family: direct}
+  M02: {display_name: "Noisy Target Proxy",        category: simple,     family: direct}
+  M03: {display_name: "Nonlinear Target Transform",category: boundary,   family: transform}
+  M04: {display_name: "Post-Outcome Aggregation",  category: structured, family: temporal}
+  M05: {display_name: "Temporal Look-Ahead",       category: structured, family: temporal}
+  M06: {display_name: "Redundant Leakage Cluster", category: simple,     family: redundant}
+  M07: {display_name: "Sparse Subgroup Leakage",   category: boundary,   family: subgroup}
+  M08: {display_name: "Entity Leakage",            category: structured, family: entity}
+  M09: {display_name: "Source Leakage",            category: structured, family: source}
+  M10: {display_name: "Mixed Leakage",             category: simple,     family: redundant}
+  M11: {display_name: "Graph-Mediated Leakage",    category: boundary,   family: graph}
+axes:
+  construction_validity: "whether contamination is an invalid/illegitimate feature (all True here)"
+  statistical_detectability: "diagnostic_ap (AUPRC of leak-detector), task-level, model-independent"
+  model_exploitability: "paired_harm = full_auc - strict_auc, per model"

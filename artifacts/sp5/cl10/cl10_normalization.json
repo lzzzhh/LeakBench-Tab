@@ -1,0 +1,8 @@
+{
+  "method": "min-max over mechanism-model population",
+  "axes": [
+    "detectability",
+    "exploitability"
+  ],
+  "construction": "constant 1.0 (all invalid)"
+}

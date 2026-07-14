@@ -1,0 +1,86 @@
+[
+  {
+    "claim_id": "CL2",
+    "previous_status": "CONFIRMED",
+    "new_status": "DOWNGRADED_PARTIAL",
+    "previous_wording": "Structured contamination is difficult to localize statistically (AUPRC 0.05-0.07)",
+    "new_wording": "Simple contamination near-perfectly localizable (~0.93); structured markedly lower on average (~0.35) but heterogeneous: temporal (M04/M05) hard (~0.13), entity/source (M08/M09) moderately detectable (0.43-0.69)",
+    "previous_numeric": "structured AUPRC 0.05-0.07",
+    "new_numeric": "structured 0.346 CI[0.315,0.376]; simple-structured 0.584",
+    "change_classification": "DOWNGRADED",
+    "change_reason": "old numbers used pre-correction mechanisms; corrected M08/M09 more detectable",
+    "paper_sections": "abstract,main results,fig,discussion"
+  },
+  {
+    "claim_id": "CL3",
+    "previous_status": "CONFIRMED",
+    "new_status": "PARTIALLY_CONFIRMED",
+    "previous_wording": "Detectability-exploitability correlation is category-driven; global r=0.73; within-category r~0",
+    "new_wording": "Positive global association (r~0.69, wide CI); strong within-category associations for simple (0.95) and structured (0.86); detectability adds incremental R2~0.11 beyond category; boundary is exception (M03 outlier)",
+    "previous_numeric": "global r=0.73; within-category r~0",
+    "new_numeric": "global r=0.692 CI[0.157,0.951]; within simple 0.949, structured 0.862, boundary -0.044",
+    "change_classification": "NUMERICALLY_REVISED",
+    "change_reason": "within-category~0 refuted; category-only story insufficient",
+    "paper_sections": "main results,fig,discussion"
+  },
+  {
+    "claim_id": "CL4",
+    "previous_status": "CONFIRMED",
+    "new_status": "CONFIRMED_WITH_REVISED_MAGNITUDES",
+    "previous_wording": "Model family affects exploitation; RF=2.2xLR, CatBoost=2.5xLR",
+    "new_wording": "Model family associated with exploitation (all pairwise vs LR significant), but small magnitudes: RF/LR 1.21, CatBoost/LR 1.30, TabM/LR 1.14; boosting trees most, LR least, TabM intermediate",
+    "previous_numeric": "RF 2.2x, CatBoost 2.5x",
+    "new_numeric": "LR 0.134, RF 0.162, LightGBM 0.175, CatBoost 0.175, TabM 0.153; ratios 1.1-1.3x",
+    "change_classification": "NUMERICALLY_REVISED",
+    "change_reason": "corrected/complete 5-model evidence; ratios much smaller",
+    "paper_sections": "main results,table,fig"
+  },
+  {
+    "claim_id": "CL10",
+    "previous_status": "CONFIRMED",
+    "new_status": "BROADLY_CONSISTENT_WITH_EXCEPTIONS",
+    "previous_wording": "Three-axis profiles consistent across core models (5 models, 11 mechanisms)",
+    "new_wording": "Broadly consistent (mean Spearman 0.85, Kendall W 0.88) with mechanism-specific exceptions: TabM negative harm on M04/M05; quadrant disagreement at M02/M03",
+    "previous_numeric": "consistent",
+    "new_numeric": "mean pairwise Spearman 0.845, min 0.591, W 0.876, quadrant 9/11",
+    "change_classification": "WORDING_NARROWED",
+    "change_reason": "full 5-model incl real TabM reveals mechanism-specific exceptions",
+    "paper_sections": "main results,fig,discussion"
+  },
+  {
+    "claim_id": "CL4b",
+    "previous_status": "UNCONFIRMED",
+    "new_status": "UNCONFIRMED",
+    "previous_wording": "General model capacity causally drives exploitation",
+    "new_wording": "(unchanged) not tested; no within-family capacity gradient",
+    "previous_numeric": "-",
+    "new_numeric": "-",
+    "change_classification": "UNCHANGED",
+    "change_reason": "no capacity experiment in SP5",
+    "paper_sections": "none"
+  },
+  {
+    "claim_id": "CL9",
+    "previous_status": "CONFIRMED",
+    "new_status": "UNCHANGED",
+    "previous_wording": "Simple > Structured exploitability ordering",
+    "new_wording": "(supported) simple mean harm > structured; consistent with CL2/CL10",
+    "previous_numeric": "-",
+    "new_numeric": "simple exploit >> structured (M04/M05/M08 near 0)",
+    "change_classification": "UNCHANGED",
+    "change_reason": "consistent with corrected evidence",
+    "paper_sections": "none"
+  },
+  {
+    "claim_id": "CL13",
+    "previous_status": "UNCONFIRMED",
+    "new_status": "UNCONFIRMED",
+    "previous_wording": "TabM negative-harm has causal explanation",
+    "new_wording": "(unchanged) TabM negative on M04/M05 observed but no causal claim",
+    "previous_numeric": "-",
+    "new_numeric": "TabM M04 -0.0025, M05 -0.0024",
+    "change_classification": "UNCHANGED",
+    "change_reason": "observational only",
+    "paper_sections": "limitations"
+  }
+]

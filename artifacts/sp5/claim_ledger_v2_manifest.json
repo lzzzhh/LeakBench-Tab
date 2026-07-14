@@ -1,0 +1,51 @@
+{
+  "rows": 27500,
+  "columns": 29,
+  "unique_primary_keys": 27500,
+  "duplicate_keys": 0,
+  "non_finite": 0,
+  "models": [
+    "catboost",
+    "lightgbm",
+    "lr",
+    "rf",
+    "tabm"
+  ],
+  "mechanisms": [
+    "M01",
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M08",
+    "M09",
+    "M10",
+    "M11"
+  ],
+  "categories": {
+    "simple": [
+      "M01",
+      "M02",
+      "M06",
+      "M10"
+    ],
+    "structured": [
+      "M04",
+      "M05",
+      "M08",
+      "M09"
+    ],
+    "boundary": [
+      "M03",
+      "M07",
+      "M11"
+    ]
+  },
+  "detectability_missing": 0,
+  "csv_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4",
+  "parquet_sha256": "7491a77bdb05cdbdf83d765ac9b3061607b2b482ba986ab35d23d95cabccd1c6",
+  "csv_parquet_equal": true,
+  "inputs_sha256": "3450e1895923403f4b08f8670e1a16f40281154c0a922d9d231333ed5386733c"
+}

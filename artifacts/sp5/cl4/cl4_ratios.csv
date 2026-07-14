@@ -1,0 +1,5 @@
+model,ratio_vs_lr,lr_denominator_stable
+rf,1.2075788117239323,True
+lightgbm,1.3048670977226449,True
+catboost,1.2994995112390695,True
+tabm,1.1399745471724925,True
