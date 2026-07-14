@@ -1,0 +1,18 @@
+{
+  "gate": "SP6-B_modernnca_freeze",
+  "runner": "scripts/run_sp6_bundle_model.py",
+  "runner_sha256": "53572fa4dfab6b01aa910ab585e0ab688490b908189222451510c33ddf8d8272",
+  "adapter": "src/sp6/adapters/modernnca_adapter.py",
+  "adapter_sha256": "67e3a82b99acf38e002c349b58ed2f5480ea457a69b26201ca57d75edd3a0148",
+  "config": "configs/sp6/modernnca_v1.yaml",
+  "config_sha256": "17bfbcce47b366b316749a2a5922823eb9e736655d820824c68475af4892394a",
+  "upstream_model_sha256": "02fce6a107998ab7212774507998e77535f630fbf4ee328acf8519ad7c10632f",
+  "bundle_manifest": "artifacts/sp6/sp6_bundle_manifest.csv",
+  "bundle_manifest_sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+  "expected_cells": 5500,
+  "grid": "11 mech x 20 ds x 5 str x 5 seed",
+  "candidate_policy": "train-only; strict/full isolated",
+  "device": "cuda (fail-closed)",
+  "metric": "paired_harm = full_auc - strict_auc",
+  "status": "FROZEN_BEFORE_FORMAL_RUN"
+}
