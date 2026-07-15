@@ -1,0 +1,25 @@
+{
+  "primary": "paired_harm=full-strict",
+  "secondary": [
+    "generalization_gap=train-test_auc",
+    "val_test_gap",
+    "best_epoch_diff",
+    "seed_variance_diff"
+  ],
+  "retrieval": [
+    "neighbor_overlap",
+    "label_purity",
+    "same_class_rate",
+    "mean_distance",
+    "distance_concentration"
+  ],
+  "association_drift": [
+    "train_assoc",
+    "test_assoc",
+    "assoc_decay",
+    "assoc_flip",
+    "PSI",
+    "wasserstein"
+  ],
+  "intervention_effect": "effect_reduction = 1 - |intervention_harm|/|full_harm|"
+}

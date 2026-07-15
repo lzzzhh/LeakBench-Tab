@@ -1,0 +1,82 @@
+{
+  "sp7_id": "SP7_v1",
+  "date": "2026-07-14",
+  "status": "FROZEN_BEFORE_ANY_NEW_EXPERIMENT",
+  "sp5_ledger_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4",
+  "sp6_ledger_sha256": "aef477b99ea62cd07a57c693a4c155b437f6526f2b8b5c4a0634039b6611d950",
+  "hypotheses": {
+    "H1_temporal_association_instability": {
+      "statement": "Contamination feature-target association decays or reverses from train to test, causing full-model generalization drop.",
+      "predictions": [
+        "train_assoc > test_assoc",
+        "larger decay -> more negative harm",
+        "sign flips between train/test"
+      ],
+      "priority": "primary"
+    },
+    "H2_weak_signal_dilution": {
+      "statement": "Weak contaminated features compete for model capacity, diluting stable signals.",
+      "predictions": [
+        "permuted contamination produces similar negative effect",
+        "contamination-only model has low AUC",
+        "full model contamination feature importance is non-zero but generalizes negatively"
+      ],
+      "priority": "primary"
+    },
+    "H3_finite_sample_variance": {
+      "statement": "Added features increase estimation variance; negative harm shrinks with larger training samples.",
+      "predictions": [
+        "negative harm stronger at smaller n",
+        "seed variance larger for full",
+        "negative harm -> 0 as n increases"
+      ],
+      "priority": "primary"
+    },
+    "H4_optimization_early_stopping": {
+      "statement": "Full view changes loss trajectory/early-stop timing, leading to worse-generalizing solution.",
+      "predictions": [
+        "strict vs full best-epoch and loss curves differ",
+        "fixed-epoch or no-early-stop changes negative harm"
+      ],
+      "priority": "model-process"
+    },
+    "H5_retrieval_neighborhood_distortion": {
+      "statement": "Temporal contamination distorts sample distances/candidate neighborhoods, reducing retrieval quality (ModernNCA/TabR only).",
+      "predictions": [
+        "strict/full neighbor overlap drops",
+        "full neighbor label purity lower",
+        "neighborhood quality change correlates with negative harm"
+      ],
+      "priority": "model-process"
+    },
+    "H6_regularization_interaction": {
+      "statement": "Regularization hyperparameters interact with contamination, causing underfitting in full view.",
+      "predictions": [
+        "negative harm changes systematically with regularization strength",
+        "direction consistent across models/datasets"
+      ],
+      "priority": "model-process"
+    }
+  },
+  "BOOTSTRAP_SEED": 20260715,
+  "ANALYSIS_SEED": 20260715,
+  "bootstrap_unit": "dataset_index",
+  "bootstrap_reps": 10000,
+  "models": [
+    "TabM",
+    "ModernNCA",
+    "TabR"
+  ],
+  "mechanisms": [
+    "M04",
+    "M05"
+  ],
+  "confirmatory_multiple_testing": "Holm",
+  "exploratory_multiple_testing": "BH-FDR",
+  "forbidden": [
+    "no test labels in model fitting",
+    "no cross-split permutation",
+    "no cross-view candidate/retrieval sharing",
+    "no intervention definition changed after seeing results"
+  ]
+}

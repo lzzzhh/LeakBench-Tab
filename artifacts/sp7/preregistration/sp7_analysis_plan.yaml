@@ -1,0 +1,10 @@
+{
+  "phases": {
+    "SP7-B_observational": "Confirm M04/M05 negative-harm pattern across TabM/ModernNCA/TabR using frozen SP6 ledger. No new experiments. CL13a classification.",
+    "SP7-C_diagnostics": "Compute temporal association drift, distribution shift, training trajectory differences from existing formal cells. No new training.",
+    "SP7-D_sentinel": "Select 6 sentinel datasets by size\u00d7dimensionality (NOT by harm). Run I2(permuted), I4(contam-only), O1(fixed-epoch), S1(training-fraction) interventions.",
+    "SP7-E_confirmation": "If >=1 hypothesis passes sentinel gate (direction in >=2/3 models, >=4/6 datasets, mean effect reduction >=50% or CI crosses 0): 20-dataset confirmation. Max 2 promoted interventions, <=6000 total confirmation cells.",
+    "SP7-F_claims": "Grade causal evidence (Level 0-3), judge CL13a/CL13b, freeze."
+  },
+  "sentinel_selection_rule": "Stratified by training-row-count (small/medium/large) x dimensionality (low/high). 3*2=6 datasets. Deterministic, NO harm data."
+}
