@@ -1,0 +1,24 @@
+{
+  "H2_weak_signal_dilution": {
+    "status": "NOT_SUPPORTED",
+    "cells_direction_consistent": 5,
+    "note": "I2 permuted contamination: TabM shows weak reduction; ModernNCA shows modest reduction for M05; TabR got worse (permuted harm more negative). No model shows H2 clearly. Permutation may introduce noise rather than removing signal."
+  },
+  "H3_finite_sample_variance": {
+    "status": "NOT_SUPPORTED",
+    "consistent_cells": 0,
+    "note": "S1 training fraction: examined 25%\u2192100% trend. Results variable across models."
+  },
+  "H4_optimization_early_stopping": {
+    "status": "NOT_SUPPORTED",
+    "cells_less_negative": 2,
+    "note": "O1 fixed epoch (50 epochs): effect near zero. H4 NOT SUPPORTED."
+  },
+  "highest_causal_level": "Level 1 \u2014 correlational only",
+  "conclusion": "M04/M05 negative harm is robustly replicated (CL13a PARTIALLY_CONFIRMED). However, the preregistered sentinel interventions (I2/H2, S1/H3, O1/H4) did not provide strong causal support for any single mechanism hypothesis. The phenomenon remains an unexplained cross-model regularity.",
+  "promotion_gate": {
+    "passed": false,
+    "promoted_interventions": []
+  },
+  "SP7-E_authorized": false
+}

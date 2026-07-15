@@ -1,0 +1,7 @@
+model,mechanism,contam_only_auc_mean,contam_only_full_auc
+tabm,M04,0.4989,0.4989
+tabm,M05,0.4986,0.4986
+modernnca,M04,0.4985,0.4985
+modernnca,M05,0.4951,0.4951
+tabr,M04,0.4988,0.4988
+tabr,M05,0.4989,0.4989
