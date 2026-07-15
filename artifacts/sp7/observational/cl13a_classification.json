@@ -1,0 +1,6 @@
+{
+  "cl13a": "PARTIALLY_CONFIRMED",
+  "all_ci_negative": false,
+  "all_mean_negative": true,
+  "method": "cluster-bootstrap over dataset_index, 10000 reps, seed 20260715"
+}

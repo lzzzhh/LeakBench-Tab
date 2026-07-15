@@ -1,0 +1,7 @@
+dataset_index,n_train,n_features,size_stratum,dim_stratum
+0,600,12,small,low
+2,720,20,small,high
+4,840,12,medium,low
+7,792,24,medium,high
+9,924,16,large,low
+14,1008,20,large,high

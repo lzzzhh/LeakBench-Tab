@@ -1,0 +1,4 @@
+model,pearson_decay_vs_harm,spearman_decay_vs_harm,N
+tabm,-0.0147,0.0142,1000
+modernnca,0.0782,0.0942,1000
+tabr,-0.0734,-0.1348,1000
