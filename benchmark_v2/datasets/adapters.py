@@ -43,7 +43,7 @@ def _select_lending_file(raw: Path) -> Path | None:
 
 def _select_bank_file(raw: Path) -> Path | None:
     csv_files = sorted(
-        {path.resolve() for path in raw.rglob("**/*.csv", recursive=True) if path.is_file() and not path.name.startswith("._")},
+        {path.resolve() for path in raw.rglob("*.csv") if path.is_file() and not path.name.startswith("._")},
         key=lambda path: str(path).lower(),
     ) if raw.exists() else []
     full_files = [path for path in csv_files if "full" in path.stem.lower()]
