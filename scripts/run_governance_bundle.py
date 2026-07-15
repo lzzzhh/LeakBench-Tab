@@ -67,9 +67,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--bundle-manifest", required=True)
     ap.add_argument("--output", required=True)
-    ap.add_argument("--mechanisms", default="M06,M09,M10,M11")
-    ap.add_argument("--strengths", default="S3,S5")
-    ap.add_argument("--seeds", default="13,42,2026")
+    ap.add_argument("--mechanisms", default="all")
+    ap.add_argument("--strengths", default="all")
+    ap.add_argument("--seeds", default="all")
     ap.add_argument("--datasets", default="all")
     ap.add_argument("--allow-run", action="store_true")
     ap.add_argument("--resume", action="store_true")
@@ -78,11 +78,14 @@ def main(argv=None):
         raise RuntimeError("locked; pass --allow-run")
 
     man = pd.read_csv(ROOT / args.bundle_manifest)
-    mechs = args.mechanisms.split(","); strs = args.strengths.split(",")
-    sds = [int(x) for x in args.seeds.split(",")]
+    mechs = None if args.mechanisms == "all" else args.mechanisms.split(",")
+    strs = None if args.strengths == "all" else args.strengths.split(",")
+    sds = None if args.seeds == "all" else [int(x) for x in args.seeds.split(",")]
     if args.datasets != "all":
         man = man[man["dataset_index"].astype(int).isin([int(x) for x in args.datasets.split(",")])]
-    man = man[man["mechanism"].isin(mechs) & man["strength"].isin(strs) & man["seed"].isin(sds)]
+    if mechs: man = man[man["mechanism"].isin(mechs)]
+    if strs: man = man[man["strength"].isin(strs)]
+    if sds: man = man[man["seed"].isin(sds)]
     total_cells = len(man) * len(STRATEGIES) * len(BUDGETS)  # budget only for budgeted strategies
     cells_per_key = len(man)
     actual = 0
