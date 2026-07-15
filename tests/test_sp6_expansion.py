@@ -56,16 +56,16 @@ def test_sp5_core_unchanged_in_extended():
     assert np.allclose(m["paired_harm_ext"], m["paired_harm_orig"])
 
 
-def test_extended_ledger_33000():
+def test_extended_ledger_38500():
     ext = pd.read_csv(SP6 / "claim_ledger_v3_extended.csv")
-    assert len(ext) == 33000
+    assert len(ext) == 38500
     assert set(ext["evidence_tier"].unique()) == {"SP5_FROZEN_CORE", "SP6_MODEL_EXPANSION"}
 
 
 def test_evidence_tier_separation():
     ext = pd.read_csv(SP6 / "claim_ledger_v3_extended.csv")
-    assert int((ext["evidence_tier"] == "SP6_MODEL_EXPANSION").sum()) == 5500
-    assert set(ext[ext["evidence_tier"] == "SP6_MODEL_EXPANSION"]["model"].unique()) == {"modernnca"}
+    assert int((ext["evidence_tier"] == "SP6_MODEL_EXPANSION").sum()) == 11000
+    assert set(ext[ext["evidence_tier"] == "SP6_MODEL_EXPANSION"]["model"].unique()) == {"modernnca", "tabr"}
 
 
 def test_legacy_modern_models_excluded():

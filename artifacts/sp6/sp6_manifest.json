@@ -1,0 +1,27 @@
+{
+  "gate": "SP6_FROZEN",
+  "sp5_rows": 27500,
+  "modernnca_rows": 5500,
+  "tabr_rows": 5500,
+  "combined": 38500,
+  "tabr_raw_rows": 5524,
+  "tabr_retry_keys": 12,
+  "tabr_timeout_keys": 4,
+  "tabr_timeout_resolved": 4,
+  "mnca_sha256": "67c39afbdd8f820218d8fbc5e64f249ac025241876ca1b72e027fa9653539143",
+  "tabr_clean_sha256": "7b65fae04cfac4131767c03089d5852ecd23f045e741b463fa42d4abd1b54e84",
+  "extended_sha256": "aef477b99ea62cd07a57c693a4c155b437f6526f2b8b5c4a0634039b6611d950",
+  "sp5_unchanged": true,
+  "mean_pairwise_spearman": 0.8913419913419913,
+  "models": [
+    "lr",
+    "rf",
+    "lightgbm",
+    "catboost",
+    "tabm",
+    "modernnca",
+    "tabr"
+  ],
+  "m04_m05_replicated": true,
+  "classification": "SP6_COMPLETE_FROZEN"
+}
