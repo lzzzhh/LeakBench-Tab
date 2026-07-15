@@ -1,0 +1,33 @@
+{
+  "gate": "SP7-D_intervention_freeze",
+  "status": "FROZEN_BEFORE_FORMAL_RUN",
+  "runner": "e2736399a5225e21e877b5a391bdbd52461589d6dc6abc46eee46e8a79a0792d",
+  "bundle_exporter": "9bff8aaa74faaf80a1df4c8b7b50093d17ee59600a88416adda2c1952ac8a83a",
+  "bundle_manifest": "025e9f9dd1e4636eb060e88e80a02ca50a7f629b978bb806b247f29b56565f72",
+  "expected_cells": 1764,
+  "models": [
+    "tabm",
+    "modernnca",
+    "tabr"
+  ],
+  "mechanisms": [
+    "M04",
+    "M05"
+  ],
+  "sentinel_datasets": [
+    0,
+    2,
+    4,
+    7,
+    9,
+    14
+  ],
+  "interventions": {
+    "I2_permuted": 300,
+    "I4_contam_only": 300,
+    "O1_fixed_epoch": 300,
+    "S1_fractions": 48
+  },
+  "fixed_epoch": 50,
+  "preregistration_commit": "61790c0"
+}
