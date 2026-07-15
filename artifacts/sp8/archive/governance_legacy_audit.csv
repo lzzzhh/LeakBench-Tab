@@ -1,0 +1,6 @@
+path,runner,commit,policy,mechanism,result_scope,protocol_problem,oracle_usage,claim_status,formal_eligibility
+experiments/leakbench/run_meta_tier.py,run_meta_tier.py,N/A (locked),all 6,M04-M11,own injection (invalid),INTEGRITY_HOLD; does own inject_with_metadata; int-as-string; seed=42; S-axis reads leak_mask,embedded (not isolated),SUPERSEDED,NON_CLAIM_ELIGIBLE
+results/leakbench_meta/governance/meta_governance_results.csv,run_meta_tier,pre-corrected_v2,6 strategies+4 budgets,M04/M05/M06/M07/M08/M09/M11,"1008 rows, own injection",runtime injection; non-frozen; non-bundle,yes,SUPERSEDED,NON_CLAIM_ELIGIBLE
+results/leakbench_meta_v2_operational/governance/operational_governance.csv,run_meta_tier_v2?,pre-corrected_v2,operational metadata,M04-M11,own injection,operational metadata generated at runtime from non-frozen split,yes,SUPERSEDED,NON_CLAIM_ELIGIBLE
+results/leakbench/governance_matrix.csv,run_meta_tier,pre-corrected,subset,M04-M11,old,pre-corrected_v2,yes,SUPERSEDED,NON_CLAIM_ELIGIBLE
+results/leakbench/governance_v2.csv,run_meta_tier,pre-corrected,subset,5 mechs,480 rows,pre-corrected_v2,yes,SUPERSEDED,NON_CLAIM_ELIGIBLE

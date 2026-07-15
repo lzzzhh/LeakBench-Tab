@@ -1,0 +1,23 @@
+{
+  "phase": "SP8-A",
+  "status": "COMPLETE_FROZEN",
+  "legacy_sources_audited": 5,
+  "legacy_claim_eligible": 0,
+  "policy_registry": "artifacts/sp8/protocol/policy_registry.yaml",
+  "policy_registry_sha": "8c10a48c279c95dd47ea7850a1382946f87dab4581d212574c4d94eaaccd7502",
+  "runner_sha": "c952ca113b3a02e179b2f00f3b598dbe0f0b9495cc68239e52cab12f62d90d7f",
+  "smoke_cells": 672,
+  "formal_cells": 6720,
+  "primary_finding": "Field-score budget (P3) removes 56-61% of leaked features while retaining 96-97% of legitimate ones, achieving meaningful strict_distance_reduction vs random baseline.",
+  "models_used": "LR (governance pilot)",
+  "mechanisms": [
+    "M06",
+    "M09",
+    "M10",
+    "M11"
+  ],
+  "SP5_unchanged": true,
+  "SP6_unchanged": true,
+  "SP7_unchanged": true,
+  "next_phase": "SP8-B sentinel governance evaluation (user authorization required)"
+}
