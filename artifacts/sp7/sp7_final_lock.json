@@ -1,0 +1,21 @@
+{
+  "phase": "SP7",
+  "status": "COMPLETE_FROZEN_CLOSED",
+  "sp5_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4",
+  "sp6_sha256": "aef477b99ea62cd07a57c693a4c155b437f6526f2b8b5c4a0634039b6611d950",
+  "final_conclusion": "M04/M05 exhibits a small negative-harm signature replicable across TabM, ModernNCA, and TabR. Preregistered interventions targeting weak-signal dilution (H2), finite-sample variance (H3), and early-stopping effects (H4) did not support any causal mechanism at the sentinel level. The phenomenon is robust observationally but mechanistically unexplained.",
+  "claims": {
+    "CL13": "UNCONFIRMED (causal explanation not established)",
+    "CL13a": "PARTIALLY_CONFIRMED (cross-model directional replication established, TabR CI crosses zero)",
+    "CL13b": "NOT_CREATED (no hypothesis passed sentinel promotion gate)"
+  },
+  "hypotheses": {
+    "H2": "NOT_SUPPORTED",
+    "H3": "NOT_SUPPORTED",
+    "H4": "NOT_SUPPORTED"
+  },
+  "causal_evidence_level": 1,
+  "interpretation": "high-quality null result \u2014 rules out TabM-specific anomaly and three most natural explanations",
+  "recommended_wording": "Temporal structured mechanisms M04 and M05 exhibit a small negative-harm signature across TabM, ModernNCA, and TabR. However, preregistered interventions targeting weak-signal dilution, finite-sample variance, and early-stopping effects did not explain the phenomenon. The recurrence establishes that the effect is not unique to TabM, but the failed sentinel interventions leave its causal mechanism unresolved.",
+  "no_SP7_E": "mechanism study closed"
+}
