@@ -1,0 +1,18 @@
+\begin{table*}[t]
+\caption{Matched-cost governance results. Differences are P3 minus P2 strict-distance reduction (SDR); positive values favor blind MI. Probability is the fraction of paired dataset-cluster bootstrap draws above zero, not a $p$-value. Recall and retention describe P3.}
+\label{tab:governance}
+\centering\small
+\begin{tabular}{llrrrrr}
+\toprule
+Scope & Budget & P3--P2 SDR & 95\% CI & $\Pr_{boot}(\Delta>0)$ & Leak recall & Legit. retention \\
+\midrule
+All Mechanisms & 1\% & +0.059 & [+0.044, +0.071] & 1.000 & 40.5\% & 97.6\% \\
+All Mechanisms & 5\% & +0.061 & [+0.046, +0.073] & 1.000 & 41.0\% & 97.6\% \\
+All Mechanisms & 10\% & +0.060 & [+0.033, +0.083] & 1.000 & 49.7\% & 94.6\% \\
+All Mechanisms & 20\% & +0.050 & [+0.008, +0.087] & 0.989 & 60.1\% & 85.1\% \\
+Simple & 20\% & +0.109 & [+0.060, +0.153] & 1.000 & 92.9\% & 86.7\% \\
+Boundary & 20\% & +0.044 & [+0.002, +0.079] & 0.980 & 56.2\% & 85.7\% \\
+Structured & 20\% & -0.003 & [-0.039, +0.027] & 0.449 & 30.2\% & 83.1\% \\
+\bottomrule
+\end{tabular}
+\end{table*}

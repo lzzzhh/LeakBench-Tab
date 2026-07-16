@@ -1,0 +1,242 @@
+{
+  "blockers": [
+    "Replace pending author, affiliation, email, and ORCID fields."
+  ],
+  "exclusions": {
+    "excluded_smoke": true,
+    "pilots": true,
+    "raw_lending_club_source": true,
+    "superseded_snapshots": true
+  },
+  "file_count": 45,
+  "files": [
+    {
+      "bytes": 752,
+      "path": "ARTIFACT_README.md",
+      "sha256": "dc7bce5a4e7d7cbdde43aad83e755b39b00194bbec2abe0515c6ea766e877888"
+    },
+    {
+      "bytes": 14727,
+      "path": "artifacts/sp8/bootstrap_analysis.json",
+      "sha256": "51c9e877ec1ced01a828598d66004e182478483726f111c7b9989ffed0ceabff"
+    },
+    {
+      "bytes": 753,
+      "path": "artifacts/sp8/claims/claim_evidence_matrix_sp8.csv",
+      "sha256": "1ed105238cf97fc601deea52573cd0518ae78881c5b5b2d789f37275eaf7734a"
+    },
+    {
+      "bytes": 957,
+      "path": "artifacts/sp8/claims/claim_evidence_matrix_sp8.json",
+      "sha256": "482710508f853516b1c8bf0a075328ea1bddb6f3a8bfa6a3914483906f33c97e"
+    },
+    {
+      "bytes": 8267266,
+      "path": "artifacts/sp8/governance_clean.csv",
+      "sha256": "6e3aa4c7edbc6f476ad3494be659892a0dd7271a109a66ff69ee8f1d6dfca9d8"
+    },
+    {
+      "bytes": 1207,
+      "path": "artifacts/sp8/governance_clean_manifest.json",
+      "sha256": "67c936d4077238a51a270f71a0282920a1674ef437320cb37a5d56cfc40b9ba2"
+    },
+    {
+      "bytes": 2223,
+      "path": "artifacts/sp8/protocol/policy_registry.yaml",
+      "sha256": "8c10a48c279c95dd47ea7850a1382946f87dab4581d212574c4d94eaaccd7502"
+    },
+    {
+      "bytes": 90749,
+      "path": "paper/edbt_eab/ACM-Reference-Format.bst",
+      "sha256": "a9f66287ef90d08b22344a20963b170faec86e26df1553f50b05cbb90fb545f3"
+    },
+    {
+      "bytes": 2935,
+      "path": "paper/edbt_eab/ASSET_GOVERNANCE.md",
+      "sha256": "188da176ee89b7b52a0412cf03a47607621be170cf65850b3d1e16c95300f6bf"
+    },
+    {
+      "bytes": 4426,
+      "path": "paper/edbt_eab/OFL-Libertinus.txt",
+      "sha256": "9aeecc8107c489ec1ec0068b0313e531a760edf3493705b32ab8ab8215a8794e"
+    },
+    {
+      "bytes": 3179,
+      "path": "paper/edbt_eab/README.md",
+      "sha256": "579daf5aca7148143b476f376b11cddb94b5c1c7b158243f7a7419cf6c761d92"
+    },
+    {
+      "bytes": 119755,
+      "path": "paper/edbt_eab/acmart.cls",
+      "sha256": "f5e24d4b29d24ab1cbdef46002febe7c2521f69b41c03d20bc92d8eef8fb5038"
+    },
+    {
+      "bytes": 2147,
+      "path": "paper/edbt_eab/edbt-macros.tex",
+      "sha256": "3bbc3404ecb535d0a0ba9cd534508d09ac5d252d66066a2b2c1c639c0a208843"
+    },
+    {
+      "bytes": 26003,
+      "path": "paper/edbt_eab/figures/generated/cdx_profiles.pdf",
+      "sha256": "75d2f37a6b5f5bd71cdb47ec019b65fb52444e9fdf872c167f49f19bc31c4c4c"
+    },
+    {
+      "bytes": 24802,
+      "path": "paper/edbt_eab/figures/generated/governance_budget.pdf",
+      "sha256": "d5bb3f2827b565ae460497c58da66ee179a3a800f9c01805afef6616dd879255"
+    },
+    {
+      "bytes": 21496,
+      "path": "paper/edbt_eab/figures/generated/governance_by_category.pdf",
+      "sha256": "232e23b3a5223b65fd7680181f588759bbc35b0dc8c830c7ca2783cd528ebd3e"
+    },
+    {
+      "bytes": 2770,
+      "path": "paper/edbt_eab/generated/paper_artifact_manifest.json",
+      "sha256": "611182dd2457f938061e64f273f2aeeaeeacec58849c5e059fd60e4fb5dcf162"
+    },
+    {
+      "bytes": 993,
+      "path": "paper/edbt_eab/generated/result_macros.tex",
+      "sha256": "9d9c1bef5c4089cf4817d5feff9b07b7c6489d15b3f151fff6023244895a1cbb"
+    },
+    {
+      "bytes": 1041,
+      "path": "paper/edbt_eab/generated/table_governance.tex",
+      "sha256": "85dad61536928f094e11e1926605a1b860ba3fff1934ebf3532d2c40a0e834c2"
+    },
+    {
+      "bytes": 1378,
+      "path": "paper/edbt_eab/generated/table_measurement.tex",
+      "sha256": "23c702e70339f8bde739cc9abe16cc345ec75012697ee5294f72399a50fb34f8"
+    },
+    {
+      "bytes": 643,
+      "path": "paper/edbt_eab/generated/table_natural.tex",
+      "sha256": "68b1f7d9332843f9d947fb2cb1e37f877e445de76438feda60df94a73fbb2ad4"
+    },
+    {
+      "bytes": 588848,
+      "path": "paper/edbt_eab/libertinusmath-regular.otf",
+      "sha256": "ded714b0d3808af527438ed7a85f16933133f66a12104c4a83db4cc248888011"
+    },
+    {
+      "bytes": 56866,
+      "path": "paper/edbt_eab/main.tex",
+      "sha256": "3fb913f1bbca5a12a4973db3d52396da5c5651c0834f7b728eee6eec933a9150"
+    },
+    {
+      "bytes": 231490,
+      "path": "paper/edbt_eab/output/official/main.pdf",
+      "sha256": "57d81849c4f5d1ed4deb603b4fbd606f1c728b31f2027a3d25cee745c0711af1"
+    },
+    {
+      "bytes": 6388,
+      "path": "paper/edbt_eab/references.bib",
+      "sha256": "316d57de266fd2af235822c82439353e79be9576ce76b7344224b88a0597f4f3"
+    },
+    {
+      "bytes": 14547,
+      "path": "paper/edbt_eab/source_data/build_paper_assets.py",
+      "sha256": "a4b17dc14e4e3b7065422458f6a358e2eaa4d22b6ec36e2662dc479752996b28"
+    },
+    {
+      "bytes": 15822,
+      "path": "paper/edbt_eab/source_data/generate_paper_artifacts.py",
+      "sha256": "1ca72afbbfcdbc9059088c7532d1c27e3b5e2fda2c94c79c08fd748a4314c596"
+    },
+    {
+      "bytes": 1005,
+      "path": "paper/edbt_eab/source_data/generated/governance_results.csv",
+      "sha256": "b43d2b259149a132a1f764cbc7fdf1cbaed1318de0c7f216d1399a97cf2c644c"
+    },
+    {
+      "bytes": 3378,
+      "path": "paper/edbt_eab/source_data/generated/main_results.csv",
+      "sha256": "e791801ed1c1fd4e9aa281fe153b7ee3493b7f7ac314451ca56ae047cf0c5b7d"
+    },
+    {
+      "bytes": 942,
+      "path": "paper/edbt_eab/source_data/generated/natural_cases.csv",
+      "sha256": "458cad5ef36b7dc2d558f5ea0c97cfa3331f87d52a49afda132262ad0d4587b6"
+    },
+    {
+      "bytes": 3013,
+      "path": "paper/edbt_eab/source_data/generated/paper_asset_manifest.json",
+      "sha256": "23b9f6e16306c08e857b960554ede159c10e480ad382b26a15b46e14bdddabd5"
+    },
+    {
+      "bytes": 24226247,
+      "path": "results/corrected_v2/canonical_cells.csv",
+      "sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7"
+    },
+    {
+      "bytes": 2019,
+      "path": "results/corrected_v2/canonical_manifest.json",
+      "sha256": "7f07f0cb5ad729c900fa69f9938493e171519e57249128a66b6d109516b2474e"
+    },
+    {
+      "bytes": 22984,
+      "path": "results/corrected_v2/claim_state.json",
+      "sha256": "ce88fca4c06af5a84e7f6288e97b108abacb7380ebb3fad067733598526917ec"
+    },
+    {
+      "bytes": 22984,
+      "path": "results/corrected_v2/paper_claims.json",
+      "sha256": "ce88fca4c06af5a84e7f6288e97b108abacb7380ebb3fad067733598526917ec"
+    },
+    {
+      "bytes": 22317,
+      "path": "results/corrected_v2/public_natural/natural_cells.csv",
+      "sha256": "e615b24f921a0d0c07c8b1e1cb560a3cd1736c17aa4af4e85b1732079e4b3a70"
+    },
+    {
+      "bytes": 7394,
+      "path": "results/corrected_v2/public_natural/natural_protocol_v2_freeze.json",
+      "sha256": "d7960cd4543b102ea6db56ef2d6e62af5c62e75084b529035af33081ac61d08c"
+    },
+    {
+      "bytes": 1275,
+      "path": "results/corrected_v2/public_natural/natural_statistics.json",
+      "sha256": "3f715225f043f64397797e9b81e17593c17ca2e7d795f2cb5b8fc9d7da2d9f40"
+    },
+    {
+      "bytes": 17339,
+      "path": "results/corrected_v2/public_natural/natural_task_summary.csv",
+      "sha256": "ceda9121ff15e8f79a5506fee25e8f24976e64be6c56218836f964c6472281e4"
+    },
+    {
+      "bytes": 5372,
+      "path": "results/corrected_v2/public_natural/public_natural_provenance_manifest.json",
+      "sha256": "f5fb0977ec912c418542c1a81cb86cb899829a7baf1acdff1d059e537a55e057"
+    },
+    {
+      "bytes": 1401,
+      "path": "results/corrected_v2/statistics/detectability_mechanism_summary.csv",
+      "sha256": "961ab717fddd3d4397817c7c5e65f3ccc523bbf0917a15c31641220a33ab95f1"
+    },
+    {
+      "bytes": 1587,
+      "path": "results/corrected_v2/statistics/mechanism_summary.csv",
+      "sha256": "6e982bafa315398042d926b20fd12b6d07a529c36473d7e020bfd1d7f261329f"
+    },
+    {
+      "bytes": 2272,
+      "path": "results/corrected_v2/statistics/strength_dose_response.csv",
+      "sha256": "544dc28f57c3f49eec35ab7d9f97a3c5c95f670db38aec06f1793f895a99588a"
+    },
+    {
+      "bytes": 5646,
+      "path": "scripts/analyze_sp8_governance.py",
+      "sha256": "daae7c39a121594e92be6c3237066948cf7f9d42f2a3aa6ca228eb7124320bf5"
+    },
+    {
+      "bytes": 11403,
+      "path": "scripts/run_sp8_clean.py",
+      "sha256": "6089aacabffde66fa600968c31d165eb711fd1661c22e8f9c536a9ddc3f89032"
+    }
+  ],
+  "schema_version": 1,
+  "status": "EDBT_DRAFT",
+  "venue": "EDBT 2027 Experiments, Analysis & Benchmarks"
+}

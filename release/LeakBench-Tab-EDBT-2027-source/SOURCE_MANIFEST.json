@@ -1,0 +1,83 @@
+{
+  "entrypoint": "main.tex",
+  "file_count": 15,
+  "files": [
+    {
+      "bytes": 90749,
+      "path": "ACM-Reference-Format.bst",
+      "sha256": "a9f66287ef90d08b22344a20963b170faec86e26df1553f50b05cbb90fb545f3"
+    },
+    {
+      "bytes": 4426,
+      "path": "OFL-Libertinus.txt",
+      "sha256": "9aeecc8107c489ec1ec0068b0313e531a760edf3493705b32ab8ab8215a8794e"
+    },
+    {
+      "bytes": 460,
+      "path": "README.md",
+      "sha256": "f906fe8da923e61806d76b7f4855ced7d8273edcc3b713b0027dff0e115dc1fc"
+    },
+    {
+      "bytes": 119755,
+      "path": "acmart.cls",
+      "sha256": "f5e24d4b29d24ab1cbdef46002febe7c2521f69b41c03d20bc92d8eef8fb5038"
+    },
+    {
+      "bytes": 2147,
+      "path": "edbt-macros.tex",
+      "sha256": "3bbc3404ecb535d0a0ba9cd534508d09ac5d252d66066a2b2c1c639c0a208843"
+    },
+    {
+      "bytes": 26003,
+      "path": "figures/generated/cdx_profiles.pdf",
+      "sha256": "75d2f37a6b5f5bd71cdb47ec019b65fb52444e9fdf872c167f49f19bc31c4c4c"
+    },
+    {
+      "bytes": 24802,
+      "path": "figures/generated/governance_budget.pdf",
+      "sha256": "d5bb3f2827b565ae460497c58da66ee179a3a800f9c01805afef6616dd879255"
+    },
+    {
+      "bytes": 21496,
+      "path": "figures/generated/governance_by_category.pdf",
+      "sha256": "232e23b3a5223b65fd7680181f588759bbc35b0dc8c830c7ca2783cd528ebd3e"
+    },
+    {
+      "bytes": 993,
+      "path": "generated/result_macros.tex",
+      "sha256": "9d9c1bef5c4089cf4817d5feff9b07b7c6489d15b3f151fff6023244895a1cbb"
+    },
+    {
+      "bytes": 1041,
+      "path": "generated/table_governance.tex",
+      "sha256": "85dad61536928f094e11e1926605a1b860ba3fff1934ebf3532d2c40a0e834c2"
+    },
+    {
+      "bytes": 1378,
+      "path": "generated/table_measurement.tex",
+      "sha256": "23c702e70339f8bde739cc9abe16cc345ec75012697ee5294f72399a50fb34f8"
+    },
+    {
+      "bytes": 643,
+      "path": "generated/table_natural.tex",
+      "sha256": "68b1f7d9332843f9d947fb2cb1e37f877e445de76438feda60df94a73fbb2ad4"
+    },
+    {
+      "bytes": 588848,
+      "path": "libertinusmath-regular.otf",
+      "sha256": "ded714b0d3808af527438ed7a85f16933133f66a12104c4a83db4cc248888011"
+    },
+    {
+      "bytes": 56866,
+      "path": "main.tex",
+      "sha256": "3fb913f1bbca5a12a4973db3d52396da5c5651c0834f7b728eee6eec933a9150"
+    },
+    {
+      "bytes": 6388,
+      "path": "references.bib",
+      "sha256": "316d57de266fd2af235822c82439353e79be9576ce76b7344224b88a0597f4f3"
+    }
+  ],
+  "schema_version": 1,
+  "status": "EDBT_SOURCE_READY"
+}

@@ -91,7 +91,7 @@ LeakBench-Tab/
 │   ├── run_governance_bundle.py           # SP8 治理 bundle runner
 │   ├── export_sp7_intervention_bundles.py # SP7 干预 bundle 导出
 │   ├── build_sp6_bundle_manifest.py       # SP6 bundle manifest
-│   └── paper/generate_sp5_paper_macros.py # SP5.5 论文宏生成
+│   └── analyze_sp8_governance.py          # SP8 governance bootstrap/claims
 ├── configs/                 # 配置
 │   ├── paper/                # 冻结协议 configs
 │   └── sp6/                  # ModernNCA/TabR configs
@@ -107,7 +107,7 @@ LeakBench-Tab/
 │   └── corrected_v2/                     # core CPU cells, TabM checkpoints, task bundles
 ├── protocols/               # 冻结协议
 │   └── structured_prior_v1/  # inference_protocol, freeze_manifest, task plans
-├── paper/aaai27/            # 论文 (宏驱动, 数字来自 claim_ledger_v2)
+├── paper/edbt_eab/          # 当前 EDBT EA&B 论文与三表 paper-facing boundary
 ├── reports/                 # 各种审计和报告
 └── archive/                 # 排除/作废证据 (code drift, interim M08)
 ```
@@ -175,7 +175,7 @@ LeakBench-Tab/
 ## 当前测试状态
 
 ```
-280 passed, 1 skipped, 0 failed
+281 passed, 3 skipped, 0 failed
 Python 3.13, macOS + WSL2 Ubuntu
 Pre-existing failures: 0 (已全部修复)
 ```
@@ -191,13 +191,16 @@ python scripts/compute_sp4_detectability.py
 python scripts/build_claim_ledger_v2.py
 python scripts/recompute_sp5_claims.py
 
-# 重生成论文宏
-python scripts/paper/generate_sp5_paper_macros.py
+# 检查 EDBT 三个 paper-facing CSV 与冻结 claim state 一致
+python paper/edbt_eab/source_data/build_paper_assets.py --check
 
-# 跑治理实验 (LR, 本地)
-python scripts/run_governance_bundle.py \
-  --bundle-manifest artifacts/sp6/sp6_bundle_manifest.csv \
-  --output /tmp/gov.csv --allow-run
+# 重生成并编译 EDBT 论文产物
+python paper/edbt_eab/source_data/generate_paper_artifacts.py
+tectonic -X compile paper/edbt_eab/main.tex --outdir paper/edbt_eab/output
+
+# 禁止使用旧 run_governance_bundle.py 刷新论文结论；它仍处于 UNDER_AUDIT
+# 当前材料、禁用资产与 release blocker 见：
+# reports/edbt_eab/PROJECT_MATERIALS.md
 
 # 全部测试
 python -m pytest tests/ -q

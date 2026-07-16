@@ -1,0 +1,46 @@
+{
+  "canonical_sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
+  "evidence_tier": "confirmatory_plus_case_study",
+  "legacy_disposition": {
+    "artifacts/edbt_eab/baseline_matrix.csv": "METHOD_DOCUMENTATION_NOT_A_RESULTS_TABLE",
+    "artifacts/edbt_eab/claim_evidence_matrix.csv": "STALE_DO_NOT_CITE",
+    "artifacts/edbt_eab/mechanism_contract_matrix.csv": "INCOMPLETE_7_OF_11_ARTIFACT_ONLY"
+  },
+  "output_sha256": {
+    "governance_results.csv": "b43d2b259149a132a1f764cbc7fdf1cbaed1318de0c7f216d1399a97cf2c644c",
+    "main_results.csv": "e791801ed1c1fd4e9aa281fe153b7ee3493b7f7ac314451ca56ae047cf0c5b7d",
+    "natural_cases.csv": "458cad5ef36b7dc2d558f5ea0c97cfa3331f87d52a49afda132262ad0d4587b6"
+  },
+  "paper_claims_sha256": "ce88fca4c06af5a84e7f6288e97b108abacb7380ebb3fad067733598526917ec",
+  "paper_table_count": 3,
+  "row_counts": {
+    "governance_results.csv": 7,
+    "main_results.csv": 12,
+    "natural_cases.csv": 5
+  },
+  "schema_version": 1,
+  "source_sha256": {
+    "artifacts/sp8/bootstrap_analysis.json": "51c9e877ec1ced01a828598d66004e182478483726f111c7b9989ffed0ceabff",
+    "artifacts/sp8/claims/claim_evidence_matrix_sp8.json": "482710508f853516b1c8bf0a075328ea1bddb6f3a8bfa6a3914483906f33c97e",
+    "paper/edbt_eab/source_data/build_paper_assets.py": "a4b17dc14e4e3b7065422458f6a358e2eaa4d22b6ec36e2662dc479752996b28",
+    "results/corrected_v2/canonical_cells.csv": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
+    "results/corrected_v2/canonical_manifest.json": "7f07f0cb5ad729c900fa69f9938493e171519e57249128a66b6d109516b2474e",
+    "results/corrected_v2/claim_state.json": "ce88fca4c06af5a84e7f6288e97b108abacb7380ebb3fad067733598526917ec",
+    "results/corrected_v2/paper_claims.json": "ce88fca4c06af5a84e7f6288e97b108abacb7380ebb3fad067733598526917ec",
+    "results/corrected_v2/public_natural/natural_statistics.json": "3f715225f043f64397797e9b81e17593c17ca2e7d795f2cb5b8fc9d7da2d9f40",
+    "results/corrected_v2/public_natural/natural_task_summary.csv": "ceda9121ff15e8f79a5506fee25e8f24976e64be6c56218836f964c6472281e4",
+    "results/corrected_v2/statistics/detectability_mechanism_summary.csv": "961ab717fddd3d4397817c7c5e65f3ccc523bbf0917a15c31641220a33ab95f1",
+    "results/corrected_v2/statistics/mechanism_summary.csv": "6e982bafa315398042d926b20fd12b6d07a529c36473d7e020bfd1d7f261329f",
+    "results/corrected_v2/statistics/strength_dose_response.csv": "544dc28f57c3f49eec35ab7d9f97a3c5c95f670db38aec06f1793f895a99588a"
+  },
+  "status": "EDBT_EAB_PAPER_ASSETS_READY",
+  "table_policy": {
+    "claim_scope": "PROSE_PLUS_MACHINE_READABLE_CLAIMS",
+    "diagnostic_method_by_mechanism.csv": "MACHINE_READABLE_ONLY_OR_FIGURE_SOURCE",
+    "governance_results.csv": "MAIN_TABLE",
+    "main_results.csv": "MAIN_OR_APPENDIX_SINGLE_SOURCE_TABLE",
+    "mechanism_model_summary.csv": "MACHINE_READABLE_ONLY_OR_FIGURE_SOURCE",
+    "natural_cases.csv": "MAIN_OR_COMPACT_APPENDIX_TABLE",
+    "task_manifest.csv": "ARTIFACT_ONLY"
+  }
+}

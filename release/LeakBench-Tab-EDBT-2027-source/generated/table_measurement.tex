@@ -1,0 +1,22 @@
+\begin{table*}[t]
+\caption{Measurement profiles for the frozen mechanism registry. Harm is permissive-minus-strict test AUROC. D is normalized average precision for the primary mutual-information ranker. Harm intervals are task-hierarchical 95\% intervals. Mechanism rows are descriptive; the prespecified simple-minus-structured contrast is reported in the text.}
+\label{tab:measurement}
+\centering\small
+\begin{tabular}{lllrrr}
+\toprule
+ID & Mechanism & Family & Harm & 95\% CI & D \\
+\midrule
+M01 & Direct Target Copy & simple & +0.180 & [+0.164, +0.196] & 0.844 \\
+M02 & Noisy Target Proxy & simple & +0.204 & [+0.186, +0.222] & 0.918 \\
+M03 & Nonlinear Target Transform & boundary & +0.217 & [+0.201, +0.234] & 0.079 \\
+M04 & Post-Outcome Aggregation & structured & -0.001 & [-0.004, +0.001] & 0.081 \\
+M05 & Temporal Look-Ahead & structured & -0.001 & [-0.003, +0.001] & 0.084 \\
+M06 & Redundant Leakage Cluster & simple & +0.284 & [+0.261, +0.306] & 0.998 \\
+M07 & Sparse Subgroup Leakage & boundary & +0.124 & [+0.114, +0.133] & 0.813 \\
+M08 & Entity Leakage & structured & +0.003 & [-0.002, +0.009] & 0.356 \\
+M09 & Source Leakage & structured & +0.235 & [+0.216, +0.254] & 0.541 \\
+M10 & Mixed Leakage & simple & +0.226 & [+0.206, +0.245] & 0.944 \\
+M11 & Graph-Mediated Leakage & boundary & +0.286 & [+0.263, +0.309] & 0.829 \\
+\bottomrule
+\end{tabular}
+\end{table*}

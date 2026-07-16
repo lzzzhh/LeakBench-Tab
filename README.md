@@ -57,8 +57,8 @@ natural-data external validity.
 
 ```bash
 bash artifacts/sp5/commands.sh          # rebuild ledger + claims + figures
-python3 scripts/paper/generate_sp5_paper_macros.py   # regenerate paper macros
-python3 -m pytest tests/test_sp5_ledger.py tests/test_sp5_5_manuscript.py -q
+python3 paper/edbt_eab/source_data/build_paper_assets.py --check
+python3 -m pytest -q
 ```
 
 Analysis seed 20260714; cluster bootstrap over datasets, 10000 reps.
@@ -69,5 +69,5 @@ Analysis seed 20260714; cluster bootstrap over datasets, 10000 reps.
 - `results/` — evidence (large files gitignored; formal SP5 outputs tracked)
 - `artifacts/sp5/` — SP5 claim ledger, claim matrix, per-claim analyses
 - `artifacts/sp5_5/` — manuscript sync: claim lock, traceability, audits
-- `paper/aaai27/` — manuscript (macro-driven; numbers from claim_ledger_v2)
+- `paper/edbt_eab/` — EDBT 2027 EA&B manuscript and governed paper assets
 - `archive/` — excluded evidence (code-drift, interim), audit-only

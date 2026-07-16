@@ -1,12 +1,24 @@
 {
+  "schema_version": 1,
   "namespace": "confirmatory",
+  "source_tables": [
+    "results/corrected_v2/canonical_cells.csv"
+  ],
   "rows_total": 27500,
   "rows_success": 27500,
   "rows_failed_or_invalid": 0,
   "expected_cells_for_observed_dataset_count": 27500,
+  "completion_rate": 1.0,
   "datasets": 20,
   "mechanisms": 11,
   "strengths": 5,
+  "models": [
+    "catboost",
+    "lightgbm",
+    "lr",
+    "rf",
+    "tabm"
+  ],
   "seeds": [
     13,
     42,
@@ -15,16 +27,5 @@
     7777
   ],
   "bootstrap_repetitions": 20000,
-  "bootstrap_seed": 20260713,
-  "completion_rate": 1.0,
-  "models": [
-    "lr",
-    "rf",
-    "catboost",
-    "lightgbm",
-    "tabm"
-  ],
-  "source_tables": [
-    "results/corrected_v2/canonical_cells.csv"
-  ]
+  "bootstrap_seed": 20260713
 }

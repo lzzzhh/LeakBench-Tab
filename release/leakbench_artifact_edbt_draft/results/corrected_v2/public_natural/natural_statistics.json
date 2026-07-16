@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "interpretation": "fixed real-data case studies; not a population-level dataset sample",
+  "cells": 60,
+  "tasks": 5,
+  "models": [
+    "catboost",
+    "lightgbm",
+    "lr",
+    "rf"
+  ],
+  "seeds": [
+    13,
+    42,
+    2026
+  ],
+  "all_task_effects_positive": true,
+  "mean_paired_harm": 0.27269467095676586,
+  "task_bootstrap_ci": [
+    0.11989863081277105,
+    0.42400207453441674
+  ],
+  "exact_two_sided_sign_flip_p": 0.0625,
+  "task_effects": {
+    "BTSFlights": 0.47040623382048746,
+    "BankMarketing": 0.13076151587470478,
+    "ChicagoFood": 0.4298521345041413,
+    "LendingClub": 0.31949363602282627,
+    "NYC311": 0.012959834561669758
+  },
+  "model_effects": {
+    "catboost": 0.26929821028239187,
+    "lightgbm": 0.277789466354706,
+    "lr": 0.2760002668554863,
+    "rf": 0.2676907403344794
+  },
+  "diagnostic_normalized_ap": {
+    "BankMarketing": 1.0,
+    "LendingClub": 0.5724253199681578,
+    "BTSFlights": 0.4011348309635841,
+    "ChicagoFood": 1.0,
+    "NYC311": 0.5215311004784688
+  },
+  "cells_sha256": "e615b24f921a0d0c07c8b1e1cb560a3cd1736c17aa4af4e85b1732079e4b3a70",
+  "task_summary_sha256": "ceda9121ff15e8f79a5506fee25e8f24976e64be6c56218836f964c6472281e4",
+  "public_projection_version": "natural_public_provenance_v1"
+}

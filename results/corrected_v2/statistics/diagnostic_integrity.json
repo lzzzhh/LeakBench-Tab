@@ -1,10 +1,10 @@
 {
-  "evidence_tier": "confirmatory",
-  "source": "results/corrected_v2/diagnostic_canonical_cells.csv",
-  "rows_success": 22000,
-  "rows_failure": 0,
-  "expected_cells": 22000,
+  "best_diagnostic_interpretation": "optimistic labeled benchmark summary, not a zero-shot ensemble",
+  "bootstrap_repetitions": 20000,
+  "bootstrap_seed": 20260713,
   "datasets": 20,
+  "evidence_tier": "confirmatory",
+  "expected_cells": 22000,
   "mechanisms": [
     "M01",
     "M02",
@@ -24,13 +24,11 @@
     "mutual_information",
     "rf_permutation"
   ],
-  "strengths": [
-    "S1",
-    "S2",
-    "S3",
-    "S4",
-    "S5"
-  ],
+  "primary_diagnostic": "mutual_information",
+  "robust_low_threshold": 0.3,
+  "rows_failure": 0,
+  "rows_success": 22000,
+  "schema_version": 1,
   "seeds": [
     13,
     42,
@@ -38,9 +36,12 @@
     3407,
     7777
   ],
-  "bootstrap_repetitions": 20000,
-  "bootstrap_seed": 20260713,
-  "primary_diagnostic": "mutual_information",
-  "robust_low_threshold": 0.3,
-  "best_diagnostic_interpretation": "not a zero-shot ensemble"
+  "source": "results/corrected_v2/diagnostic_canonical_cells.csv",
+  "strengths": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5"
+  ]
 }

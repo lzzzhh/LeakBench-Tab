@@ -1,0 +1,239 @@
+{
+  "amendment_version": "natural_trainfit_categories_v2",
+  "category_policy": {
+    "categorical_features": {
+      "BTSFlights": [
+        "ArrTimeBlk",
+        "CancellationCode",
+        "DepTimeBlk",
+        "Dest",
+        "DestCityName",
+        "DestState",
+        "DestStateName",
+        "Div1Airport",
+        "Div1TailNum",
+        "Div2Airport",
+        "Div2TailNum",
+        "IATA_CODE_Reporting_Airline",
+        "Origin",
+        "OriginCityName",
+        "OriginState",
+        "OriginStateName",
+        "Reporting_Airline",
+        "Tail_Number"
+      ],
+      "BankMarketing": [
+        "contact",
+        "day_of_week",
+        "default",
+        "education",
+        "housing",
+        "job",
+        "loan",
+        "marital",
+        "month",
+        "poutcome"
+      ],
+      "ChicagoFood": [
+        "chi_address",
+        "chi_aka_name",
+        "chi_city",
+        "chi_dba_name",
+        "chi_facility_type",
+        "chi_inspection_type",
+        "chi_results",
+        "chi_risk",
+        "chi_state",
+        "chi_violations",
+        "location"
+      ],
+      "LendingClub": [
+        "addr_state",
+        "application_type",
+        "debt_settlement_flag",
+        "desc",
+        "disbursement_method",
+        "emp_length",
+        "emp_title",
+        "grade",
+        "hardship_flag",
+        "hardship_loan_status",
+        "hardship_reason",
+        "hardship_status",
+        "hardship_type",
+        "home_ownership",
+        "initial_list_status",
+        "purpose",
+        "pymnt_plan",
+        "settlement_status",
+        "sub_grade",
+        "term",
+        "title",
+        "url",
+        "verification_status",
+        "verification_status_joint",
+        "zip_code"
+      ],
+      "NYC311": [
+        "address_type",
+        "agency",
+        "agency_name",
+        "borough",
+        "bridge_highway_direction",
+        "bridge_highway_name",
+        "bridge_highway_segment",
+        "city",
+        "community_board",
+        "complaint_type",
+        "cross_street_1",
+        "cross_street_2",
+        "descriptor",
+        "descriptor_2",
+        "facility_type",
+        "incident_address",
+        "intersection_street_1",
+        "intersection_street_2",
+        "landmark",
+        "location",
+        "location_type",
+        "open_data_channel_type",
+        "park_borough",
+        "park_facility_name",
+        "police_precinct",
+        "resolution_description",
+        "road_ramp",
+        "status",
+        "street_name",
+        "taxi_company_borough",
+        "taxi_pick_up_location",
+        "vehicle_type"
+      ]
+    },
+    "dropped_date_string_features": {
+      "BTSFlights": [
+        "FlightDate"
+      ],
+      "BankMarketing": [],
+      "ChicagoFood": [
+        "chi_inspection_date"
+      ],
+      "LendingClub": [
+        "debt_settlement_flag_date",
+        "earliest_cr_line",
+        "hardship_end_date",
+        "hardship_start_date",
+        "issue_d",
+        "last_credit_pull_d",
+        "last_pymnt_d",
+        "next_pymnt_d",
+        "payment_plan_start_date",
+        "settlement_date"
+      ],
+      "NYC311": [
+        "due_date",
+        "resolution_action_updated_date"
+      ]
+    }
+  },
+  "category_policy_sha256": "756d08b763605ffd22a1c0c52e0988f92b0a7776de8bbc61f014418d2b99b7c1",
+  "code_files": {
+    "benchmark_v2/datasets/adapters.py": {
+      "sha256": "91b9786e1d138f5980d8353abd686b103281485bd3687876a374218035b75d7e",
+      "size_bytes": 13402
+    },
+    "benchmark_v2/datasets/confirmatory_adapters.py": {
+      "sha256": "77f0606103201ea253f61e916c48406c2e953833395d1f3c2efe0f450fa2fe6e",
+      "size_bytes": 10664
+    },
+    "experiments/leakbench/run_natural_case_studies.py": {
+      "sha256": "590b2fd88fbfeb0320ea1f2ae114de61c579544ed6a1e7fd4e40f5b4346ac2f2",
+      "size_bytes": 7879
+    },
+    "experiments/leakbench/run_natural_case_studies_trainfit.py": {
+      "sha256": "fb9e3caf8a460f340f92061c728f17f1e4553a84022a1126875611ed7fd6534c",
+      "size_bytes": 12307
+    },
+    "scripts/analyze_natural_case_studies.py": {
+      "sha256": "3531634238e6a34e0bfcc621c4e0e5ca41afe3530c1861e05c18ba2d4680d254",
+      "size_bytes": 3000
+    },
+    "src/leakbench/models/core_models.py": {
+      "sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e",
+      "size_bytes": 3180
+    },
+    "tests/test_natural_trainfit.py": {
+      "sha256": "2e590fbea7d0766fae90e3603d49c5aaf12942ebb58fe9003704bfe015f9c3d6",
+      "size_bytes": 3034
+    }
+  },
+  "expected_cells": 60,
+  "fit_scope": "training rows only",
+  "interpretation": "five fixed boundary-specific case studies; descriptive external-validity audit only, never population inference",
+  "missing_category_value": -1.0,
+  "models": [
+    "lr",
+    "rf",
+    "catboost",
+    "lightgbm"
+  ],
+  "output": "results/corrected_v2/public_natural/natural_cells.csv",
+  "public_projection": {
+    "generator_path": "scripts/build_public_natural_provenance.py",
+    "generator_sha256": "babe04fb18621e65db9eee56298de14d5a58842b1c399e0160fd07f8170f332f",
+    "private_freeze_sha256": "7b42fec60b4724b165a36ac12a0d1211cf028ea96dbdff4eb181ebcbb85c82a4",
+    "raw_source_files_included": false,
+    "scientific_fields_unchanged": true,
+    "source_path_policy": "repo_relative_external_sources_placeholders",
+    "version": "natural_public_provenance_v1"
+  },
+  "reason": "v1 category IDs were learned from the full table; v2 re-indexes only training-observed categories, maps unseen categories to unknown, and drops globally encoded date strings",
+  "rule": "Any code, policy, source hash, model, seed, or boundary change requires a new version and full 60-cell rerun.",
+  "schema_version": 1,
+  "seeds": [
+    13,
+    42,
+    2026
+  ],
+  "source_files": {
+    "BTSFlights": {
+      "path": "external_sources/BTSFlights/bts_2023_1.csv.zip",
+      "sha256": "327924faa362d360747e9e4cf37f461c877441916321754f1789fadd61fd403a",
+      "size_bytes": 27068766
+    },
+    "BankMarketing": {
+      "path": "external_sources/BankMarketing/bank-additional-full.csv",
+      "sha256": "74adfc578bf77a7ff4bb1ba4a9f8709d9e3c6907342959c2c8416847e0afb4d8",
+      "size_bytes": 5834924
+    },
+    "ChicagoFood": {
+      "path": "external_sources/ChicagoFood/chicago_food_cache.csv",
+      "sha256": "527c3a9434379fcdeebdfe0e9ed58bc2f611cb751eae32cb46d1146021dba0af",
+      "size_bytes": 51176449
+    },
+    "LendingClub": {
+      "path": "external_sources/LendingClub/accepted_2007_to_2018Q4.csv.gz",
+      "sha256": "55c16f75120f897683f02e7aabcf080d0e4a20c4832feb1d592cfa941bd62a2d",
+      "size_bytes": 392582231
+    },
+    "NYC311": {
+      "path": "external_sources/NYC311/nyc311_cache.csv",
+      "sha256": "20d2b0b64ca32a6081f9577295f927d44e62767bc7cbcf013cad0e5a59c25f26",
+      "size_bytes": 62575975
+    }
+  },
+  "status": "FROZEN_BEFORE_NATURAL_TRAINFIT_V2_RERUN",
+  "superseded_v1_outputs": [
+    "results/corrected_v2/superseded_snapshots/natural_cells_boundary_corrected_global_category_encoding.csv",
+    "results/corrected_v2/superseded_snapshots/natural_task_summary_boundary_corrected_global_category_encoding.csv"
+  ],
+  "supersedes": "results/corrected_v2/natural_protocol_freeze.json",
+  "task_summary": "results/corrected_v2/public_natural/natural_task_summary.csv",
+  "tasks": [
+    "BankMarketing",
+    "LendingClub",
+    "BTSFlights",
+    "ChicagoFood",
+    "NYC311"
+  ],
+  "unknown_category_value": -2.0
+}

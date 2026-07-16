@@ -1,7 +1,16 @@
 # LeakBench-Tab — Current Status
 
-**Date:** 2026-07-16
-**Tests:** 280 passed, 1 skipped, 0 failed
+**Date:** 2026-07-17
+**Tests:** run the current suite with `python -m pytest -q`
+
+**Canonical project-material map:** `reports/edbt_eab/PROJECT_MATERIALS.md`
+
+## EDBT EA&B Paper-Facing State
+- Corrected-v2 canonical ledger: 27,500 successful cells, SHA-256 `25c21440...`
+- Paper claims and claim state: byte-identical, confirmatory evidence tier
+- Paper numeric inputs: three governed CSVs (12 + 7 + 5 rows)
+- Current official-template draft: 10 A4 pages including references
+- EDBT paper source and evidence packages are built independently under `release/`
 
 ## Frozen (DO NOT MODIFY)
 - SP5: 27,500 cells, claim_ledger_v2 (sha ccb2549f)
@@ -19,3 +28,4 @@
 ## Deferred
 - Natural-task governance (SP8-D)
 - TabPFNv2 / TabICL
+- Author front-matter finalization

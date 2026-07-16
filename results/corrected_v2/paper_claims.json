@@ -23,7 +23,7 @@
       "metrics": {
         "conservative_ci_separation": true,
         "m03_best_evaluated_method": "rf_permutation",
-        "m03_method_range": 0.567460840610354,
+        "m03_method_range": 0.5674608406103541,
         "m03_worst_evaluated_method": "absolute_correlation"
       },
       "prohibited_wording": "This is an inferential detector ranking or generalizes to unevaluated diagnostics.",
@@ -59,13 +59,13 @@
       },
       "metrics": {
         "detectability": 0.0792727737079168,
-        "detectability_ci_high": 0.1281685769987505,
-        "detectability_ci_low": 0.045291741715702,
+        "detectability_ci_high": 0.1279234436333037,
+        "detectability_ci_low": 0.0451943593336541,
         "detectability_separated_from_m08": true,
-        "holm_p": 1.0,
+        "holm_p": 0.0001099989000109,
         "paired_harm": 0.2174604302315165,
-        "paired_harm_ci_high": 0.2339320112547123,
-        "paired_harm_ci_low": 0.2014109028381043
+        "paired_harm_ci_high": 0.2343685834954036,
+        "paired_harm_ci_low": 0.2011526595744678
       },
       "prohibited_wording": "Low detectability always implies high exploitation.",
       "statement": "Within the fixed mechanism registry, M03 had lower measured localization than M08 and a positive observed exploitation effect.",
@@ -81,11 +81,11 @@
         "cluster_ci_high": 0.009555629904511274,
         "cluster_ci_low": -0.0055232436126778,
         "detectability": 0.3561020195070524,
-        "detectability_ci_high": 0.4570295344764883,
-        "detectability_ci_low": 0.2625096830470637,
+        "detectability_ci_high": 0.4561179134514972,
+        "detectability_ci_low": 0.262116335704135,
         "paired_harm": 0.0033042071707276,
-        "paired_harm_ci_high": 0.0082707910048463,
-        "paired_harm_ci_low": -0.0017613235522684
+        "paired_harm_ci_high": 0.0085159956833993,
+        "paired_harm_ci_low": -0.0022998672597036
       },
       "prohibited_wording": "M08 is practically null, equivalent to zero, or has exactly zero exploitation effect.",
       "statement": "M08's point estimate and dataset-synchronized entity-cluster interval are reported descriptively.",
@@ -103,14 +103,14 @@
         "designed_category_reweighting_is_inferential": false,
         "designed_category_reweighting_low": 0.19879843188452898,
         "detectability": 0.5414811065748634,
-        "detectability_ci_high": 0.5832393185036254,
-        "detectability_ci_low": 0.5002743212670376,
+        "detectability_ci_high": 0.5841973523801262,
+        "detectability_ci_low": 0.5002817541835235,
         "detectability_unit": "encoded_column",
         "encoded_column_count": 8,
-        "holm_p": 1.0,
+        "holm_p": 0.0001099989000109,
         "paired_harm": 0.2350629529121818,
-        "paired_harm_ci_high": 0.2540839826414501,
-        "paired_harm_ci_low": 0.2162002072756842,
+        "paired_harm_ci_high": 0.2544536051810691,
+        "paired_harm_ci_low": 0.2158856856893334,
         "representation_conditional": true,
         "semantic_field_count": 1
       },
@@ -130,7 +130,7 @@
         "ci_low": 0.1503292827204515,
         "difference": 0.1643289440516624,
         "holm_p": 5.7220458984375e-06,
-        "model_ci_excludes_zero_count": 0,
+        "model_ci_excludes_zero_count": 5,
         "model_positive_direction_count": 5
       },
       "prohibited_wording": "All simple leakage is harmful and all structured leakage is harmless.",
@@ -145,67 +145,67 @@
     "mechanisms": {
       "M03": {
         "absolute_correlation": {
-          "ci_high": 0.0448414742044609,
-          "ci_low": 0.0248414742044609,
+          "ci_high": 0.0541025832766688,
+          "ci_low": 0.018784295774622,
           "detectability": 0.0348414742044609
         },
         "lr_coefficient": {
-          "ci_high": 0.0548273458369726,
-          "ci_low": 0.0348273458369726,
+          "ci_high": 0.0720448290636299,
+          "ci_low": 0.0230963255354582,
           "detectability": 0.0448273458369726
         },
         "mutual_information": {
-          "ci_high": 0.0892727737079168,
-          "ci_low": 0.0692727737079168,
-          "detectability": 0.0792727737079168
+          "ci_high": 0.1279234436333037,
+          "ci_low": 0.0451943593336541,
+          "detectability": 0.0792727737079169
         },
         "rf_permutation": {
-          "ci_high": 0.6123023148148149,
-          "ci_low": 0.5923023148148149,
-          "detectability": 0.6023023148148149
+          "ci_high": 0.6852457291666664,
+          "ci_low": 0.527212048611111,
+          "detectability": 0.602302314814815
         }
       },
       "M04": {
         "absolute_correlation": {
-          "ci_high": 0.0485847811648073,
-          "ci_low": 0.0285847811648073,
+          "ci_high": 0.0528196548710654,
+          "ci_low": 0.026075950547399,
           "detectability": 0.0385847811648073
         },
         "lr_coefficient": {
-          "ci_high": 0.046722252217609,
-          "ci_low": 0.026722252217609,
+          "ci_high": 0.049093245963934,
+          "ci_low": 0.0259817018851524,
           "detectability": 0.036722252217609
         },
         "mutual_information": {
-          "ci_high": 0.0905003903535404,
-          "ci_low": 0.0705003903535405,
-          "detectability": 0.0805003903535405
+          "ci_high": 0.0999872855581309,
+          "ci_low": 0.0631206946395358,
+          "detectability": 0.0805003903535404
         },
         "rf_permutation": {
-          "ci_high": 0.0548734812407041,
-          "ci_low": 0.0348734812407041,
+          "ci_high": 0.0545203179804918,
+          "ci_low": 0.0363052094006246,
           "detectability": 0.0448734812407041
         }
       },
       "M05": {
         "absolute_correlation": {
-          "ci_high": 0.046613366996016,
-          "ci_low": 0.026613366996016,
+          "ci_high": 0.0502126865826325,
+          "ci_low": 0.0247643184041853,
           "detectability": 0.036613366996016
         },
         "lr_coefficient": {
-          "ci_high": 0.0462733870864379,
-          "ci_low": 0.0262733870864378,
+          "ci_high": 0.0498961941219576,
+          "ci_low": 0.0244881054650848,
           "detectability": 0.0362733870864378
         },
         "mutual_information": {
-          "ci_high": 0.0936056568364985,
-          "ci_low": 0.0736056568364985,
+          "ci_high": 0.1162032899340242,
+          "ci_low": 0.0588361986280707,
           "detectability": 0.0836056568364985
         },
         "rf_permutation": {
-          "ci_high": 0.0537614058639165,
-          "ci_low": 0.0337614058639165,
+          "ci_high": 0.0553761855994951,
+          "ci_low": 0.0335157797672485,
           "detectability": 0.0437614058639165
         }
       }
@@ -220,12 +220,12 @@
     "primary_method": "mutual_information",
     "robustness_profiles": {
       "M03": {
-        "best_evaluated_detectability": 0.6023023148148149,
-        "between_diagnostic_range": 0.567460840610354,
+        "best_evaluated_detectability": 0.602302314814815,
+        "between_diagnostic_range": 0.5674608406103541,
         "worst_evaluated_detectability": 0.0348414742044609
       },
       "M04": {
-        "best_evaluated_detectability": 0.0805003903535405,
+        "best_evaluated_detectability": 0.0805003903535404,
         "between_diagnostic_range": 0.0437781381359314,
         "worst_evaluated_detectability": 0.036722252217609
       },
@@ -239,7 +239,7 @@
     "successful_cells": 22000
   },
   "evidence_tier": "confirmatory",
-  "generated_at_utc": "2026-07-16T08:48:03.179409+00:00",
+  "generated_at_utc": "2026-07-16T09:23:50.983774+00:00",
   "natural": {
     "all_task_effects_positive": true,
     "allowed_wording": "All five fixed case studies had positive observed effects; this remains a case-study-only description.",
@@ -362,26 +362,26 @@
       "results/corrected_v2/secondary_analysis_protocol_freeze.json": "c7c1f88e6a266650bb78cd183f8e65dcc824c11a8ac5c9ca6d1f61b46723f1c9",
       "results/corrected_v2/statistical_amendment_protocol_v2_freeze.json": "abc44e35ed7bf72fe6453b775aa6d73477764fb35aa1ee9e203d54f4707ba3f9",
       "results/corrected_v2/statistics/category_contrasts_amended.csv": "9cb638a2bb9a97634796874b652e3fe5273e7276b3d5746c4637f316ed0ce9f7",
-      "results/corrected_v2/statistics/category_summary.csv": "0cfdb7eff63ef67a1fe9d48669b3aab95e2a070b22dcf119dc897c6736b136e2",
+      "results/corrected_v2/statistics/category_summary.csv": "45022277bbb7b527538c0021b06d2663ce1faa34f279573914b4a692492e9232",
       "results/corrected_v2/statistics/cluster_sensitivity_v3.json": "1d85e6203e10abb8c6bf68333eabbacc80a2b616b6486f47e32d763152af5070",
       "results/corrected_v2/statistics/cluster_sensitivity_v3_manifest.json": "8db6c865dd15bd347e1bd3c44b37e2eff4f293b8744ed032461d337d7cbbffab",
       "results/corrected_v2/statistics/correlation_analysis_amended.json": "f3d37b883dcffbc9294b78de54927bebbedf436dd664aa7878adde254c2b2d2c",
-      "results/corrected_v2/statistics/detectability_category_summary.csv": "aef44a7f47aa2c717c28841e6f2663f3050873e4d8165812302890437683b97e",
-      "results/corrected_v2/statistics/detectability_mechanism_summary.csv": "6e22ce0a59ca4344cd5e0dee092822738257276eb2a1f332eb5b3fcbca0874ab",
-      "results/corrected_v2/statistics/diagnostic_integrity.json": "b73dcb4d114838d8d4cb46e36465decb55a5bb94403aee34f112efb6dd744d20",
-      "results/corrected_v2/statistics/diagnostic_method_by_mechanism.csv": "f51e5dce794bd4f2881a02bdad159aa3c8d5e3ea12100adfffa25ef1096396b2",
-      "results/corrected_v2/statistics/diagnostic_method_summary.csv": "2c0086b67a08d025c26ccddfb4153e9cdf876efad9507e470831a558a2228cc0",
-      "results/corrected_v2/statistics/diagnostic_robustness_profiles.csv": "64a27fcccd8fae6adbda71d1a37468f69fe25f4ae01bee2173f5b836cec36424",
-      "results/corrected_v2/statistics/integrity_summary.json": "466248850773dafe2dbdef24d47e2ed1ef2b3f12d6fb80fe8f6a3cb9c4dff6b0",
-      "results/corrected_v2/statistics/mechanism_model_dispersion.csv": "2d883e770e2df99586abadea4495eee33684b32287b0448064ff58ab3bf1d794",
-      "results/corrected_v2/statistics/mechanism_model_summary.csv": "f1fed29fa7a85fb598325257c8a6377a090d8d5f20e72fcabfb998875dd71e3f",
-      "results/corrected_v2/statistics/mechanism_summary.csv": "2b85534af92807fc5c0dba066f6ba94f720b4a620d2d73dcb6c8e49be0b6ae65",
-      "results/corrected_v2/statistics/model_summary.csv": "f9ad07b1c86c5c5a4132db21f58bdfe21ea2593886542e0cff1bc2f6e49d96c8",
-      "results/corrected_v2/statistics/model_vs_lr_contrasts.csv": "34412335bec97caba8c1ddbb72d31847c69cb15547367302bdf703680fc13300",
-      "results/corrected_v2/statistics/secondary_integrity.json": "be0ba73ee2428cfb189f8d1d1c87345e0b69c9628fd647d3f051a2514d38e8ae",
-      "results/corrected_v2/statistics/simple_structured_by_model.csv": "e226c031a7d7b0b1a6f2f43380b0cbbee57714d0f58806b75ed1f76507c1185e",
+      "results/corrected_v2/statistics/detectability_category_summary.csv": "4a1c0bdfbdc1fc87c465fd5c572d99b57d045aed6696dc83d3d5d8f5bd042abd",
+      "results/corrected_v2/statistics/detectability_mechanism_summary.csv": "961ab717fddd3d4397817c7c5e65f3ccc523bbf0917a15c31641220a33ab95f1",
+      "results/corrected_v2/statistics/diagnostic_integrity.json": "ef9f3106755ae0fed06f883768d5207c920b4efa24d9f1075b27b208142a3298",
+      "results/corrected_v2/statistics/diagnostic_method_by_mechanism.csv": "c75df096ef96f7c03f18d7314987ef427e03971f86011fc13383c6b497970a32",
+      "results/corrected_v2/statistics/diagnostic_method_summary.csv": "5e8c9010f0dfd7e91e7d94cf2b324f7057e42fde7e5e218666d976e71c393d3d",
+      "results/corrected_v2/statistics/diagnostic_robustness_profiles.csv": "7dcc74fc66c211b51f4b7275dcbe15b5b92c8139d63aaa7b8e50be2cb8c931b4",
+      "results/corrected_v2/statistics/integrity_summary.json": "8831eb7082d90edefd5d3fa45bbad469dd0e8e20f0a81aaab180d1bf3fdb3657",
+      "results/corrected_v2/statistics/mechanism_model_dispersion.csv": "42a64803eb5b4d3a3432c489c67adf55891761cc12abcfd737b5b596e1f9788c",
+      "results/corrected_v2/statistics/mechanism_model_summary.csv": "8c2353139dc31ba1ed71b178ab13355cf3eb09236a40b2b6946f1963f408bcf4",
+      "results/corrected_v2/statistics/mechanism_summary.csv": "6e982bafa315398042d926b20fd12b6d07a529c36473d7e020bfd1d7f261329f",
+      "results/corrected_v2/statistics/model_summary.csv": "89658c62cd5b020653a708deaf35d4442ca3ab1da6dbf2de8744b5fc51fc06dd",
+      "results/corrected_v2/statistics/model_vs_lr_contrasts.csv": "c1a35e9516c8d59a2ca33835902f85245323716ab923eb28b777e1d5beb5da1e",
+      "results/corrected_v2/statistics/secondary_integrity.json": "22254ac5ad6afd71e73343b46f6ef249932527dde80488d731fecf2d74f7f40c",
+      "results/corrected_v2/statistics/simple_structured_by_model.csv": "83a1dde93e0ad6319e759481424b5711c5329e961e882612e1c109537015906b",
       "results/corrected_v2/statistics/statistical_amendment_manifest.json": "be38950ca56f468cb048192a6a8540619850211c2a2b5fa733582df9b527137f",
-      "results/corrected_v2/statistics/strength_dose_response.csv": "4e8bdd022a5f77429732df4d38fbf2f70c52d6c1d0ee0aae67c876ae37cb22da",
+      "results/corrected_v2/statistics/strength_dose_response.csv": "544dc28f57c3f49eec35ab7d9f97a3c5c95f670db38aec06f1793f895a99588a",
       "results/corrected_v2/superseded_evidence.json": "273d212a6551ab7e2880401f19087f040d5203d53d39757da37fe038f8665a7f",
       "results/corrected_v2/tabm_bundle_confirmatory/tabm_cells_manifest.json": "01d1daa9ba7167cc7aabd1cf69b890cfd5eaff27bd7921626cb9a478229e7707",
       "results/corrected_v2/tabm_bundle_protocol_freeze.json": "389a501b830e12ff54204476eb138cdf498dbc732e533111d9e2c9fa940778ff",

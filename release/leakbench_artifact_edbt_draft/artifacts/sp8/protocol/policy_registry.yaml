@@ -1,0 +1,53 @@
+# SP8 Governance Policy Registry v1 (frozen before SP8-B)
+# All non-oracle policies operate on blind train-side scores only.
+# Leakage_mask used ONLY for oracle upper-bound and post-hoc evaluation.
+
+policies:
+  P0_keep_all:
+    role: baseline_reference
+    removes: 0
+    oracle_access: false
+    description: "Full view — no fields removed. Measures post-removal retraining overhead."
+
+  P1_oracle_remove_all:
+    role: oracle_upper_bound
+    removes: all contamination fields
+    oracle_access: true
+    description: "Theoretical upper bound using ground-truth leakage mask. NOT a deployable policy."
+
+  P2_random_matched_budget:
+    role: negative_control
+    removes: k fields chosen uniformly at random from all fields
+    oracle_access: false
+    seed: 20260718
+    description: "Random matched-budget baseline. Ensures any score-based policy beats random."
+
+  P3_field_score_top_budget:
+    role: primary_non_oracle
+    removes: k fields with highest train-side mutual-information score
+    oracle_access: false
+    description: "Top-k by mutual_information(X_train, y_train), model-independent, blind."
+
+  P4_group_baseline:
+    role: historical_comparator
+    removes: k fields by group-score aggregation (where groups defined in task metadata)
+    oracle_access: false
+    description: "Legacy group-budget approach. Secondary. NOT presumed to beat P3."
+
+  P5_lifecycle_baseline:
+    role: historical_comparator
+    removes: fields flagged by lifecycle metadata (post_outcome, future_window)
+    oracle_access: false
+    description: "Legacy lifecycle removal. Secondary. NOT presumed to beat P3."
+
+budgets:
+  fractions: [0.01, 0.05, 0.10, 0.20]
+  compute_k: "k = max(1, round(feature_count * fraction))"
+  deduplication: "collapsed identical k values are NOT repeated as independent conditions"
+  matched_cost: "P2/P3/P4/P5 must remove exactly k fields for the same budget"
+
+primary_metric: strict_distance_reduction
+secondary_metrics: [utility_loss, contaminated_field_recall, legitimate_field_removal_rate]
+negative_harm_handling: "use absolute distance_to_strict; avoid ratio-based metrics when denominator near zero"
+
+model_comparison: paired on [dataset_index, mechanism, strength, model, seed, budget_k]
