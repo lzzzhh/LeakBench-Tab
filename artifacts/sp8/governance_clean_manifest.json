@@ -2,26 +2,22 @@
   "phase": "SP8",
   "status": "UNDER_AUDIT",
   "runner": "scripts/run_sp8_clean.py",
-  "runner_sha": "0190bcdbedad59d5da6dcdd4cbb09ac0b11247548e2f022275d5759e53948707",
-  "csv_sha": "cfa802a74743f786b77bbfa7193464658c1f0e94819a8aafe162e3eebfb38f90",
-  "rows": 42300,
-  "success": 42300,
+  "runner_sha": "6089aacabffde66fa600968c31d165eb711fd1661c22e8f9c536a9ddc3f89032",
+  "csv_sha": "6e3aa4c7edbc6f476ad3494be659892a0dd7271a109a66ff69ee8f1d6dfca9d8",
+  "bootstrap_analysis_sha": "8a068caded35af18d59303d630db3edde75985ec7ba9caea883914ccc531bea1",
+  "policy_registry_sha": "8c10a48c279c95dd47ea7850a1382946f87dab4581d212574c4d94eaaccd7502",
+  "bundle_manifest_sha": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+  "rows": 55000,
+  "success": 55000,
   "duplicates": 0,
-  "p3_vs_p2_20pct": {
-    "sdr_diff": 0.050449992181818185,
-    "p3_sdr": 0.050760741454545455,
-    "p2_sdr": 0.000310749272727273,
-    "p3_recall": 0.6007961272727274,
-    "p3_retention": 0.8513014909090909
-  },
+  "oracle_isolated": true,
+  "matched_cost_verified": true,
   "models_used": [
     "LR"
   ],
-  "oracle_isolated": true,
-  "matched_cost_verified": true,
   "SP5_unchanged": true,
+  "SP5_sha": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4",
   "SP6_unchanged": true,
-  "SP7_unchanged": true,
-  "policy_registry_sha": "8c10a48c279c95dd47ea7850a1382946f87dab4581d212574c4d94eaaccd7502",
-  "bundle_manifest_sha": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c"
+  "SP6_sha": "aef477b99ea62cd07a57c693a4c155b437f6526f2b8b5c4a0634039b6611d950",
+  "SP7_unchanged": true
 }

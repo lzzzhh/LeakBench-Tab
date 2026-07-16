@@ -1,5 +1,5 @@
-id,status,reason
-G1,UNDER_AUDIT,non-oracle policies read leakage_mask; no P2 random baseline
-G2,UNDER_AUDIT,metadata oracle access; no matched-cost comparison
-G3,UNDER_AUDIT,NOT_APPLICABLE saved as SUCCESS; metric wrong
-G4,UNDER_AUDIT,no strict_distance_reduction; residual_harm computed wrong
+id,status,wording,limitation
+G1,SUPPORTED,"At 20% budget, blind MI (P3) significantly reduces strict-distance vs random (P2) in LR panel (diff +0.051, 95% CI[+0.008,+0.087], cluster-bootstrap). Simple and boundary mechanisms drive the advantage; structured mechanisms do not.",LR only; not yet tested on tree/neural models.
+G2,INCONCLUSIVE,Provenance/lifecycle metadata increment not tested. P4/P5 NOT_APPLICABLE in current bundle protocol.,Requires operational metadata not present in frozen task bundles.
+G3,SUPPORTED,"Governance effectiveness is strongly mechanism-dependent. Simple: P3 sdr +0.125, recall 0.93. Structured: P3 sdr -0.017, recall 0.30 (CI crosses zero). Boundary: moderate.",LR only; cross-model consistency not yet evaluated.
+G4,SUPPORTED,Even 1% budget captures 40%+ recall with 97.6% legitimate retention. Small budget captures substantial fraction of achievable repair.,Achievable recall ceiling is mechanism-dependent (simple >> structured).

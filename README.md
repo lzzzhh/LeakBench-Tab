@@ -43,7 +43,7 @@ external-validity extension and cannot alter frozen core claims.
 **Governance experiments (Phase SP8, Track B):** UNDER_AUDIT. Clean runner
 (`run_sp8_clean.py`) implemented with oracle isolation and matched-cost
 protocol. Preliminary results show blind field-score beats random at matched
-budget. Claims not yet restored — pending manifest and per-dataset analysis.
+budget. Claims pending. Clean runner done (55,000 cells), bootstrap analysis committed. P3 beats P2 at all budgets (20% diff +0.051 CI[+0.008,+0.087]). Simple mechs governable; structured not.
 Old 77,000 rows NON_CLAIM_ELIGIBLE.
 
 **Natural-task transfer:** limited; core-benchmark completeness does not imply

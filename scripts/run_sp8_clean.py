@@ -32,7 +32,8 @@ GOV_SEED = 20260718
 BUDGET_FRACTIONS = [0.01, 0.05, 0.10, 0.20]
 
 FIELDS = [
-    "run_id","dataset_index","mechanism","strength","seed","policy","budget_k","budget_fraction",
+    "run_id","dataset_index","mechanism","strength","seed","policy","budget_k",
+    "budget_fraction","realized_budget_fraction","nominal_fractions_collapsed",
     "status","failure_reason",
     "strict_auc","full_auc","governed_auc",
     "strict_distance_reduction","utility_loss","residual_harm",
@@ -130,37 +131,45 @@ def main(argv=None):
          ]:
             rec = _run_policy(completed, out, ds_i, mech, strength, seed, policy, k, frac_label,
                               strict_auc, full_auc, X, y, tr, te, mask, leak_indices, legit_indices,
-                              seed, oracle_flag, removed)
+                              seed, oracle_flag, removed, 0.0 if k==0 else k/n_features, [frac_label])
             cells_done += 1
             if cells_done % 500 == 0:
                 print(f"  {cells_done} cells | {time.time()-started:.0f}s", flush=True)
 
         for k in unique_ks:
             if k <= 0 or k >= n_features: continue
-            # Find the fraction that maps to this k (use smallest fraction for labeling)
-            actual_frac = min(f for f, kval in k_map.items() if kval == k)
+            # Find all nominal fractions that map to this k
+            fractions_for_this_k = [f for f, kval in k_map.items() if kval == k]
+            realized_frac = k / n_features
 
             # Compute BLIND train-side MI scores (model-independent, no leakage_mask)
             mi_scores = mutual_info_classif(X[tr], y[tr], random_state=42)
             mi_scores = np.nan_to_num(mi_scores, nan=0.0)
 
-            # P2: Random matched-cost (negative control)
+            # P2: Random matched-cost (negative control) — one fit, many labels
             rm_fields = select_fields_random(n_features, k, ds_i * 1000 + seed * 13)
-            keep_mask = np.ones(n_features, dtype=bool)
-            keep_mask[rm_fields] = False
-            _run_policy(completed, out, ds_i, mech, strength, seed, "P2_random", k, actual_frac,
-                        strict_auc, full_auc, X, y, tr, te, mask, leak_indices, legit_indices,
-                        seed, False, rm_fields)
+            keep_mask_rm = np.ones(n_features, dtype=bool)
+            keep_mask_rm[rm_fields] = False
+            rec_rm = _run_policy(completed, out, ds_i, mech, strength, seed, "P2_random", k, fractions_for_this_k[0],
+                                 strict_auc, full_auc, X, y, tr, te, mask, leak_indices, legit_indices,
+                                 seed, False, rm_fields, realized_frac, fractions_for_this_k)
             cells_done += 1
+            # Duplicate for remaining nominal fractions (same fit, different label)
+            for extra_frac in fractions_for_this_k[1:]:
+                _duplicate_label_row(out, rec_rm, extra_frac, fractions_for_this_k)
+                cells_done += 1
 
             # P3: Blind MI (deployable, no leakage_mask)
             mi_fields = select_fields_mi(mi_scores, k)
             keep_mask_p3 = np.ones(n_features, dtype=bool)
             keep_mask_p3[mi_fields] = False
-            _run_policy(completed, out, ds_i, mech, strength, seed, "P3_blind_mi", k, actual_frac,
-                        strict_auc, full_auc, X, y, tr, te, mask, leak_indices, legit_indices,
-                        seed, False, mi_fields)
+            rec_mi = _run_policy(completed, out, ds_i, mech, strength, seed, "P3_blind_mi", k, fractions_for_this_k[0],
+                                 strict_auc, full_auc, X, y, tr, te, mask, leak_indices, legit_indices,
+                                 seed, False, mi_fields, realized_frac, fractions_for_this_k)
             cells_done += 1
+            for extra_frac in fractions_for_this_k[1:]:
+                _duplicate_label_row(out, rec_mi, extra_frac, fractions_for_this_k)
+                cells_done += 1
 
     print(f"DONE {cells_done}/{cells_est} in {time.time()-started:.0f}s", flush=True)
     return 0
@@ -168,15 +177,17 @@ def main(argv=None):
 
 def _run_policy(completed, out, ds_i, mech, strength, seed, policy, budget_k, budget_frac,
                 strict_auc, full_auc, X, y, tr, te, mask, leak_indices, legit_indices,
-                lr_seed, oracle_policy, removed_fields):
+                lr_seed, oracle_policy, removed_fields, realized_frac, nominal_list):
     rid_key = f"sp8clean|{ds_i}|{mech}|{strength}|{seed}|{policy}|{budget_k}|{GOV_SEED}"
     run_id = hashlib.sha256(rid_key.encode()).hexdigest()[:20]
     rec = {k: "" for k in FIELDS}
     rec.update(dict(run_id=run_id, dataset_index=ds_i, mechanism=mech, strength=strength,
                     seed=seed, policy=policy, budget_k=budget_k, budget_fraction=budget_frac,
+                    realized_budget_fraction=round(realized_frac, 6),
+                    nominal_fractions_collapsed=",".join(f"{f:.2f}" for f in sorted(nominal_list)),
                     status="FAILURE", strict_auc=round(strict_auc,6), full_auc=round(full_auc,6),
                     oracle_policy=str(oracle_policy).lower()))
-    if run_id in completed: return
+    if run_id in completed: return rec
     try:
         keep_cols = np.setdiff1d(np.arange(X.shape[1]), removed_fields)
         if len(keep_cols) >= 2:
@@ -205,6 +216,17 @@ def _run_policy(completed, out, ds_i, mech, strength, seed, policy, budget_k, bu
     except Exception as e:
         rec["failure_reason"] = f"{type(e).__name__}: {str(e)[:200]}"
     _append(out, rec)
+    return rec
+
+
+def _duplicate_label_row(out, orig_rec, new_frac, nominal_list):
+    """Write a row with the same k/metrics but a different nominal budget_fraction label."""
+    rec2 = dict(orig_rec)
+    new_rid = hashlib.sha256(f"{orig_rec['run_id']}|{new_frac:.3f}".encode()).hexdigest()[:20]
+    rec2["run_id"] = new_rid
+    rec2["budget_fraction"] = new_frac
+    rec2["nominal_fractions_collapsed"] = ",".join(f"{f:.2f}" for f in sorted(nominal_list))
+    _append(out, rec2)
 
 
 def _append(out, rec):
