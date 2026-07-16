@@ -1,0 +1,26 @@
+{
+  "phase": "SP7",
+  "status": "SP7-D_COMPLETE_NO_PROMOTION",
+  "sp5_sha256": "ccb2549f490e95cb47fe4e9462860564161863de3893fc9a32e7b3c5d8046ec4",
+  "sp6_sha256": "aef477b99ea62cd07a57c693a4c155b437f6526f2b8b5c4a0634039b6611d950",
+  "sentinel_cells": 2844,
+  "success": 2843,
+  "failure": 1,
+  "interventions": {
+    "I2_permuted": 900,
+    "I4_contam_only": 900,
+    "O1_fixed_epoch": 900,
+    "S1_fractions": 144
+  },
+  "hypotheses": {
+    "H2": "NOT_SUPPORTED",
+    "H3": "NOT_SUPPORTED",
+    "H4": "NOT_SUPPORTED"
+  },
+  "cl13": "UNCONFIRMED",
+  "cl13a": "PARTIALLY_CONFIRMED",
+  "cl13b": "NOT_CREATED",
+  "claim_decision_md": "0fc846142ba3e239e7ee18acf8052f00e6165916c004e51a74b1013bc0946e20",
+  "highest_causal_level": 1,
+  "SP7_E_promoted": []
+}

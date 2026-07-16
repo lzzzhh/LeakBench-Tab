@@ -58,7 +58,7 @@ def run_view(X, y, tr, va, te, cols, seed, cfg, mm, env_name, project_dir, bridg
     full_env = dict(os.environ)
     full_env.update({"PROJECT_DIR": project_dir, "PYTHONPATH": project_dir,
                      "CUDA_VISIBLE_DEVICES": "0", "MAMBA_ROOT_PREFIX": "/root/micromamba"})
-    r = subprocess.run(cmd, capture_output=True, text=True, env=full_env, timeout=1200)
+    r = subprocess.run(cmd, capture_output=True, text=True, env=full_env, timeout=1800)
     metap = Path(str(out) + ".meta.json")
     if r.returncode != 0 or not out.exists() or not metap.exists():
         raise RuntimeError(f"tabr child rc={r.returncode} out={out.exists()} meta={metap.exists()} STDERR[{r.stderr[-1000:]}]")

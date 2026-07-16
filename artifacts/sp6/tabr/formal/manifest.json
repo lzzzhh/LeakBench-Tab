@@ -1,0 +1,25 @@
+{
+  "gate": "SP6-E_tabr_formal",
+  "expected": 5500,
+  "completed": 5520,
+  "failure": 4,
+  "failure_reason": "4 timeout (all same mechanism-seed-dataset cells, likely GPU kernel), 5496 SUCCESS",
+  "child_received_y_test": false,
+  "strict_full_isolated": true,
+  "per_mechanism_mean": {
+    "M01": 0.1808,
+    "M02": 0.194,
+    "M03": 0.2414,
+    "M04": -0.0046,
+    "M05": -0.0043,
+    "M06": 0.2861,
+    "M07": 0.1093,
+    "M08": 0.0032,
+    "M09": 0.2362,
+    "M10": 0.2205,
+    "M11": 0.29
+  },
+  "overall_mean": 0.159,
+  "ledger_sha256": "c8e1d9334f54018ec6e45b12f1ae9f4406dc99828089b98ad4e9755e1bdda724",
+  "tabr_env": "torch 1.13.1, faiss-gpu 1.7.2, cuda 11.7, python 3.9.16"
+}

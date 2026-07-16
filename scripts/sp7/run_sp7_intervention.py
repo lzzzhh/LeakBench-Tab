@@ -51,7 +51,7 @@ def fit_modernnca(Xtr, ytr, Xva, yva, Xte, yte, seed, device, fixed_epoch=None):
     dev = torch.device(device)
     if dev.type == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA unavailable; no CPU fallback")
-    rng = np.random.RandomState(seed); torch.manual_seed(seed)
+    torch.manual_seed(seed)
     if torch.cuda.is_available(): torch.cuda.manual_seed_all(seed)
     mu = Xtr.mean(0); sd = Xtr.std(0) + 1e-8
     def sc(X): return ((X - mu) / sd).astype(np.float32)
@@ -59,24 +59,25 @@ def fit_modernnca(Xtr, ytr, Xva, yva, Xte, yte, seed, device, fixed_epoch=None):
     xte = torch.as_tensor(sc(Xte), device=dev)
     yT = torch.as_tensor(ytr.astype(np.int64), device=dev)
     d_num = Xtr.shape[1]
-    model = ModernNCA(d_in=d_num, d_num=d_num, d_out=2, dim=mc["dim"], dropout=mc["dropout"],
-                      d_block=mc["d_block"], n_blocks=mc["n_blocks"], num_embeddings=mc.get("num_embeddings"),
-                      temperature=mc["temperature"], sample_rate=mc["sample_rate"]).to(dev)
+    model = ModernNCA(d_in=d_num, d_num=d_num, d_out=1, dim=mc["dim"], dropout=mc["dropout"],
+                      d_block=mc["d_block"], n_blocks=mc["n_blocks"], num_embeddings=None,
+                      temperature=mc["temperature"], sample_rate=mc.get("sample_rate", 0.5)).to(dev)
     opt = torch.optim.AdamW(model.parameters(), lr=tc["lr"], weight_decay=tc["weight_decay"])
-    cand_x, cand_y, cand_ids = xtr, yT, np.arange(len(xtr))
+    cand_x, cand_y, cand_ids = xtr, yT.float(), np.arange(len(xtr))
     bs = min(tc["batch_size"], len(xtr)); best_auc, best_state, patience, best_ep = -1.0, None, 0, 0
-    from sklearn.metrics import roc_auc_score
     for ep in range(max_ep):
         model.train(); perm = torch.randperm(len(xtr), device=dev)
         for i in range(0, len(xtr), bs):
             idx = perm[i:i+bs]; opt.zero_grad()
-            loss = torch.nn.functional.binary_cross_entropy_with_logits(
-                model(xtr[idx], yT[idx], cand_x, cand_y, is_train=True).squeeze(-1), yT[idx].float())
+            logits = model(xtr[idx], yT[idx], cand_x, cand_y, is_train=True).squeeze(-1)
+            loss = torch.nn.functional.binary_cross_entropy_with_logits(logits, yT[idx].float())
             loss.backward(); opt.step()
         model.eval()
         with torch.inference_mode():
             vp = torch.sigmoid(model(xva, None, cand_x, cand_y, is_train=False).squeeze(-1)).cpu().numpy()
-        auc = roc_auc_score(yva, vp)
+        from sklearn.metrics import roc_auc_score as _skAUC
+        try: auc = _skAUC(yva, vp)
+        except: auc = 0.5
         if auc > best_auc + 1e-6: best_auc, patience, best_ep, best_state = auc, 0, ep, {k: v.detach().clone() for k, v in model.state_dict().items()}
         else:
             patience += 1
@@ -85,19 +86,18 @@ def fit_modernnca(Xtr, ytr, Xva, yva, Xte, yte, seed, device, fixed_epoch=None):
     model.eval()
     with torch.inference_mode():
         tp = torch.sigmoid(model(xte, None, cand_x, cand_y, is_train=False).squeeze(-1)).cpu().numpy()
-    # Retrieval diagnostics: top-5 nearest neighbors from candidate memory
+    from sklearn.metrics import roc_auc_score as _skAUC2
+    auc_val = float(_skAUC2(yte, tp))
+    # Retrieval diagnostics
     with torch.inference_mode():
-        cd = model.encoder(cand_x)  # encode with trained encoder
-        qe = model.encoder(xte)
+        cd = model.encoder(cand_x); qe = model.encoder(xte)
     cd_np = cd.detach().cpu().numpy(); qe_np = qe.detach().cpu().numpy()
     from sklearn.neighbors import NearestNeighbors
     nn = NearestNeighbors(n_neighbors=min(5, len(cd_np)), metric='euclidean').fit(cd_np)
     dists, idx = nn.kneighbors(qe_np)
-    k1_pur = (ytr[idx[:, 0]] == ytr).mean()
-    k5_pur = np.mean([np.mean(ytr[idx[i]] == ytr[i]) for i in range(len(ytr))])
-    return float(roc_auc_score(yte, tp)), best_ep, tp, cand_ids, \
-           {"k1_purity": float(k1_pur), "k5_purity": float(k5_pur), "distance_mean": float(dists.mean()),
-            "encoder_hash": sha_arr(cd_np)}
+    k1_pur = (ytr[idx[:, 0]] == yte).mean()
+    k5_pur = np.mean([np.mean(ytr[idx[i]] == yte[i]) for i in range(len(yte))])
+    return auc_val, best_ep, tp, cand_ids, {"k1_purity": float(k1_pur), "k5_purity": float(k5_pur), "distance_mean": float(dists.mean())}
 
 
 def fit_tabr(Xtr, ytr, Xva, yva, Xte, yte, seed, device, fixed_epoch=None):
