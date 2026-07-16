@@ -8,7 +8,7 @@
   "canonical_inputs": [
     {
       "path": "results/corrected_v2/canonical_cells.csv",
-      "sha256": "9c6715900931f89c3c0c39d316f94c78aa4e16892fe3556aee069b903ed90cc9"
+      "sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7"
     }
   ],
   "category_contrasts": {
