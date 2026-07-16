@@ -91,7 +91,7 @@ class ModernNCA(nn.Module):
         if self.d_out > 1:
             candidate_y = F.one_hot(candidate_y, self.d_out).to(x.dtype)
         elif len(candidate_y.shape) == 1:
-            candidate_y=candidate_y.unsqueeze(-1)
+            candidate_y = candidate_y.unsqueeze(-1).to(x.dtype)
 
         # calculate distance
         # default we use euclidean distance, however, cosine distance is also a good choice for classification.

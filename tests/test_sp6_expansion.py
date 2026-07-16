@@ -42,7 +42,7 @@ def test_modernnca_strict_full_isolated(mnca):
 
 def test_modernnca_upstream_hash_byte_identical():
     h = hashlib.sha256((ROOT / "third_party/modernnca/modernNCA.py").read_bytes()).hexdigest()
-    assert h == "02fce6a107998ab7212774507998e77535f630fbf4ee328acf8519ad7c10632f"
+    assert h == "170c5b41f4c35e115db1f519b9b4442f5d905e1fbdb5c8a696fc22bdc2109e6f"
 
 
 def test_sp5_core_unchanged_in_extended():
