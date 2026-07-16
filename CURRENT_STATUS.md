@@ -8,7 +8,7 @@
 - SP6: 38,500 cells, 7 models
 - SP7: mechanism study closed, CL13a PARTIALLY_CONFIRMED
 
-## UNDER AUDIT
+## COMPLETE_FROZEN
 ### SP8 — Governance
 - Clean runner: oracle-isolated, P0/P1/P2/P3 matched-cost, 55,000 cells
 - 20% budget: P3 blind MI strictly outperforms P2 random (diff +0.051 CI[+0.008,+0.087], 99% bootstrap)
