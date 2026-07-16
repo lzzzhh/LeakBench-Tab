@@ -7,6 +7,13 @@
   "datasets": 20,
   "mechanisms": 11,
   "strengths": 5,
+  "seeds": [
+    13,
+    42,
+    2026,
+    3407,
+    7777
+  ],
   "bootstrap_repetitions": 20000,
   "bootstrap_seed": 20260713,
   "completion_rate": 1.0,
@@ -16,13 +23,6 @@
     "catboost",
     "lightgbm",
     "tabm"
-  ],
-  "seeds": [
-    13,
-    42,
-    2026,
-    3407,
-    7777
   ],
   "source_tables": [
     "results/corrected_v2/canonical_cells.csv"

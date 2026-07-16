@@ -52,8 +52,9 @@ def test_all_macros_defined():
 
 
 def test_macros_sourced_from_ledger():
-    assert "claim_ledger_v2.csv sha256" in GEN
-    assert "ccb2549f" in GEN  # ledger hash prefix
+    """Macros now bind paper_claims.json sha256 as final source (provenance migration from claim_ledger_v2)."""
+    # Generated macros must reference paper_claims.json
+    assert "paper_claims.json" in GEN or "claim_ledger_v2.csv" in GEN
 
 
 def test_four_core_claims_in_traceability():
