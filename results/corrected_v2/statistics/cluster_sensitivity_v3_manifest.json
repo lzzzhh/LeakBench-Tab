@@ -7,7 +7,7 @@
   "canonical_inputs": [
     {
       "path": "results/corrected_v2/canonical_cells.csv",
-      "sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7"
+      "sha256": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d"
     }
   ],
   "config": {
@@ -55176,5 +55176,34 @@
       "source_ids",
       "task_hash"
     ]
-  }
+  },
+  "analysis_script": {
+    "path": "scripts/analyze_cluster_sensitivity_amendment_v2.py",
+    "sha256": "2c30af783bedfe2091945daf90d7db13a99cff8400680636f9a20570d1651a8c"
+  },
+  "inner_reps": 200,
+  "outer_reps": 5000,
+  "seed": 20260713,
+  "bundles": [
+    {
+      "path": "results/corrected_v2/task_bundles/panel_00.npz",
+      "sha256": "1e5c5baef227115e6f4d27894865f1a2e7e042f695ff803cb8fcbc20d3167b44"
+    },
+    {
+      "path": "results/corrected_v2/task_bundles/panel_01.npz",
+      "sha256": "1eaedb7e90178cd53cd3cf0ca053dedb292443f73cb06d89a2658ecf538f434c"
+    },
+    {
+      "path": "results/corrected_v2/task_bundles/panel_02.npz",
+      "sha256": "b89ce90b6f8eb7938911f45045ce6b55c3370c118944a84533b5e92845e8aeeb"
+    },
+    {
+      "path": "results/corrected_v2/task_bundles/panel_03.npz",
+      "sha256": "d101423b77976309f516ea3ee779fc9fb80c2bc5b6adfe3c8199476da16dc180"
+    },
+    {
+      "path": "results/corrected_v2/task_bundles/panel_04.npz",
+      "sha256": "699cbdb375f391e32deeb2c0969afa75cf22b93b49c26e25a0eef3f7ce97e914"
+    }
+  ]
 }

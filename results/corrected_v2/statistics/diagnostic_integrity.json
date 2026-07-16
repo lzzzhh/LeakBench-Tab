@@ -11,7 +11,64 @@
     "catboost",
     "lightgbm"
   ],
-  "mechanisms": 11,
+  "mechanisms": [
+    "M01",
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M08",
+    "M09",
+    "M10",
+    "M11"
+  ],
   "diagnostic_methods": 4,
-  "complete": true
+  "complete": true,
+  "evidence_tier": "confirmatory",
+  "source": "results/corrected_v2/diagnostic_canonical_cells.csv",
+  "seed_rng_policy": "task_seeded",
+  "amended_to_fixed_seed": true,
+  "fixed_seed": 42,
+  "rows_success": 22000,
+  "rows_total": 22000,
+  "rows_failed_or_invalid": 0,
+  "row_count_matches_method_count": true,
+  "rows_failure": 0,
+  "rows_duplicate": 0,
+  "integrity_verified_rows": 22000,
+  "success": true,
+  "complete_dataset_count": 20,
+  "complete_mechanism_count": 11,
+  "complete_method_count": 4,
+  "complete_strength_count": 5,
+  "complete_seed_count": 5,
+  "expected_cells": 22000,
+  "datasets": 20,
+  "methods": [
+    "mutual_information",
+    "absolute_correlation",
+    "lr_coefficient",
+    "rf_permutation"
+  ],
+  "strengths": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5"
+  ],
+  "seeds": [
+    13,
+    42,
+    2026,
+    3407,
+    7777
+  ],
+  "bootstrap_repetitions": 20000,
+  "bootstrap_seed": 20260713,
+  "primary_diagnostic": "mutual_information",
+  "robust_low_threshold": 0.3,
+  "best_diagnostic_interpretation": "not a zero-shot ensemble \u2014 highest AUPRC method varies by mechanism"
 }

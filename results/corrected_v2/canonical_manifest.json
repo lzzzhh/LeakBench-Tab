@@ -28,7 +28,7 @@
     "tabm_cells": 500,
     "protocol_freeze_sha256": "5442c9aff8f2329c90845d904fe02c9639365aac6f0f30c5e387fe12a4e1c4ce"
   },
-  "validated_code_hashes": {
+  "validated_code_sha256": {
     "cpu": "1bdb0bf281f9695c22514aa34f3202fd8c8037c9f8f84467e05b3aa3556e8dcd",
     "tabm": "99b1786882445b85e9ef49e8d57eb8eb9867a2f12c47dd3ca194fb8eec2818dc",
     "m10_cpu": "2db96d2080e14d400c91fdd6b0d42efc2154e1235899a423bb8ce5be55af6426",
