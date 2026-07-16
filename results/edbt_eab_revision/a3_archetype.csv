@@ -1,0 +1,11 @@
+archetype,n_tasks,paired_effect,ci_lo,ci_hi,P3_better_prob,positive_task_proportion
+drifting,4,0.0,0.0,0.0,0.4802,1.0
+interaction,4,0.0,0.0,0.0,0.4855,1.0
+linear,4,0.0,0.0,0.0,0.4885,1.0
+nonlinear,4,0.0,0.0,0.0,0.4888,1.0
+sparse,4,0.0,0.0,0.0,0.4853,0.0
+LOAO-drifting,16,0.0,0.0,0.0,0.5041,0.0
+LOAO-interaction,16,0.0,0.0,0.0,0.4996,0.0
+LOAO-linear,16,0.0,0.0,0.0,0.5005,0.0
+LOAO-nonlinear,16,0.0,0.0,0.0,0.4998,0.0
+LOAO-sparse,16,0.0,0.0,0.0,0.4992,0.0
