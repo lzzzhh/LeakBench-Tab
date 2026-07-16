@@ -1,0 +1,41 @@
+{
+  "total_cells": 27500,
+  "success_cells": 27500,
+  "failure_cells": 0,
+  "duplicate_cells": 0,
+  "integrity_verified": 27500,
+  "config_hash": "valid",
+  "code_hash": "valid",
+  "namespace": "confirmatory",
+  "rows_total": 27500,
+  "rows_success": 27500,
+  "rows_failure": 0,
+  "rows_duplicate": 0,
+  "integrity_verified_cells": 27500,
+  "mechanisms": 11,
+  "models": [
+    "lr",
+    "rf",
+    "catboost",
+    "lightgbm",
+    "tabm"
+  ],
+  "datasets": 20,
+  "strengths": 5,
+  "seeds": [
+    13,
+    42,
+    2026,
+    3407,
+    7777
+  ],
+  "paired_harm_metric": "full_auc minus strict_auc",
+  "rows_failed_or_invalid": 0,
+  "expected_cells_for_observed_dataset_count": 27500,
+  "bootstrap_repetitions": 20000,
+  "bootstrap_seed": 20260713,
+  "completion_rate": 1.0,
+  "source_tables": [
+    "results/corrected_v2/canonical_cells.csv"
+  ]
+}
