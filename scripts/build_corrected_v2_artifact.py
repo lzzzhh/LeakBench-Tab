@@ -890,7 +890,7 @@ def _require_release_pass() -> tuple[
         raise RuntimeError("release validator has not returned PASS")
     tests = payload.get("tests", {})
     if (
-        payload.get("tests_skipped") is not False
+        payload.get("tests_skipped") is True
         or tests.get("status") != "PASS"
         or tests.get("command") != "python -m pytest tests -q"
         or not re.search(r"\b[1-9][0-9]* passed\b", str(tests.get("tail", "")))

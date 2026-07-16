@@ -1,0 +1,173 @@
+{
+  "date": "2026-07-16",
+  "python": "3.13.5",
+  "platform": "macOS-15.6-arm64-arm-64bit-Mach-O",
+  "git": "c535bbb0d160f5ac2dc7caefae56590623d8cc5f",
+  "sources": {
+    "core_cpu": {
+      "path": "results/corrected_v2/core_cpu_cells.csv",
+      "sha256": "aa17514472a83a76b822e9152ab6258e0c1fd3faf6a2868ddb76d4e62dd6d551",
+      "rows": 22000,
+      "success": 22000,
+      "models": [
+        "catboost",
+        "lightgbm",
+        "lr",
+        "rf"
+      ],
+      "mechs": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11"
+      ],
+      "seeds": [
+        13,
+        42,
+        2026,
+        3407,
+        7777
+      ],
+      "status": "PRESENT"
+    },
+    "tabm_core": {
+      "path": "results/corrected_v2/tabm_bundle_confirmatory/tabm_cells.csv",
+      "sha256": "45c05efc573cc5055201bf366b22d2b9a1df0afb78b110ed58e015051b3c3351",
+      "rows": 5500,
+      "success": 5500,
+      "models": [
+        "tabm"
+      ],
+      "mechs": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11"
+      ],
+      "seeds": [
+        13,
+        42,
+        2026,
+        3407,
+        7777
+      ],
+      "status": "PRESENT"
+    },
+    "m10_cpu": {
+      "path": "results/corrected_v2/m10_amendment_confirmatory/cpu_cells.csv",
+      "sha256": "615e9d847f083c884d2a7e6ba6dbf099b0bbcd9559da90d35cbec2ec711b212b",
+      "rows": 2000,
+      "success": 2000,
+      "models": [
+        "catboost",
+        "lightgbm",
+        "lr",
+        "rf"
+      ],
+      "mechs": [
+        "M10"
+      ],
+      "seeds": [
+        13,
+        42,
+        2026,
+        3407,
+        7777
+      ],
+      "status": "PRESENT"
+    },
+    "m10_tabm": {
+      "path": "results/corrected_v2/m10_amendment_confirmatory_tabm/formal/m10_tabm_cells.csv",
+      "sha256": "21284329ef307504f5a51f83e82b3cd2337a28beddf3a4b0dc22af6ec7f4d998",
+      "rows": 500,
+      "success": 500,
+      "models": [
+        "tabm"
+      ],
+      "mechs": [
+        "M10"
+      ],
+      "seeds": [
+        13,
+        42,
+        2026,
+        3407,
+        7777
+      ],
+      "status": "PRESENT"
+    },
+    "sp4_replacement": {
+      "path": "results/structured_prior_replacement_v1/model_cells.csv",
+      "sha256": "e3af534bb626cec1668a2c28793e3745ba2bebb69f1e70c673af6109aba2b1f9",
+      "rows": 7500,
+      "success": 7500,
+      "models": [
+        "catboost",
+        "lightgbm",
+        "lr",
+        "rf",
+        "tabm"
+      ],
+      "mechs": [
+        "M04",
+        "M05",
+        "M08"
+      ],
+      "seeds": [
+        13,
+        42,
+        2026,
+        3407,
+        7777
+      ],
+      "status": "PRESENT"
+    }
+  },
+  "m10_tabm_recovery": {
+    "exists_at": "results/corrected_v2/m10_amendment_confirmatory_tabm/formal/m10_tabm_cells.csv",
+    "expected_at": "results/corrected_v2/m10_amendment_confirmatory/tabm_cells.csv",
+    "action": "copy + generate manifest"
+  },
+  "output_canonical_cells.csv": {
+    "path": "results/corrected_v2/canonical_cells.csv",
+    "status": "MISSING"
+  },
+  "output_canonical_manifest.json": {
+    "path": "results/corrected_v2/canonical_manifest.json",
+    "status": "MISSING"
+  },
+  "output_paper_claims.json": {
+    "path": "results/corrected_v2/paper_claims.json",
+    "status": "MISSING"
+  },
+  "output_claim_state.json": {
+    "path": "results/corrected_v2/claim_state.json",
+    "status": "MISSING"
+  },
+  "script_build_canonical_corrected_v2.py": {
+    "path": "scripts/build_canonical_corrected_v2.py",
+    "sha256": "f54d7db2569d6742562095ebfa097ff9008667150a84e20e3ac07e05e887579a"
+  },
+  "script_build_corrected_v2_claim_state.py": {
+    "path": "scripts/build_corrected_v2_claim_state.py",
+    "sha256": "49a91310b7afdd34119b5d5d9ed097032d8f4871d9f0418fbeb754dc984d1d9d"
+  },
+  "script_validate_corrected_v2_release.py": {
+    "path": "scripts/validate_corrected_v2_release.py",
+    "sha256": "201bfe56743ef6870a64602e05dc8f4ceb7bcfe2e6a59cfd06ba037861b2ba02"
+  }
+}

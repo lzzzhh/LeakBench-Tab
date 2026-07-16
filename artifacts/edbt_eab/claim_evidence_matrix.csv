@@ -1,0 +1,12 @@
+claim_id,status,estimand,point_estimate,ci,ci_method,unit,paired,main_or_supplement,source,source_sha,limitation
+C1,SUPPORTED,simple-structured mean diff,0.1644,"[0.1404, 0.1883]",cluster-bootstrap dataset,dataset_index,True,main,canonical_cells.csv,25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7,
+C2a,SUPPORTED,M04 mean exploitability,-0.0013,"[-0.0031, 0.0005]",,,,supplement,canonical_cells.csv,,
+C2a,SUPPORTED,M05 mean exploitability,-0.0012,"[-0.003, 0.0003]",,,,supplement,canonical_cells.csv,,
+C2a,SUPPORTED,M08 mean exploitability,0.0033,"[-0.0018, 0.0083]",,,,supplement,canonical_cells.csv,,
+C2a,SUPPORTED,M09 mean exploitability,0.2351,"[0.2162, 0.2541]",,,,supplement,canonical_cells.csv,,
+C3,DESCRIPTIVE_ONLY,lr mean,0.1342,"[0.1222, 0.1459]",,,,supplement,,,
+C3,DESCRIPTIVE_ONLY,rf mean,0.1621,"[0.149, 0.1754]",,,,supplement,,,
+C3,DESCRIPTIVE_ONLY,lightgbm mean,0.1752,"[0.1592, 0.1911]",,,,supplement,,,
+C3,DESCRIPTIVE_ONLY,catboost mean,0.1742,"[0.1594, 0.1894]",,,,supplement,,,
+C3,DESCRIPTIVE_ONLY,tabm mean,0.1528,"[0.141, 0.1652]",,,,supplement,,,
+G1,SUPPORTED,P3-P2 strict_distance_reduction diff,0.0504,"[0.0081, 0.0865]",cluster-bootstrap dataset,dataset_index,True,main,artifacts/sp8/governance_clean.csv,,LR only; model-general claim not yet supported

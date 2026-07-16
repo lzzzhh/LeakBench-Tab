@@ -4,7 +4,9 @@
   "runner": "scripts/run_sp8_clean.py",
   "runner_sha": "6089aacabffde66fa600968c31d165eb711fd1661c22e8f9c536a9ddc3f89032",
   "csv_sha": "6e3aa4c7edbc6f476ad3494be659892a0dd7271a109a66ff69ee8f1d6dfca9d8",
-  "bootstrap_analysis_sha": "9a308d366f5634cfdebd2f6d557277c8c61b14ac52b65e457a1d3fe482ff2515",
+  "bootstrap_analysis_sha": "51c9e877ec1ced01a828598d66004e182478483726f111c7b9989ffed0ceabff",
+  "claim_matrix_json_sha": "482710508f853516b1c8bf0a075328ea1bddb6f3a8bfa6a3914483906f33c97e",
+  "claim_matrix_csv_sha": "1ed105238cf97fc601deea52573cd0518ae78881c5b5b2d789f37275eaf7734a",
   "policy_registry_sha": "8c10a48c279c95dd47ea7850a1382946f87dab4581d212574c4d94eaaccd7502",
   "bundle_manifest_sha": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
   "rows": 55000,
@@ -20,5 +22,5 @@
   "SP6_unchanged": true,
   "SP6_sha": "aef477b99ea62cd07a57c693a4c155b437f6526f2b8b5c4a0634039b6611d950",
   "SP7_unchanged": true,
-  "analysis_script_sha": "4cc4f3b3e16ddaf561c34dc214e8b869b64127a8fdb02315c0947366bd8b4eb1"
+  "analysis_script_sha": "daae7c39a121594e92be6c3237066948cf7f9d42f2a3aa6ca228eb7124320bf5"
 }

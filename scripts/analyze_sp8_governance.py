@@ -37,9 +37,7 @@ def paired_cluster_boot(df_p3, df_p2, nboot=NBOOT, seed=SEED):
     boot_mean = float(np.mean(boot_diffs))
     ci_lo = float(np.percentile(boot_diffs, 2.5))
     ci_hi = float(np.percentile(boot_diffs, 97.5))
-    p3_better = float(np.mean([np.mean([p3g[u] for u in rng.choice(ds, len(ds), True)]) >
-                               np.mean([p2g[u] for u in rng.choice(ds, len(ds), True)])
-                               for _ in range(nboot)]))
+    p3_better = float(np.mean(np.asarray(boot_diffs) > 0))
     return observed_diff, boot_mean, ci_lo, ci_hi, p3_better, {f"ds_{int(u)}": {"p3_sdr": float(p3g[u]), "p2_sdr": float(p2g[u]),
                         "diff": float(p3g[u] - p2g[u])} for u in ds}
 

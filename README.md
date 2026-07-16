@@ -40,11 +40,15 @@ validity), **D** (statistical detectability), **X** (model exploitability).
 part of the frozen core and have no formal results. They are a future
 external-validity extension and cannot alter frozen core claims.
 
-**Governance experiments (Phase SP8, Track B):** UNDER_AUDIT. Clean runner
-(`run_sp8_clean.py`) implemented with oracle isolation and matched-cost
-protocol. Preliminary results show blind field-score beats random at matched
-budget. Claims G1/G3/G4 SUPPORTED. 55,000 cells, 14 SP8 tests, bootstrap committed. (55,000 cells), bootstrap analysis committed. P3 beats P2 at all budgets (20% diff +0.051 CI[+0.008,+0.087]). Simple mechs governable; structured not.
-Old 77,000 rows NON_CLAIM_ELIGIBLE.
+**Governance experiments (Phase SP8, Track B):** COMPLETE_FROZEN. The clean
+runner (`run_sp8_clean.py`) is oracle-isolated and evaluates P2/P3 at matched
+cost over 55,000 rows and 5,500 keys, with no failed or duplicate runs.
+G1/G3/G4 are SUPPORTED and G2 is INCONCLUSIVE. At 20% budget, P3 exceeds P2 by
++0.051 strict-distance reduction (95% paired dataset-cluster bootstrap CI
+[+0.008,+0.087], P(diff>0)=98.94%). The advantage is concentrated in simple
+and boundary mechanisms; structured mechanisms show no reliable advantage.
+The legacy 77,000-row output is NON_CLAIM_ELIGIBLE and retained only for
+provenance.
 
 **Natural-task transfer:** limited; core-benchmark completeness does not imply
 natural-data external validity.

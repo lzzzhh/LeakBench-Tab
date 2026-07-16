@@ -3,7 +3,7 @@
 **Date:** 2026-07-16
 **GitHub:** https://github.com/lzzzhh/LeakBench-Tab
 **Branch:** main
-**Status:** 所有阶段 (SP5–SP8) 代码 + 实验 + 结果已提交推送，工作树干净。
+**Status:** SP5–SP8 证据链已冻结；SP8 manifest、claim matrix、bootstrap 与入口文档一致。
 
 ---
 
@@ -48,15 +48,17 @@ LeakBench-Tab 是一个表格预测泄漏基准。核心框架是 **C/D/X 三轴
 - 现象确认: M04/M05 的轻微负 harm 不是 TabM 特异, 但产生机制未知
 - **已正式关闭:** 不创建 CL13b, 不追加解释性实验
 
-### SP8 — Governance ⚠️ UNDER_AUDIT
-**Commit 参考:** 3dcef68 (clean runner)
+### SP8 — Governance ✅ COMPLETE_FROZEN
+**证据入口:** `artifacts/sp8/governance_clean_manifest.json`
 
 - 旧治理 runner (`run_meta_tier.py`) 永久 INTEGRITY_HOLD
 - 旧 bundle runner (`run_governance_bundle.py`): UNDER_AUDIT — non-oracle 路径读取 leakage_mask, NOT_APPLICABLE 被保存为 SUCCESS
-- **Clean runner** (`run_sp8_clean.py`): oracle-isolated, P0/P1/P2/P3 matched-cost, proper strict_distance_reduction, 42,300 cells
+- **Clean runner** (`run_sp8_clean.py`): oracle-isolated, P0/P1/P2/P3 matched-cost, proper strict_distance_reduction, 55,000 rows / 5,500 keys / 0 failures / 0 duplicates
 - 旧 77,000 行: NON_CLAIM_ELIGIBLE (provenance only)
-- **Claims:** G1-G4 UNDER_AUDIT — pending clean manifest, per-dataset paired analysis, cluster-bootstrap
-- P3 vs P2: blind MI beats random at matched budget (preliminary, not yet claim-grade)
+- **Claims:** G1/G3/G4 SUPPORTED；G2 INCONCLUSIVE
+- P3 vs P2 @20%: diff +0.051, 95% paired dataset-cluster bootstrap CI[+0.008,+0.087], P(diff>0)=98.94%
+- 机制异质性: simple +0.109 (CI excludes 0)；structured -0.003 (CI crosses 0)；boundary +0.044 (CI excludes 0)
+- 哈希绑定: runner `6089aaca`；CSV `6e3aa4c7`；bootstrap `51c9e877`；analysis script `daae7c39`
 - P4/P5 NOT_APPLICABLE (no operational lifecycle/provenance metadata in frozen bundles)
 
 ---
@@ -173,7 +175,7 @@ LeakBench-Tab/
 ## 当前测试状态
 
 ```
-265 passed, 1 skipped, 0 failed
+280 passed, 1 skipped, 0 failed
 Python 3.13, macOS + WSL2 Ubuntu
 Pre-existing failures: 0 (已全部修复)
 ```

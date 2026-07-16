@@ -1,0 +1,8 @@
+name,family,boundary,invalid,strength,self_label,future,test_leak,mechanism,contract_passes,tests_existing,corrected,amendment
+Direct Target Copy,direct,prediction-time identical copy of current label,direct copy of y into X,flip rate proportional to (1-strength),False,False,False,M01,True,True,,
+Noisy Target Proxy,direct,noisy linear function of current label,current label enters feature as signal+noise,scales y-prior deviation,True,False,False,M02,True,True,,
+Post-Outcome Aggregation,temporal,future-window aggregation of y (constant 0.5 prior),uses future labels not available at prediction time,scales deviation from prior,False,True,strictly-future same-entity only,M04,True,True,True,
+Temporal Look-Ahead,temporal,future-window mean (constant 0.5 prior),uses later timestamps,scales deviation,False,True,,M05,True,True,True,
+Entity Leakage,entity,constant-shrinkage future same-entity rate,entity-level future label distribution,scales deviation from prior,False,True,,M08,True,True,True,
+Source Leakage,source,source-category rates as feature,source-level information,scales rates,False,False,,M09,True,True,,
+Mixed Leakage,redundant,one contaminated + one legitimate injected duplicate,contaminated component via leakage,scales,False,,,M10,True,True,True,"strict view removes only contaminated, retains legitimate"

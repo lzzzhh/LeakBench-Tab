@@ -5,6 +5,8 @@ from pathlib import Path
 import numpy as np, pandas as pd
 import pytest
 
+from scripts.analyze_sp8_governance import paired_cluster_boot
+
 ROOT = Path(__file__).resolve().parents[1]
 SP8 = ROOT / "artifacts/sp8"
 
@@ -82,8 +84,37 @@ def test_manifest_exists():
 
 def test_manifest_hashes_match():
     m = json.loads((SP8 / "governance_clean_manifest.json").read_text())
-    csv_sha = hashlib.sha256((SP8 / "governance_clean.csv").read_bytes()).hexdigest()
-    assert m["csv_sha"] == csv_sha
+    paths = {
+        "runner_sha": ROOT / "scripts/run_sp8_clean.py",
+        "csv_sha": SP8 / "governance_clean.csv",
+        "bootstrap_analysis_sha": SP8 / "bootstrap_analysis.json",
+        "analysis_script_sha": ROOT / "scripts/analyze_sp8_governance.py",
+        "claim_matrix_json_sha": SP8 / "claims/claim_evidence_matrix_sp8.json",
+        "claim_matrix_csv_sha": SP8 / "claims/claim_evidence_matrix_sp8.csv",
+    }
+    for key, path in paths.items():
+        assert m[key] == hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_p3_better_probability_uses_paired_bootstrap_draws():
+    p3 = pd.DataFrame({
+        "dataset_index": [0, 1, 2, 3],
+        "strict_distance_reduction": [0.9, 0.4, 0.2, -0.2],
+    })
+    p2 = pd.DataFrame({
+        "dataset_index": [0, 1, 2, 3],
+        "strict_distance_reduction": [0.1, 0.3, 0.5, 0.0],
+    })
+    nboot, seed = 200, 17
+    result = paired_cluster_boot(p3, p2, nboot=nboot, seed=seed)
+
+    rng = np.random.RandomState(seed)
+    differences = np.array([0.8, 0.1, -0.3, -0.2])
+    draws = np.array([
+        differences[rng.choice(4, 4, True)].mean()
+        for _ in range(nboot)
+    ])
+    assert result[4] == pytest.approx(float(np.mean(draws > 0)))
 
 
 def test_sp5_sp6_sp7_unchanged():

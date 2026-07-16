@@ -1,0 +1,137 @@
+[
+  {
+    "claim_id": "C1",
+    "status": "SUPPORTED",
+    "estimand": "simple-structured mean diff",
+    "point_estimate": 0.1644,
+    "ci": [
+      0.1404,
+      0.1883
+    ],
+    "ci_method": "cluster-bootstrap dataset",
+    "unit": "dataset_index",
+    "paired": true,
+    "main_or_supplement": "main",
+    "source": "canonical_cells.csv",
+    "source_sha": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7"
+  },
+  {
+    "claim_id": "C2a",
+    "status": "SUPPORTED",
+    "estimand": "M04 mean exploitability",
+    "point_estimate": -0.0013,
+    "ci": [
+      -0.0031,
+      0.0005
+    ],
+    "main_or_supplement": "supplement",
+    "source": "canonical_cells.csv"
+  },
+  {
+    "claim_id": "C2a",
+    "status": "SUPPORTED",
+    "estimand": "M05 mean exploitability",
+    "point_estimate": -0.0012,
+    "ci": [
+      -0.003,
+      0.0003
+    ],
+    "main_or_supplement": "supplement",
+    "source": "canonical_cells.csv"
+  },
+  {
+    "claim_id": "C2a",
+    "status": "SUPPORTED",
+    "estimand": "M08 mean exploitability",
+    "point_estimate": 0.0033,
+    "ci": [
+      -0.0018,
+      0.0083
+    ],
+    "main_or_supplement": "supplement",
+    "source": "canonical_cells.csv"
+  },
+  {
+    "claim_id": "C2a",
+    "status": "SUPPORTED",
+    "estimand": "M09 mean exploitability",
+    "point_estimate": 0.2351,
+    "ci": [
+      0.2162,
+      0.2541
+    ],
+    "main_or_supplement": "supplement",
+    "source": "canonical_cells.csv"
+  },
+  {
+    "claim_id": "C3",
+    "status": "DESCRIPTIVE_ONLY",
+    "estimand": "lr mean",
+    "point_estimate": 0.1342,
+    "ci": [
+      0.1222,
+      0.1459
+    ],
+    "main_or_supplement": "supplement"
+  },
+  {
+    "claim_id": "C3",
+    "status": "DESCRIPTIVE_ONLY",
+    "estimand": "rf mean",
+    "point_estimate": 0.1621,
+    "ci": [
+      0.149,
+      0.1754
+    ],
+    "main_or_supplement": "supplement"
+  },
+  {
+    "claim_id": "C3",
+    "status": "DESCRIPTIVE_ONLY",
+    "estimand": "lightgbm mean",
+    "point_estimate": 0.1752,
+    "ci": [
+      0.1592,
+      0.1911
+    ],
+    "main_or_supplement": "supplement"
+  },
+  {
+    "claim_id": "C3",
+    "status": "DESCRIPTIVE_ONLY",
+    "estimand": "catboost mean",
+    "point_estimate": 0.1742,
+    "ci": [
+      0.1594,
+      0.1894
+    ],
+    "main_or_supplement": "supplement"
+  },
+  {
+    "claim_id": "C3",
+    "status": "DESCRIPTIVE_ONLY",
+    "estimand": "tabm mean",
+    "point_estimate": 0.1528,
+    "ci": [
+      0.141,
+      0.1652
+    ],
+    "main_or_supplement": "supplement"
+  },
+  {
+    "claim_id": "G1",
+    "status": "SUPPORTED",
+    "estimand": "P3-P2 strict_distance_reduction diff",
+    "point_estimate": 0.0504,
+    "ci": [
+      0.0081,
+      0.0865
+    ],
+    "ci_method": "cluster-bootstrap dataset",
+    "unit": "dataset_index",
+    "paired": true,
+    "main_or_supplement": "main",
+    "source": "artifacts/sp8/governance_clean.csv",
+    "limitation": "LR only; model-general claim not yet supported"
+  }
+]

@@ -1,13 +1,13 @@
 {
-  "sp8_status": "UNDER_AUDIT",
+  "sp8_status": "COMPLETE_FROZEN",
   "effective_date": "2026-07-16",
   "claims": {
-    "G1": "UNDER_AUDIT",
-    "G2": "UNDER_AUDIT",
-    "G3": "UNDER_AUDIT",
-    "G4": "UNDER_AUDIT"
+    "G1": "SUPPORTED",
+    "G2": "INCONCLUSIVE",
+    "G3": "SUPPORTED",
+    "G4": "SUPPORTED"
   },
-  "issues": [
+  "resolved_legacy_issues": [
     "P0: non-oracle policies read leakage_mask to construct group/lifecycle metadata (scripts/run_governance_bundle.py:118)",
     "P0: protocol requires P2 random matched-cost baseline \u2014 not implemented in CSV",
     "P0: protocol requires strict_distance_reduction metric \u2014 CSV uses post_auc-pre_auc (wrong)",
@@ -19,12 +19,15 @@
   "existing_rows": 77000,
   "existing_rows_status": "NON_CLAIM_ELIGIBLE \u2014 retained for provenance, NOT for claim evidence",
   "sp5_sp6_sp7_status": "FROZEN \u2014 UNCHANGED",
-  "required_fixes": [
-    "Remove oracle access from non-oracle policy paths",
-    "Implement P2 (random matched-cost)",
-    "Implement strict_distance_reduction metric (|full-strict| - |governed-strict|)",
-    "Propagate NOT_APPLICABLE correctly (not SUCCESS)",
-    "Fix matched-cost runner or retire it",
-    "Build proper SP8 manifest with hash binding"
+  "claim_evidence": "artifacts/sp8/claims/claim_evidence_matrix_sp8.json",
+  "clean_manifest": "artifacts/sp8/governance_clean_manifest.json",
+  "bootstrap_analysis": "artifacts/sp8/bootstrap_analysis.json",
+  "clean_rows": 55000,
+  "clean_keys": 5500,
+  "clean_failures": 0,
+  "clean_duplicates": 0,
+  "remaining_scope": [
+    "G2 remains INCONCLUSIVE because P4/P5 are NOT_APPLICABLE without operational provenance/lifecycle metadata",
+    "Natural-task governance and broader model transfer are deferred and are not implied by the frozen LR panel"
   ]
 }

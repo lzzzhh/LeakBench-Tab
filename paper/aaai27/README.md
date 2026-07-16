@@ -1,5 +1,8 @@
 # LeakBench-Tab AAAI-27 paper workspace
 
+The current scope and evidence-gate handoff is recorded in
+`PAPER_WRITING_READINESS.md`.
+
 This directory uses the unmodified official AAAI-27 LaTeX and bibliography
 styles downloaded from the AAAI-27 Author Kit on 2026-07-13.  The style requires
 PDFLaTeX; Tectonic/XeTeX is rejected by the official engine guard.

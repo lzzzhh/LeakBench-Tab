@@ -1,0 +1,16 @@
+category,method,status,covers_linear,covers_nonlinear,model_free,cheap,family,official_identity,prep_train_only,early_stop_val_only,test_labels_isolated,oracle_isolated,matched_cost,reason
+diagnostic,mutual_information,PRESENT,True,True,True,True,,,,,,,,
+diagnostic,absolute_correlation,PRESENT,True,False,True,True,,,,,,,,
+diagnostic,lr_coefficient,PRESENT,True,False,False,True,,,,,,,,
+diagnostic,rf_permutation,PRESENT,True,True,True,False,,,,,,,,
+model,lr,PRESENT,,,,,linear,sklearn.LogisticRegression,True,True,True,,,
+model,rf,PRESENT,,,,,bagging_tree,sklearn.RandomForestClassifier,True,True,True,,,
+model,catboost,PRESENT,,,,,boosting_tree,catboost.CatBoostClassifier,True,True,True,,,
+model,lightgbm,PRESENT,,,,,boosting_tree,lightgbm.LGBMClassifier,True,True,True,,,
+model,tabm,PRESENT,,,,,neural,official tabm.TabM@0.0.3,True,True,True,,,
+governance,P0_keep,CLAIM_GRADE,,,,,,,,,,True,False,
+governance,P1_oracle,CLAIM_GRADE,,,,,,,,,,False,False,
+governance,P2_random,CLAIM_GRADE,,,,,,,,,,True,True,
+governance,P3_blind_mi,CLAIM_GRADE,,,,,,,,,,True,True,
+governance,P4_group,NOT_APPLICABLE,,,,,,,,,,,,no operational metadata in frozen bundles
+governance,P5_lifecycle,NOT_APPLICABLE,,,,,,,,,,,,no operational metadata in frozen bundles

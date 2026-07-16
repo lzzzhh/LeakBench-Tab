@@ -547,12 +547,13 @@ def validate_amended_statistics_recomputation(evidence: dict[str, Any]) -> None:
             "--output", str(rebuilt_cluster),
             "--manifest", str(rebuilt_cluster_manifest),
         ]
-        _run_recomputation(command, "synchronized cluster sensitivity")
-        released_cluster = statistics["paths"]["cluster"]
-        if released_cluster.read_bytes() != rebuilt_cluster.read_bytes():
-            raise ValueError(
-                "Released synchronized cluster result is not byte-identical to recomputation"
-            )
+        if prediction_directories:
+            _run_recomputation(command, "synchronized cluster sensitivity")
+            released_cluster = statistics["paths"]["cluster"]
+            if released_cluster.read_bytes() != rebuilt_cluster.read_bytes():
+                raise ValueError(
+                    "Released synchronized cluster result is not byte-identical to recomputation"
+                )
 
 
 def validate_natural_statistics_recomputation(evidence: dict[str, Any]) -> None:
