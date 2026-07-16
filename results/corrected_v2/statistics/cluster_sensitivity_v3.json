@@ -1,0 +1,82 @@
+{
+  "analyses": {
+    "M08": {
+      "cells": 2500,
+      "cluster_levels_max": 70,
+      "cluster_levels_min": 50,
+      "cluster_unit": "entity_id",
+      "datasets": 20,
+      "grouping_key": [
+        "dataset_id"
+      ],
+      "inferential_practical_null_claim_allowed": false,
+      "inner_repetitions_per_task_group": 200,
+      "interval_type": "95_percentile_hierarchical_cluster_bootstrap",
+      "models": 5,
+      "outer_repetitions": 5000,
+      "paired_harm": 0.003304207170727691,
+      "seed_effects_preserved_within_each_entity_draw": true,
+      "seeds": 5,
+      "shared_cells_per_inner_draw": 125,
+      "shared_draw_scope": [
+        "seed",
+        "model",
+        "strength"
+      ],
+      "status": "DESCRIPTIVE_SYNCHRONIZED_CLUSTER_INTERVAL",
+      "strengths": 5,
+      "synchronized_cluster_ci": [
+        -0.0055232436126778,
+        0.009555629904511274
+      ],
+      "task_groups": 20
+    },
+    "M09": {
+      "cells": 2500,
+      "cluster_unit": "source_id",
+      "datasets": 20,
+      "descriptive_reweighting_interval": [
+        0.19879843188452898,
+        0.2354981357770216
+      ],
+      "designed_category_count": 8,
+      "grouping_key": [
+        "dataset_id",
+        "seed",
+        "strength"
+      ],
+      "inferential_source_population_claim_allowed": false,
+      "inner_repetitions_per_task_group": 200,
+      "interval_type": "95_percentile_designed_category_reweighting_interval",
+      "models": 5,
+      "outer_repetitions": 5000,
+      "paired_harm": 0.2350629529121818,
+      "seeds": 5,
+      "shared_cells_per_inner_draw": 5,
+      "shared_draw_scope": [
+        "model"
+      ],
+      "source_unit_semantics": "eight_constructed_source_categories_not_a_sampled_source_population",
+      "status": "DESCRIPTIVE_DESIGNED_CATEGORY_REWEIGHTING",
+      "strengths": 5,
+      "task_strength_groups": 500
+    }
+  },
+  "analysis_version": "synchronized_cluster_sensitivity_amendment_v2",
+  "bootstrap_seed": 20260713,
+  "claim_scope": "DESCRIPTIVE_ONLY",
+  "evidence_tier": "confirmatory",
+  "prediction_bundle_fields_verified": [
+    "test_idx",
+    "y",
+    "entity_ids",
+    "source_ids",
+    "task_hash"
+  ],
+  "prediction_metrics_verified": [
+    "clean_auc",
+    "full_auc",
+    "paired_harm"
+  ],
+  "schema_version": 3
+}

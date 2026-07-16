@@ -1,0 +1,17 @@
+{
+  "dataset_namespace": "confirmatory",
+  "total_cells": 22000,
+  "success_cells": 22000,
+  "failure_cells": 0,
+  "duplicates": 0,
+  "integrity_verified": 22000,
+  "models": [
+    "lr",
+    "rf",
+    "catboost",
+    "lightgbm"
+  ],
+  "mechanisms": 11,
+  "diagnostic_methods": 4,
+  "complete": true
+}

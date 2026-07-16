@@ -1,0 +1,4 @@
+contrast,difference,ci_low,ci_high,sign_flip_p,holm_p,n_tasks,test_method,multiplicity_family
+simple_minus_structured,0.1643289440516624,0.15032928272045151,0.17824026311023028,1.9073486328125e-06,5.7220458984375e-06,20,exact_two_sided_task_level_sign_flip,three_declared_category_contrasts_holm
+simple_minus_boundary,0.014130721347095776,0.0094996325452451659,0.018807517161242626,3.814697265625e-06,5.7220458984375e-06,20,exact_two_sided_task_level_sign_flip,three_declared_category_contrasts_holm
+boundary_minus_structured,0.15019822270456668,0.13950762665835106,0.16090366905755107,1.9073486328125e-06,5.7220458984375e-06,20,exact_two_sided_task_level_sign_flip,three_declared_category_contrasts_holm

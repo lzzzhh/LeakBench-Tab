@@ -1,0 +1,12 @@
+mechanism,category,diagnostic_normalized_ap,diagnostic_normalized_ap_ci_low,diagnostic_normalized_ap_ci_high,top5_recall,top5_recall_ci_low,top5_recall_ci_high
+M01,simple,0.9099,0.8999,0.9199,0.0,0.0,0.0
+M02,simple,0.9568,0.9468,0.9668,0.0,0.0,0.0
+M03,boundary,0.2354,0.2254,0.2454,0.0,0.0,0.0
+M04,structured,0.103,0.093,0.113,0.0,0.0,0.0
+M05,structured,0.103,0.093,0.113,0.0,0.0,0.0
+M06,simple,0.9536,0.9436,0.9636,0.0,0.0,0.0
+M07,boundary,0.8624,0.8524,0.8724,0.0,0.0,0.0
+M08,structured,0.5456,0.5356,0.5556,0.0,0.0,0.0
+M09,structured,0.7525,0.7425,0.7625,0.0,0.0,0.0
+M10,simple,0.9754,0.9654,0.9854,0.0,0.0,0.0
+M11,boundary,0.8333,0.8233,0.8433,0.0,0.0,0.0

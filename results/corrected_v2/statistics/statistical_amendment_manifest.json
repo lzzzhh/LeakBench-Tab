@@ -1,0 +1,44 @@
+{
+  "analysis_code": {
+    "path": "scripts/analyze_corrected_v2_amendment.py",
+    "sha256": "d3f21d14088ca754561a1e35a566776c0bc33fb3bb0a55c27f471f46d1b30428"
+  },
+  "analysis_version": "corrected_v2_statistical_amendment_v1",
+  "bootstrap_repetitions": 20000,
+  "canonical_inputs": [
+    {
+      "path": "results/corrected_v2/canonical_cells.csv",
+      "sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7"
+    }
+  ],
+  "category_contrasts": {
+    "ci": "dataset_then_seed_hierarchical_percentile_bootstrap",
+    "independent_unit": "dataset_task",
+    "multiplicity": "holm_over_three_declared_contrasts",
+    "task_count": 20,
+    "test": "exact_two_sided_task_level_sign_flip"
+  },
+  "config": {
+    "path": "configs/paper/corrected_v2.yaml",
+    "sha256": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17"
+  },
+  "correlation": {
+    "ci": "joint_paired_dataset_then_seed_resampling_of_D_and_X",
+    "status": "DESCRIPTIVE_ONLY"
+  },
+  "evidence_tier": "confirmatory",
+  "outputs": {
+    "results/corrected_v2/statistics/category_contrasts_amended.csv": {
+      "sha256": "9cb638a2bb9a97634796874b652e3fe5273e7276b3d5746c4637f316ed0ce9f7",
+      "size_bytes": 705
+    },
+    "results/corrected_v2/statistics/correlation_analysis_amended.json": {
+      "sha256": "f3d37b883dcffbc9294b78de54927bebbedf436dd664aa7878adde254c2b2d2c",
+      "size_bytes": 1196
+    }
+  },
+  "permutation_repetitions": 20000,
+  "schema_version": 1,
+  "seed": 20260713,
+  "status": "AMENDED_STATISTICS_COMPLETE"
+}

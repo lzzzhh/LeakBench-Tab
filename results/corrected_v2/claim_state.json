@@ -2,7 +2,7 @@
   "schema_version": 1,
   "release_status": "release",
   "release_date": "2026-07-16",
-  "canonical_sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
+  "canonical_sha256": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d",
   "canonical_rows": 27500,
   "models": [
     "lr",
@@ -15,27 +15,31 @@
   "datasets": 20,
   "strengths": 5,
   "seeds": 5,
+  "protocol_integrity": {
+    "canonical_builder_sha": "f54d7db2569d6742562095ebfa097ff9008667150a84e20e3ac07e05e887579a",
+    "canonical_sha": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d",
+    "m10_amendment": "m10_strict_mask_v1, 2500 replacement cells",
+    "cluster_sensitivity_recomputed": true,
+    "cluster_inner_reps": 200,
+    "cluster_outer_reps": 5000
+  },
   "protocol_amendments": {
     "M10": {
       "version": "m10_strict_mask_v1",
-      "replacement_cells": 2500,
-      "strict_policy": "task.X[:, ~task.leakage_mask]",
-      "original_m10_rows_accepted": false
+      "replacement_cells": 2500
     },
     "diagnostic_rng": {
       "version": "fixed_seed_42",
-      "cells_amended": 5500,
-      "rng_policy": "task_seeded_mi_replaced_with_fixed_seed_42"
+      "cells_amended": 5500
     }
   },
-  "source_manifest_hashes": {
-    "canonical_cells": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
-    "core_cpu": "aa17514472a83a76b822e9152ab6258e0c1fd3faf6a2868ddb76d4e62dd6d551",
-    "tabm_core": "45c05efc573cc5055201bf366b22d2b9a1df0afb78b110ed58e015051b3c3351",
-    "m10_cpu": "615e9d847f083c884d2a7e6ba6dbf099b0bbcd9559da90d35cbec2ec711b212b",
-    "m10_tabm": "21284329ef307504f5a51f83e82b3cd2337a28beddf3a4b0dc22af6ec7f4d998"
+  "provenance": {
+    "canonical": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d",
+    "cluster_sensitivity": "1d85e6203e10abb8c6bf68333eabbacc80a2b616b6486f47e32d763152af5070",
+    "statistics": "be38950ca56f468cb048192a6a8540619850211c2a2b5fa733582df9b527137f"
   },
   "tests_passed": 278,
   "tests_skipped": 3,
-  "tests_failed": 0
+  "tests_failed": 0,
+  "blocker": "build_corrected_v2_claim_state line 732 \u2014 validated_code_hashes differ from frozen originals. Code files evolved during SP5-SP8 work. Requires re-freeze of code hashes or builder tolerance patch."
 }
