@@ -1,0 +1,22 @@
+[
+  {
+    "id": "G1",
+    "status": "UNDER_AUDIT",
+    "reason": "non-oracle policies read leakage_mask; no P2 random baseline"
+  },
+  {
+    "id": "G2",
+    "status": "UNDER_AUDIT",
+    "reason": "metadata oracle access; no matched-cost comparison"
+  },
+  {
+    "id": "G3",
+    "status": "UNDER_AUDIT",
+    "reason": "NOT_APPLICABLE saved as SUCCESS; metric wrong"
+  },
+  {
+    "id": "G4",
+    "status": "UNDER_AUDIT",
+    "reason": "no strict_distance_reduction; residual_harm computed wrong"
+  }
+]
