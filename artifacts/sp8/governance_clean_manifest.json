@@ -1,0 +1,27 @@
+{
+  "phase": "SP8",
+  "status": "UNDER_AUDIT",
+  "runner": "scripts/run_sp8_clean.py",
+  "runner_sha": "0190bcdbedad59d5da6dcdd4cbb09ac0b11247548e2f022275d5759e53948707",
+  "csv_sha": "cfa802a74743f786b77bbfa7193464658c1f0e94819a8aafe162e3eebfb38f90",
+  "rows": 42300,
+  "success": 42300,
+  "duplicates": 0,
+  "p3_vs_p2_20pct": {
+    "sdr_diff": 0.050449992181818185,
+    "p3_sdr": 0.050760741454545455,
+    "p2_sdr": 0.000310749272727273,
+    "p3_recall": 0.6007961272727274,
+    "p3_retention": 0.8513014909090909
+  },
+  "models_used": [
+    "LR"
+  ],
+  "oracle_isolated": true,
+  "matched_cost_verified": true,
+  "SP5_unchanged": true,
+  "SP6_unchanged": true,
+  "SP7_unchanged": true,
+  "policy_registry_sha": "8c10a48c279c95dd47ea7850a1382946f87dab4581d212574c4d94eaaccd7502",
+  "bundle_manifest_sha": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c"
+}
