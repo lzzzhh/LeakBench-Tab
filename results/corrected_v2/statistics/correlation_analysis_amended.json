@@ -6,29 +6,29 @@
   "bootstrap_repetitions": 20000,
   "bootstrap_seed": 20260713,
   "category_lomo_r2": 0.08579679435055365,
-  "category_plus_detectability_lomo_r2": -0.3089113878742735,
-  "category_plus_detectability_r2": 0.6133587571178833,
+  "category_plus_detectability_lomo_r2": -0.9929367776307167,
+  "category_plus_detectability_r2": 0.5859472833043532,
   "category_r2": 0.5141475495587005,
   "datasets": 20,
-  "excluding_simple_spearman": 0.6785714285714287,
-  "global_pearson": 0.6886515162389832,
+  "excluding_simple_spearman": 0.5714285714285715,
+  "global_pearson": 0.6757230781995148,
   "global_pearson_ci": [
-    0.6478916118381393,
-    0.7231645404480155
+    0.6445820845724789,
+    0.7023404880182712
   ],
-  "global_spearman": 0.5272727272727273,
+  "global_spearman": 0.5545454545454546,
   "global_spearman_ci": [
-    0.4909090909090909,
-    0.6090909090909091
+    0.48181818181818187,
+    0.7090909090909092
   ],
-  "incremental_lomo_r2": -0.3947081822248272,
-  "incremental_permutation_p": 0.36388180590970454,
-  "incremental_r2": 0.09921120755918289,
+  "incremental_lomo_r2": -1.0787335719812705,
+  "incremental_permutation_p": 0.3304334783260837,
+  "incremental_r2": 0.07179973374565274,
   "mechanisms": 11,
   "permutation_method": "within_declared_category_label_permutation_descriptive",
   "permutation_repetitions": 20000,
   "schema_version": 2,
   "seeds": 5,
   "status": "DESCRIPTIVE_ONLY",
-  "within_structured_spearman": 0.7999999999999999
+  "within_structured_spearman": 1.0
 }

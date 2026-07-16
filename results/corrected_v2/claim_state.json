@@ -1,45 +1,407 @@
 {
-  "schema_version": 1,
-  "release_status": "release",
-  "release_date": "2026-07-16",
-  "canonical_sha256": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d",
-  "canonical_rows": 27500,
-  "models": [
-    "lr",
-    "rf",
-    "catboost",
-    "lightgbm",
-    "tabm"
-  ],
-  "mechanisms": 11,
-  "datasets": 20,
-  "strengths": 5,
-  "seeds": 5,
-  "protocol_integrity": {
-    "canonical_builder_sha": "f54d7db2569d6742562095ebfa097ff9008667150a84e20e3ac07e05e887579a",
-    "canonical_sha": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d",
-    "m10_amendment": "m10_strict_mask_v1, 2500 replacement cells",
-    "cluster_sensitivity_recomputed": true,
-    "cluster_inner_reps": 200,
-    "cluster_outer_reps": 5000
+  "claim_policy": {
+    "diagnostic_method_status_cap": "DESCRIPTIVE_ONLY",
+    "familywise_alpha": 0.05,
+    "global_d_x_status_cap": "DESCRIPTIVE_ONLY",
+    "mechanism_profile_status_cap": "DESCRIPTIVE_ONLY",
+    "model_specific_contrasts_status_cap": "DESCRIPTIVE_ONLY",
+    "natural_scope_cap": "CASE_STUDY_ONLY",
+    "only_thresholded_main_claim": "simple_vs_structured",
+    "primary_detectability": "train_only_mutual_information",
+    "primary_metric": "paired_auroc_harm",
+    "profile_thresholds": null,
+    "simple_vs_structured_support_rule": "exact_holm_p_lte_0.05_and_ci_low_gt_0"
+  },
+  "claims": {
+    "D_METHOD_CONDITIONAL": {
+      "allowed_wording": "Across the four evaluated diagnostics, M03 showed descriptive localization variation; best-method results are non-deployable labeled benchmark summaries.",
+      "criteria": {
+        "paired_simultaneous_method_comparison_available": false,
+        "status_is_capped_at": "DESCRIPTIVE_ONLY",
+        "threshold_based_method_labels_allowed": false
+      },
+      "metrics": {
+        "conservative_ci_separation": true,
+        "m03_best_evaluated_method": "rf_permutation",
+        "m03_method_range": 0.567460840610354,
+        "m03_worst_evaluated_method": "absolute_correlation"
+      },
+      "prohibited_wording": "This is an inferential detector ranking or generalizes to unevaluated diagnostics.",
+      "statement": "The four evaluated diagnostics show descriptive localization differences; no paired simultaneous method-comparison interval was frozen.",
+      "status": "DESCRIPTIVE_ONLY"
+    },
+    "detectability_exploitability_relation": {
+      "allowed_wording": "Across the eleven evaluated mechanisms, D and X had a descriptive association; category adjustment and leave-one-mechanism-out results bound interpretation.",
+      "criteria": {
+        "status_is_capped_at": "DESCRIPTIVE_ONLY"
+      },
+      "metrics": {
+        "category_lomo_r2": 0.08579679435055365,
+        "category_plus_detectability_lomo_r2": -0.9929367776307167,
+        "category_plus_detectability_r2": 0.5859472833043532,
+        "category_r2": 0.5141475495587005,
+        "global_spearman": 0.5545454545454546,
+        "global_spearman_ci_high": 0.7090909090909092,
+        "global_spearman_ci_low": 0.48181818181818187,
+        "incremental_lomo_r2": -1.0787335719812705,
+        "incremental_permutation_p": 0.3304334783260837,
+        "incremental_r2": 0.07179973374565274
+      },
+      "prohibited_wording": "Detectability generally predicts or causes exploitation on unseen leakage mechanisms.",
+      "statement": "The global detectability/exploitation association is descriptive and may be category-driven.",
+      "status": "DESCRIPTIVE_ONLY"
+    },
+    "m03_profile": {
+      "allowed_wording": "In this fixed registry, M03's observed localization and exploitation profile differed from M08; this comparison is descriptive.",
+      "criteria": {
+        "status_is_capped_at": "DESCRIPTIVE_ONLY",
+        "threshold_based_support_allowed": false
+      },
+      "metrics": {
+        "detectability": 0.0792727737079168,
+        "detectability_ci_high": 0.0892727737079168,
+        "detectability_ci_low": 0.0692727737079168,
+        "detectability_separated_from_m08": true,
+        "holm_p": 1.0,
+        "paired_harm": 0.2174604302315165,
+        "paired_harm_ci_high": 0.2184604302315165,
+        "paired_harm_ci_low": 0.2164604302315165
+      },
+      "prohibited_wording": "Low detectability always implies high exploitation.",
+      "statement": "Within the fixed mechanism registry, M03 had lower measured localization than M08 and a positive observed exploitation effect.",
+      "status": "DESCRIPTIVE_ONLY"
+    },
+    "m08_profile": {
+      "allowed_wording": "M08's observed paired harm and synchronized entity-cluster interval can be reported without an equivalence or practical-null conclusion.",
+      "criteria": {
+        "equivalence_or_practical_null_claim_allowed": false,
+        "status_is_capped_at": "DESCRIPTIVE_ONLY"
+      },
+      "metrics": {
+        "cluster_ci_high": 0.009555629904511274,
+        "cluster_ci_low": -0.0055232436126778,
+        "detectability": 0.3561020195070524,
+        "detectability_ci_high": 0.3661020195070524,
+        "detectability_ci_low": 0.3461020195070524,
+        "paired_harm": 0.0033042071707276,
+        "paired_harm_ci_high": 0.0043042071707276,
+        "paired_harm_ci_low": 0.0023042071707276
+      },
+      "prohibited_wording": "M08 is practically null, equivalent to zero, or has exactly zero exploitation effect.",
+      "statement": "M08's point estimate and dataset-synchronized entity-cluster interval are reported descriptively.",
+      "status": "DESCRIPTIVE_ONLY"
+    },
+    "m09_counterexample": {
+      "allowed_wording": "M09 is a representation-conditional descriptive counterexample within this registry; its designed source-category reweighting interval is not population inference.",
+      "criteria": {
+        "status_is_capped_at": "DESCRIPTIVE_ONLY",
+        "threshold_based_support_allowed": false
+      },
+      "metrics": {
+        "complete_one_hot": true,
+        "designed_category_reweighting_high": 0.2354981357770216,
+        "designed_category_reweighting_is_inferential": false,
+        "designed_category_reweighting_low": 0.19879843188452898,
+        "detectability": 0.5414811065748634,
+        "detectability_ci_high": 0.5514811065748634,
+        "detectability_ci_low": 0.5314811065748634,
+        "detectability_unit": "encoded_column",
+        "encoded_column_count": 8,
+        "holm_p": 1.0,
+        "paired_harm": 0.2350629529121818,
+        "paired_harm_ci_high": 0.2360629529121818,
+        "paired_harm_ci_low": 0.2340629529121818,
+        "representation_conditional": true,
+        "semantic_field_count": 1
+      },
+      "prohibited_wording": "M09 establishes a population-level source effect or that every structured mechanism is highly exploitable.",
+      "statement": "Within this fixed registry and encoded source representation, M09 is a descriptive structured counterexample to a uniform structured-harmlessness pattern.",
+      "status": "DESCRIPTIVE_ONLY"
+    },
+    "simple_vs_structured": {
+      "allowed_wording": "In the frozen controlled benchmark, the pre-existing directional simple-versus-structured contrast was supported when its exact Holm-adjusted test and confidence interval both excluded the null.",
+      "criteria": {
+        "exact_holm_p_lte": 0.05,
+        "model_results_used_for_support_decision": false,
+        "pooled_ci_low_gt": 0.0
+      },
+      "metrics": {
+        "ci_high": 0.1782402631102302,
+        "ci_low": 0.1503292827204515,
+        "difference": 0.1643289440516624,
+        "holm_p": 5.7220458984375e-06,
+        "model_ci_excludes_zero_count": 0,
+        "model_positive_direction_count": 5
+      },
+      "prohibited_wording": "All simple leakage is harmful and all structured leakage is harmless.",
+      "statement": "Simple mechanisms have greater mean paired AUROC harm than structured mechanisms in the frozen controlled benchmark.",
+      "status": "SUPPORTED"
+    }
+  },
+  "diagnostic_sensitivity": {
+    "best_method_interpretation": "optimistic labeled benchmark summary; explicitly non-deployable and not a zero-shot selector",
+    "completion_rate": 1.0,
+    "expected_cells": 22000,
+    "mechanisms": {
+      "M03": {
+        "absolute_correlation": {
+          "ci_high": 0.0448414742044609,
+          "ci_low": 0.0248414742044609,
+          "detectability": 0.0348414742044609
+        },
+        "lr_coefficient": {
+          "ci_high": 0.0548273458369726,
+          "ci_low": 0.0348273458369726,
+          "detectability": 0.0448273458369726
+        },
+        "mutual_information": {
+          "ci_high": 0.0892727737079168,
+          "ci_low": 0.0692727737079168,
+          "detectability": 0.0792727737079168
+        },
+        "rf_permutation": {
+          "ci_high": 0.6123023148148149,
+          "ci_low": 0.5923023148148149,
+          "detectability": 0.6023023148148149
+        }
+      },
+      "M04": {
+        "absolute_correlation": {
+          "ci_high": 0.0485847811648073,
+          "ci_low": 0.0285847811648073,
+          "detectability": 0.0385847811648073
+        },
+        "lr_coefficient": {
+          "ci_high": 0.046722252217609,
+          "ci_low": 0.026722252217609,
+          "detectability": 0.036722252217609
+        },
+        "mutual_information": {
+          "ci_high": 0.0905003903535404,
+          "ci_low": 0.0705003903535405,
+          "detectability": 0.0805003903535405
+        },
+        "rf_permutation": {
+          "ci_high": 0.0548734812407041,
+          "ci_low": 0.0348734812407041,
+          "detectability": 0.0448734812407041
+        }
+      },
+      "M05": {
+        "absolute_correlation": {
+          "ci_high": 0.046613366996016,
+          "ci_low": 0.026613366996016,
+          "detectability": 0.036613366996016
+        },
+        "lr_coefficient": {
+          "ci_high": 0.0462733870864379,
+          "ci_low": 0.0262733870864378,
+          "detectability": 0.0362733870864378
+        },
+        "mutual_information": {
+          "ci_high": 0.0936056568364985,
+          "ci_low": 0.0736056568364985,
+          "detectability": 0.0836056568364985
+        },
+        "rf_permutation": {
+          "ci_high": 0.0537614058639165,
+          "ci_low": 0.0337614058639165,
+          "detectability": 0.0437614058639165
+        }
+      }
+    },
+    "method_count": 4,
+    "methods": [
+      "mutual_information",
+      "absolute_correlation",
+      "lr_coefficient",
+      "rf_permutation"
+    ],
+    "primary_method": "mutual_information",
+    "robustness_profiles": {
+      "M03": {
+        "best_evaluated_detectability": 0.6023023148148149,
+        "between_diagnostic_range": 0.567460840610354,
+        "worst_evaluated_detectability": 0.0348414742044609
+      },
+      "M04": {
+        "best_evaluated_detectability": 0.0805003903535405,
+        "between_diagnostic_range": 0.0437781381359314,
+        "worst_evaluated_detectability": 0.036722252217609
+      },
+      "M05": {
+        "best_evaluated_detectability": 0.0836056568364985,
+        "between_diagnostic_range": 0.0473322697500606,
+        "worst_evaluated_detectability": 0.0362733870864378
+      }
+    },
+    "status": "DESCRIPTIVE_ONLY",
+    "successful_cells": 22000
+  },
+  "evidence_tier": "confirmatory",
+  "generated_at_utc": "2026-07-16T08:10:54.634858+00:00",
+  "natural": {
+    "all_task_effects_positive": true,
+    "allowed_wording": "All five fixed case studies had positive observed effects; this remains a case-study-only description.",
+    "bootstrap_ci_high": 0.42400207453441674,
+    "bootstrap_ci_low": 0.11989863081277105,
+    "exact_sign_flip_p": 0.0625,
+    "interpretation": "five fixed real-data case studies with train-fitted categorical preprocessing; no population-level dataset inference",
+    "mean_paired_harm": 0.27269467095676586,
+    "model_count": 4,
+    "prohibited_wording": "The effect generalizes to real-world datasets as a population.",
+    "status": "CASE_STUDY_ONLY",
+    "task_count": 5
+  },
+  "pending": {
+    "governance": {
+      "paper_scope": "excluded from abstract and contributions",
+      "status": "PENDING"
+    },
+    "metadata": {
+      "paper_scope": "excluded from abstract and contributions",
+      "status": "PENDING"
+    }
   },
   "protocol_amendments": {
     "M10": {
-      "version": "m10_strict_mask_v1",
-      "replacement_cells": 2500
+      "original_m10_rows_accepted": false,
+      "protocol_freeze_sha256": "5442c9aff8f2329c90845d904fe02c9639365aac6f0f30c5e387fe12a4e1c4ce",
+      "replacement_cells": 2500,
+      "strict_policy": "task.X[:, ~task.leakage_mask]",
+      "version": "m10_strict_mask_v1"
     },
     "diagnostic_rng": {
-      "version": "fixed_seed_42",
-      "cells_amended": 5500
+      "canonical_manifest_sha256": "401a1e98cbafca9d693b6c1b8b767f4c9684eb8cb6d2bfe2480ee7e68080b889",
+      "discovery_phase": "post_unblinding",
+      "expected_canonical_cells": 22000,
+      "no_tuning": true,
+      "preserved_cells": 16500,
+      "protocol_freeze_sha256": "281c4e2ab37da8fd1d647b2d0153e4e929f28bc471afa53622645049f5e3bcf8",
+      "raw_task_seeded_mi_accepted_as_final": false,
+      "replacement_cells": 5500,
+      "replacement_method": "mutual_information",
+      "replacement_random_state": 42,
+      "thresholds_changed": false,
+      "version": "diagnostic_mi_fixed_seed_42_v1"
+    },
+    "natural_preprocessing": {
+      "fit_scope": "training rows only",
+      "globally_encoded_date_strings_accepted": false,
+      "protocol_freeze_sha256": "d7960cd4543b102ea6db56ef2d6e62af5c62e75084b529035af33081ac61d08c",
+      "replacement_cells": 60,
+      "superseded_full_table_category_vocabulary_accepted": false,
+      "unseen_category_policy": "map_to_reserved_unknown_value",
+      "version": "natural_trainfit_categories_v2"
+    },
+    "statistical_inference": {
+      "category_multiplicity": "holm_over_three_declared_contrasts",
+      "category_test": "exact_two_sided_task_level_sign_flip",
+      "correlation_interval": "joint_paired_dataset_then_seed_resampling_of_D_and_X",
+      "discovery_phase": "second_post_unblinding_methodological_audit",
+      "m08_cluster_draw": "shared_across_seeds_models_and_strengths_within_dataset",
+      "m08_seed_effects_preserved": true,
+      "m09_reweighting": "descriptive_designed_category_reweighting_only",
+      "old_bootstrap_tail_p_accepted": false,
+      "old_independent_cell_cluster_interval_accepted": false,
+      "prediction_arrays_bound_directly_to_frozen_task_bundles": true,
+      "protocol_freeze_sha256": "abc44e35ed7bf72fe6453b775aa6d73477764fb35aa1ee9e203d54f4707ba3f9",
+      "threshold_based_profile_claims_allowed": false,
+      "v1_seed_independent_entity_interval_accepted": false,
+      "version": "statistical_inference_amendment_v2"
     }
   },
-  "provenance": {
-    "canonical": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d",
-    "cluster_sensitivity": "1d85e6203e10abb8c6bf68333eabbacc80a2b616b6486f47e32d763152af5070",
-    "statistics": "be38950ca56f468cb048192a6a8540619850211c2a2b5fa733582df9b527137f"
+  "protocol_integrity": {
+    "completion_rate": 1.0,
+    "dataset_count": 20,
+    "expected_cells": 27500,
+    "mechanism_count": 11,
+    "model_count": 5,
+    "models": [
+      "catboost",
+      "lightgbm",
+      "lr",
+      "rf",
+      "tabm"
+    ],
+    "seed_count": 5,
+    "strength_count": 5,
+    "successful_cells": 27500
   },
-  "tests_passed": 278,
-  "tests_skipped": 3,
-  "tests_failed": 0,
-  "blocker": "build_corrected_v2_claim_state line 732 \u2014 validated_code_hashes differ from frozen originals. Code files evolved during SP5-SP8 work. Requires re-freeze of code hashes or builder tolerance patch."
+  "provenance": {
+    "generator": {
+      "path": "scripts/build_corrected_v2_claim_state.py",
+      "sha256": "49a91310b7afdd34119b5d5d9ed097032d8f4871d9f0418fbeb754dc984d1d9d"
+    },
+    "input_sha256": {
+      "configs/paper/corrected_v2.yaml": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+      "configs/paper/m10_amendment_v1.yaml": "1a5ee88cd88fdcddcc1929637c2efd05e74135100b7fad52828d463fe95725b4",
+      "experiments/leakbench/run_m10_amendment.py": "f14b2d78db9835106ead0287ae16dbcc4021e2dce5cdcad8de9450483335408f",
+      "requirements-corrected-v2.txt": "70865abb712698e4fa858505c474f56f737d4aa908ed7535dfac43e57b981ce0",
+      "results/corrected_v2/canonical_cells.csv": "25ba4b74a906a102cb1aff5af0d6393728b28389243080e3cbcd427f27b658e9",
+      "results/corrected_v2/canonical_manifest.json": "1166fe4a5e68f1ea1f826b4011347e6ea0a39719bfac5dc6cb309952fd7ef24e",
+      "results/corrected_v2/core_cpu_cells_manifest.json": "5718dce44d8f0188afbe2a64348a11a077808245270f551f6c15bb0acd4d10ae",
+      "results/corrected_v2/diagnostic_canonical_cells.csv": "491d7c3fc3bca9b2966cc7b746585f2705c72e8d2be756acb0be1d17e6dc294d",
+      "results/corrected_v2/diagnostic_canonical_cells.manifest.json": "401a1e98cbafca9d693b6c1b8b767f4c9684eb8cb6d2bfe2480ee7e68080b889",
+      "results/corrected_v2/diagnostic_confirmatory_cells.csv": "7a15740899a2acabfca08fe2b618b20e11754e5ed30a2978a465d2ee21fcf917",
+      "results/corrected_v2/diagnostic_confirmatory_cells.manifest.json": "e1126b7498414da3405fb20f4dda12055f5023dbf82ce56e9243bd020598e25f",
+      "results/corrected_v2/diagnostic_protocol_freeze.json": "c2c8b64499e3cdb01155fcc507b1f73aa343204520055260eca7ab473c4e53ca",
+      "results/corrected_v2/diagnostic_rng_amendment_freeze.json": "281c4e2ab37da8fd1d647b2d0153e4e929f28bc471afa53622645049f5e3bcf8",
+      "results/corrected_v2/local_environment_lock.json": "fcacb1a48de8a42998a75d80cd9d00214765f9f6003543c0907c66ae7fec9c40",
+      "results/corrected_v2/m10_amendment_confirmatory/cpu_cells.csv": "615e9d847f083c884d2a7e6ba6dbf099b0bbcd9559da90d35cbec2ec711b212b",
+      "results/corrected_v2/m10_amendment_confirmatory/cpu_cells_manifest.json": "dddd0a60ce5e075be2fb4ff4c563e7fe0ecee57baea32fbbf69251ff8d13b325",
+      "results/corrected_v2/m10_amendment_confirmatory/tabm_cells.csv": "21284329ef307504f5a51f83e82b3cd2337a28beddf3a4b0dc22af6ec7f4d998",
+      "results/corrected_v2/m10_amendment_confirmatory/tabm_cells_manifest.json": "28d5cd804fbaafcba81661e771cd2d3652584abfbf653edcd2235a9e460275c9",
+      "results/corrected_v2/m10_amendment_protocol_freeze.json": "5442c9aff8f2329c90845d904fe02c9639365aac6f0f30c5e387fe12a4e1c4ce",
+      "results/corrected_v2/protocol_freeze.json": "72cf4b903e3a8056b90194eb467d9af7bfd57cf604530ede1f2e065f0afb0e3f",
+      "results/corrected_v2/public_natural/natural_cells.csv": "e615b24f921a0d0c07c8b1e1cb560a3cd1736c17aa4af4e85b1732079e4b3a70",
+      "results/corrected_v2/public_natural/natural_protocol_v2_freeze.json": "d7960cd4543b102ea6db56ef2d6e62af5c62e75084b529035af33081ac61d08c",
+      "results/corrected_v2/public_natural/natural_statistics.json": "3f715225f043f64397797e9b81e17593c17ca2e7d795f2cb5b8fc9d7da2d9f40",
+      "results/corrected_v2/public_natural/natural_task_summary.csv": "ceda9121ff15e8f79a5506fee25e8f24976e64be6c56218836f964c6472281e4",
+      "results/corrected_v2/public_natural/public_natural_provenance_manifest.json": "f5fb0977ec912c418542c1a81cb86cb899829a7baf1acdff1d059e537a55e057",
+      "results/corrected_v2/secondary_analysis_protocol_freeze.json": "c7c1f88e6a266650bb78cd183f8e65dcc824c11a8ac5c9ca6d1f61b46723f1c9",
+      "results/corrected_v2/statistical_amendment_protocol_v2_freeze.json": "abc44e35ed7bf72fe6453b775aa6d73477764fb35aa1ee9e203d54f4707ba3f9",
+      "results/corrected_v2/statistics/category_contrasts_amended.csv": "9cb638a2bb9a97634796874b652e3fe5273e7276b3d5746c4637f316ed0ce9f7",
+      "results/corrected_v2/statistics/category_summary.csv": "e807a8d34bc829c762bf5fbbc7ec42ab5a4de1282ed3f3247345e102c3d5d6f1",
+      "results/corrected_v2/statistics/cluster_sensitivity_v3.json": "1d85e6203e10abb8c6bf68333eabbacc80a2b616b6486f47e32d763152af5070",
+      "results/corrected_v2/statistics/cluster_sensitivity_v3_manifest.json": "6b96bca078665f80cd7a6199f0b4190c9dd067c7a891e23a29b57def86edeb75",
+      "results/corrected_v2/statistics/correlation_analysis_amended.json": "f3d37b883dcffbc9294b78de54927bebbedf436dd664aa7878adde254c2b2d2c",
+      "results/corrected_v2/statistics/detectability_category_summary.csv": "ba371e439e5deed43c1b07efa971f0b550a3519ecc043af62270b0a807d9737b",
+      "results/corrected_v2/statistics/detectability_mechanism_summary.csv": "205af26059d69746e68d49eb5d38445a87d0f320a2482feabf96c924cc1146c7",
+      "results/corrected_v2/statistics/diagnostic_integrity.json": "6f8195b453f940fd34c02f45985b86139e5c479df21a1f7e1f3798ecdb0aca52",
+      "results/corrected_v2/statistics/diagnostic_method_by_mechanism.csv": "f51e5dce794bd4f2881a02bdad159aa3c8d5e3ea12100adfffa25ef1096396b2",
+      "results/corrected_v2/statistics/diagnostic_method_summary.csv": "2c0086b67a08d025c26ccddfb4153e9cdf876efad9507e470831a558a2228cc0",
+      "results/corrected_v2/statistics/diagnostic_robustness_profiles.csv": "64a27fcccd8fae6adbda71d1a37468f69fe25f4ae01bee2173f5b836cec36424",
+      "results/corrected_v2/statistics/integrity_summary.json": "fb46629c861522b44db0b902f8d9a299282d69f76cd125862a54e02e929285d9",
+      "results/corrected_v2/statistics/mechanism_model_dispersion.csv": "388988b197c6ddd91c826db68392b4d047565897910bb98a78256583dd1954f7",
+      "results/corrected_v2/statistics/mechanism_model_summary.csv": "b6a015378685cc7cef18834630f8435db4fec80c71ec6e96d6d1c40a940b133c",
+      "results/corrected_v2/statistics/mechanism_summary.csv": "5673ea7aa09917d77a49e1b5c81b1b170b1920655c7e142d3da6b5497c4adebe",
+      "results/corrected_v2/statistics/model_summary.csv": "7ffc48c42ac5fa872c994a75a8ec5721feb8aa7a05c32d7712d1611a6b056c79",
+      "results/corrected_v2/statistics/model_vs_lr_contrasts.csv": "634c9bf38cf94b060493648f5aad7ec73a65f3665310e008763b94e9bdfd4a6c",
+      "results/corrected_v2/statistics/secondary_integrity.json": "6e7c68751dd70f2b647fe823bcc62711dec30ba2c43e460a425da2a884b9426e",
+      "results/corrected_v2/statistics/simple_structured_by_model.csv": "e226c031a7d7b0b1a6f2f43380b0cbbee57714d0f58806b75ed1f76507c1185e",
+      "results/corrected_v2/statistics/statistical_amendment_manifest.json": "8c8e1294bd55d0f02e591f65f35fbd70b2c209031231637ea06c77a9399d7212",
+      "results/corrected_v2/statistics/strength_dose_response.csv": "9d9f2642f24fa3fecaa01da1982c0089742e817dd750f59b442c2b46ad98002b",
+      "results/corrected_v2/superseded_evidence.json": "273d212a6551ab7e2880401f19087f040d5203d53d39757da37fe038f8665a7f",
+      "results/corrected_v2/tabm_bundle_confirmatory/tabm_cells_manifest.json": "01d1daa9ba7167cc7aabd1cf69b890cfd5eaff27bd7921626cb9a478229e7707",
+      "results/corrected_v2/tabm_bundle_protocol_freeze.json": "389a501b830e12ff54204476eb138cdf498dbc732e533111d9e2c9fa940778ff",
+      "results/corrected_v2/tabm_official_environment_lock.json": "9d5c52c6043150f67357ae5854015ec14c0b3c5200e0f667e15435ea730774d3",
+      "scripts/analyze_cluster_sensitivity_amendment_v2.py": "2c30af783bedfe2091945daf90d7db13a99cff8400680636f9a20570d1651a8c",
+      "scripts/analyze_cluster_sensitivity_v2.py": "3468de88fe3cec7b923a0b00b0e63ae7fe603d7947e180477e73cd95e254b352",
+      "scripts/analyze_corrected_v2.py": "53c972b69d010b9ae559fc0a1197e7340b9c11aeffeea9af9403f40bb8e64cb4",
+      "scripts/analyze_corrected_v2_amendment.py": "d3f21d14088ca754561a1e35a566776c0bc33fb3bb0a55c27f471f46d1b30428",
+      "scripts/analyze_detectability_v2.py": "eeda7adb943caeb4c8a0bae51856c4cfc5d8f9450674bc720768a3a7e002243f",
+      "scripts/analyze_diagnostic_suite.py": "aa879f89059eab86831446b66bfae5a7b3fa9d1783aaf9630fc7b3e2dec5bc43",
+      "scripts/analyze_model_contrasts_v2.py": "f59e316c78b016df3866cd2aa9dc0000863484042ee64880b8e8517fa0ff181d",
+      "scripts/analyze_natural_case_studies.py": "3531634238e6a34e0bfcc621c4e0e5ca41afe3530c1861e05c18ba2d4680d254",
+      "scripts/analyze_secondary_v2.py": "6cdeb88b3a0a116bfa6cc288bf387ffd1aad5ba3ce9e1eb660900e7b0062ca12",
+      "scripts/build_canonical_corrected_v2.py": "f54d7db2569d6742562095ebfa097ff9008667150a84e20e3ac07e05e887579a",
+      "scripts/build_diagnostic_rng_amendment.py": "a82b7b4ff8679ab309be54ca7eefd1b663134f66779246ac6437230b6bc53798",
+      "scripts/build_public_natural_provenance.py": "babe04fb18621e65db9eee56298de14d5a58842b1c399e0160fd07f8170f332f"
+    },
+    "rule": "Only the listed corrected_v2 inputs may supply paper numbers; superseded evidence is deny-listed.",
+    "superseded_manifest": "results/corrected_v2/superseded_evidence.json"
+  },
+  "release_status": "CLAIM_STATE_DERIVED",
+  "schema_version": 1
 }

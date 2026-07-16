@@ -2,7 +2,7 @@
   "status": "CANONICAL",
   "cells": 27500,
   "successful_cells": 27500,
-  "canonical_sha256": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d",
+  "canonical_sha256": "25ba4b74a906a102cb1aff5af0d6393728b28389243080e3cbcd427f27b658e9",
   "config_sha256": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
   "builder": {
     "path": "scripts/build_canonical_corrected_v2.py",

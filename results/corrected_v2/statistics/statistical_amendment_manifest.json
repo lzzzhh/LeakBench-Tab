@@ -8,7 +8,7 @@
   "canonical_inputs": [
     {
       "path": "results/corrected_v2/canonical_cells.csv",
-      "sha256": "451ec2b45169cebbbb0a815651b73d79f726eb36d46447b2b4c5029ee17bdf8d"
+      "sha256": "25ba4b74a906a102cb1aff5af0d6393728b28389243080e3cbcd427f27b658e9"
     }
   ],
   "category_contrasts": {
@@ -33,8 +33,8 @@
       "size_bytes": 705
     },
     "results/corrected_v2/statistics/correlation_analysis_amended.json": {
-      "sha256": "cbf6b0ad5ca34f602564711e513804b30a9d5a39fd5bf5b998d61f210a661b3f",
-      "size_bytes": 1211
+      "sha256": "f3d37b883dcffbc9294b78de54927bebbedf436dd664aa7878adde254c2b2d2c",
+      "size_bytes": 1196
     }
   },
   "permutation_repetitions": 20000,
