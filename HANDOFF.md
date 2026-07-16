@@ -48,16 +48,16 @@ LeakBench-Tab 是一个表格预测泄漏基准。核心框架是 **C/D/X 三轴
 - 现象确认: M04/M05 的轻微负 harm 不是 TabM 特异, 但产生机制未知
 - **已正式关闭:** 不创建 CL13b, 不追加解释性实验
 
-### SP8 — Governance (77,000 cells, LR)
-**Commit 参考:** `8c08b88` 到最新
+### SP8 — Governance ⚠️ UNDER_AUDIT
+**Commit 参考:** 3dcef68 (clean runner)
 
 - 旧治理 runner (`run_meta_tier.py`) 永久 INTEGRITY_HOLD
-- 新建 bundle-only 治理 runner (`scripts/run_governance_bundle.py`)
-- 盲字段评分 (mutual information on train): 20% 预算下移除 62% 泄漏字段, 保留 83% 合法字段
-- **Claims:** G1/G3/G4 SUPPORTED; G2 INCONCLUSIVE
-- 机制依赖: simple 94% recall vs structured 33% recall
-- 小预算: 5% 预算捕获 45% recall 保留 96% 合法字段
-- Natural-task adapter bug 已修复 (`Path.rglob` Python 3.13 兼容)
+- 旧 bundle runner (`run_governance_bundle.py`): UNDER_AUDIT — non-oracle 路径读取 leakage_mask, NOT_APPLICABLE 被保存为 SUCCESS
+- **Clean runner** (`run_sp8_clean.py`): oracle-isolated, P0/P1/P2/P3 matched-cost, proper strict_distance_reduction, 42,300 cells
+- 旧 77,000 行: NON_CLAIM_ELIGIBLE (provenance only)
+- **Claims:** G1-G4 UNDER_AUDIT — pending clean manifest, per-dataset paired analysis, cluster-bootstrap
+- P3 vs P2: blind MI beats random at matched budget (preliminary, not yet claim-grade)
+- P4/P5 NOT_APPLICABLE (no operational lifecycle/provenance metadata in frozen bundles)
 
 ---
 

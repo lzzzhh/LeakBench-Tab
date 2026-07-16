@@ -137,8 +137,8 @@ def main(argv=None):
 
         for k in unique_ks:
             if k <= 0 or k >= n_features: continue
-            for frac, kval in k_map.items():
-                if kval != k: continue  # only process each unique k once
+            # Find the fraction that maps to this k (use smallest fraction for labeling)
+            actual_frac = min(f for f, kval in k_map.items() if kval == k)
 
             # Compute BLIND train-side MI scores (model-independent, no leakage_mask)
             mi_scores = mutual_info_classif(X[tr], y[tr], random_state=42)
@@ -148,7 +148,7 @@ def main(argv=None):
             rm_fields = select_fields_random(n_features, k, ds_i * 1000 + seed * 13)
             keep_mask = np.ones(n_features, dtype=bool)
             keep_mask[rm_fields] = False
-            _run_policy(completed, out, ds_i, mech, strength, seed, "P2_random", k, frac,
+            _run_policy(completed, out, ds_i, mech, strength, seed, "P2_random", k, actual_frac,
                         strict_auc, full_auc, X, y, tr, te, mask, leak_indices, legit_indices,
                         seed, False, rm_fields)
             cells_done += 1
@@ -157,7 +157,7 @@ def main(argv=None):
             mi_fields = select_fields_mi(mi_scores, k)
             keep_mask_p3 = np.ones(n_features, dtype=bool)
             keep_mask_p3[mi_fields] = False
-            _run_policy(completed, out, ds_i, mech, strength, seed, "P3_blind_mi", k, frac,
+            _run_policy(completed, out, ds_i, mech, strength, seed, "P3_blind_mi", k, actual_frac,
                         strict_auc, full_auc, X, y, tr, te, mask, leak_indices, legit_indices,
                         seed, False, mi_fields)
             cells_done += 1

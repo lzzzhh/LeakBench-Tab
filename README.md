@@ -40,10 +40,11 @@ validity), **D** (statistical detectability), **X** (model exploitability).
 part of the frozen core and have no formal results. They are a future
 external-validity extension and cannot alter frozen core claims.
 
-**Governance experiments (Phase SP6, Track B):** formal governance evaluation is
-**not** run. Only a static inventory exists
-(`artifacts/sp5/track_b_inventory.md`). Governance claims (CL7, CL14-*) remain
-PENDING. A read-only bundle-consuming governance runner is required first.
+**Governance experiments (Phase SP8, Track B):** UNDER_AUDIT. Clean runner
+(`run_sp8_clean.py`) implemented with oracle isolation and matched-cost
+protocol. Preliminary results show blind field-score beats random at matched
+budget. Claims not yet restored — pending manifest and per-dataset analysis.
+Old 77,000 rows NON_CLAIM_ELIGIBLE.
 
 **Natural-task transfer:** limited; core-benchmark completeness does not imply
 natural-data external validity.
