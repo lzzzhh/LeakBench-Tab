@@ -46,7 +46,7 @@ def fit_model(model, Xtr, ytr, Xte, yte, seed):
         m=RandomForestClassifier(n_estimators=100, random_state=seed, n_jobs=-1).fit(Xtr,ytr)
     elif model=="lightgbm":
         from lightgbm import LGBMClassifier
-        m=LGBMClassifier(n_estimators=100, random_state=seed, verbose=-1).fit(Xtr,ytr)
+        m=LGBMClassifier(n_estimators=100, random_state=seed, verbose=-1, device='cpu').fit(Xtr,ytr)
     else:
         raise ValueError(f"unknown model {model}")
     return float(roc_auc_score(yte, m.predict_proba(Xte)[:,1]))
