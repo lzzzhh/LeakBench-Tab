@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "frozen_at_utc": "2026-07-18",
+  "natural_governance": {
+    "evidence_tier": "descriptive_external_validity_sensitivity",
+    "tasks": [
+      "BankMarketing",
+      "LendingClub",
+      "BTSFlights",
+      "ChicagoFood",
+      "NYC311"
+    ],
+    "model": "lr",
+    "training_seeds": [
+      13,
+      42,
+      2026
+    ],
+    "governance_seeds": [
+      2026071700,
+      2026071701,
+      2026071702,
+      2026071703,
+      2026071704,
+      2026071705,
+      2026071706,
+      2026071707,
+      2026071708,
+      2026071709,
+      2026071710,
+      2026071711,
+      2026071712,
+      2026071713,
+      2026071714,
+      2026071715,
+      2026071716,
+      2026071717,
+      2026071718,
+      2026071719
+    ],
+    "budget_fraction": 0.2,
+    "cost_unit": "retained natural feature",
+    "estimand": "P3 blind-MI SDR minus within-key mean P2 random SDR",
+    "uncertainty": "case-level descriptive bootstrap plus exact sign-flip over five fixed cases",
+    "population_claim_allowed": false,
+    "expected_rows": 315
+  },
+  "semantic_group_governance": {
+    "evidence_tier": "representation_cost_sensitivity",
+    "model": "lr",
+    "mechanism_rerun": "M09",
+    "reason": "M09 alone maps one semantic source field to eight one-hot encoded columns; all other frozen registry mechanisms have identity semantic-to-encoded group mappings",
+    "group_score": "maximum train-side mutual information among columns in a semantic group",
+    "random_policy": "uniform without replacement over semantic groups",
+    "budget_fraction": 0.2,
+    "budget_rounding": "max(1, round(n_semantic_groups * fraction))",
+    "governance_seeds": [
+      2026071700,
+      2026071701,
+      2026071702,
+      2026071703,
+      2026071704,
+      2026071705,
+      2026071706,
+      2026071707,
+      2026071708,
+      2026071709,
+      2026071710,
+      2026071711,
+      2026071712,
+      2026071713,
+      2026071714,
+      2026071715,
+      2026071716,
+      2026071717,
+      2026071718,
+      2026071719
+    ],
+    "estimand": "P3 blind-MI SDR minus within-key mean P2 random SDR",
+    "expected_m09_rows": 10500,
+    "full_panel_recomposition": "replace encoded-cost M09 paired effects with semantic-cost M09 effects; retain 5,000 identity-mapped non-M09 keys"
+  },
+  "immutable_inputs": [
+    {
+      "path": "results/corrected_v2/natural_protocol_v2_freeze.json",
+      "sha256": "7b42fec60b4724b165a36ac12a0d1211cf028ea96dbdff4eb181ebcbb85c82a4",
+      "size_bytes": 7026
+    },
+    {
+      "path": "results/corrected_v2/natural_cells.csv",
+      "sha256": "e615b24f921a0d0c07c8b1e1cb560a3cd1736c17aa4af4e85b1732079e4b3a70",
+      "size_bytes": 22317
+    },
+    {
+      "path": "results/corrected_v2/natural_task_summary.csv",
+      "sha256": "e7035a554f20d4be000e57926962b4183dc8d092ffc4f83f2f571032198f43c7",
+      "size_bytes": 17639
+    },
+    {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+      "size_bytes": 1770803
+    },
+    {
+      "path": "results/edbt_eab_revision/b1_multiseed_p2.csv",
+      "sha256": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237",
+      "size_bytes": 84659255
+    }
+  ],
+  "code": [
+    {
+      "path": "scripts/run_remaining_governance.py",
+      "sha256": "ef33e702f7d6a2cf8f477bcb5c6c161a7c2990c150e5cadbf49594fb71d36dce",
+      "size_bytes": 12982
+    },
+    {
+      "path": "scripts/analyze_remaining_governance.py",
+      "sha256": "3e927b60bef619ac45493ce7e023340d49cd4b4e5a587f44c387bbf7c77cd1f2",
+      "size_bytes": 6278
+    },
+    {
+      "path": "scripts/freeze_remaining_governance_protocol.py",
+      "sha256": "cc0dde971f8a35a5d995c4254ff8fc1787e379185ceaa4aa20ee1565be506c40",
+      "size_bytes": 3785
+    },
+    {
+      "path": "tests/test_remaining_governance.py",
+      "sha256": "e8466c46945f4c4c1fb9eaf7d38817f3f25690492790106640f8b1274e9d31f3",
+      "size_bytes": 1532
+    }
+  ],
+  "failure_rules": [
+    "Any source or bundle hash mismatch blocks execution.",
+    "Any failed, duplicate, or missing cell blocks claim derivation.",
+    "Natural results remain case-study evidence regardless of sign.",
+    "No semantic group may be inferred from feature names after observing outcomes."
+  ]
+}
