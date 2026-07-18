@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_SEMANTIC_V4_EXECUTION",
+  "supersedes": "results/edbt_eab_revision/semantic_group_protocol_v3_freeze.json",
+  "scientific_protocol_changed": false,
+  "v3_incident": {
+    "cause": "run_id omitted dataset_index while bundle_key repeats across datasets",
+    "rows": 10500,
+    "successful_rows": 10500,
+    "duplicate_run_ids": 8925,
+    "disposition": "excluded wholesale; no deduplication or reuse",
+    "artifact": {
+      "path": "artifacts/archive/semantic_group_v3_duplicate_ids/semantic_m09_cells.csv",
+      "sha256": "de1d7416ea20ddd9c465d905956a2458ba845ff6a13ba3247cee19f498f512d5",
+      "size_bytes": 3100959
+    }
+  },
+  "v4_correction": "run_id identity includes dataset_index and the full frozen key",
+  "bindings": [
+    {
+      "path": "scripts/run_semantic_group_governance_v2.py",
+      "sha256": "3201df448f2d4baeb29957861374b560630f558a247d257d0574cdd375d44fc9",
+      "size_bytes": 6041
+    },
+    {
+      "path": "scripts/analyze_remaining_governance.py",
+      "sha256": "e1c5e574d32fc9528019c06f5938dd68bb06fe2a5518dc2aa8a2c50271d96a09",
+      "size_bytes": 6344
+    },
+    {
+      "path": "tests/test_remaining_governance.py",
+      "sha256": "cd3bd39c5d53129ed31ef8203d9afff522f80326334b838295a149d48b3ca101",
+      "size_bytes": 2435
+    },
+    {
+      "path": "results/edbt_eab_revision/remaining_governance_protocol_freeze.json",
+      "sha256": "c4d8a8a83bd5fcb50eef75a03ecc3a454da701bf440f36a156203b6a2fd4bd0f",
+      "size_bytes": 4323
+    },
+    {
+      "path": "results/edbt_eab_revision/b1_multiseed_p2.csv",
+      "sha256": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237",
+      "size_bytes": 84659255
+    },
+    {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+      "size_bytes": 1770803
+    }
+  ]
+}

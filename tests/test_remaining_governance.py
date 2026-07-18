@@ -29,13 +29,14 @@ def test_selection_hash_binds_unit_type():
 
 def test_paired_averages_random_seeds_within_key():
     rows = [
-        {"task": "A", "training_seed": 13, "policy": "P3_blind_mi", "strict_distance_reduction": 0.5},
-        {"task": "A", "training_seed": 13, "policy": "P2_random", "strict_distance_reduction": 0.1},
-        {"task": "A", "training_seed": 13, "policy": "P2_random", "strict_distance_reduction": 0.3},
+        {"task": "A", "training_seed": 13, "policy": "P3_blind_mi", "strict_distance_reduction": 0.5, "initial_gap": 0.7},
+        {"task": "A", "training_seed": 13, "policy": "P2_random", "strict_distance_reduction": 0.1, "initial_gap": 0.7},
+        {"task": "A", "training_seed": 13, "policy": "P2_random", "strict_distance_reduction": 0.3, "initial_gap": 0.7},
     ]
     import pandas as pd
     result = paired(pd.DataFrame(rows), ["task", "training_seed"])
     assert result.iloc[0].paired == 0.3
+    assert result.iloc[0].initial_gap == 0.7
 
 
 def test_semantic_v2_baseline_is_carried_by_primary_p3_row():

@@ -37,9 +37,11 @@ def clustered_interval(values_by_cluster, repetitions=BOOTSTRAP_REPS):
 
 
 def paired(frame, keys):
-    p3 = frame[frame.policy == "P3_blind_mi"].set_index(keys)["strict_distance_reduction"]
+    p3 = frame[frame.policy == "P3_blind_mi"].set_index(keys)[
+        ["strict_distance_reduction", "initial_gap"]
+    ].rename(columns={"strict_distance_reduction": "p3_sdr"})
     p2 = frame[frame.policy == "P2_random"].groupby(keys)["strict_distance_reduction"].mean()
-    out = pd.concat({"p3_sdr": p3, "p2_mean_sdr": p2}, axis=1, join="inner").reset_index()
+    out = p3.join(p2.rename("p2_mean_sdr"), how="inner").reset_index()
     out["paired"] = out.p3_sdr - out.p2_mean_sdr
     return out
 
@@ -145,4 +147,3 @@ def main(argv=None):
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

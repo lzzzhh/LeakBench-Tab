@@ -84,7 +84,10 @@ def run(output: Path, resume: bool):
             for governance_seed in GOVERNANCE_SEEDS
         ]
         for policy, governance_seed, removed_groups in policies:
-            identity = f"semantic-v2|{row.bundle_key}|{governance_seed}|{policy}|{budget_groups}"
+            identity = (
+                f"semantic-v4|{row.dataset_index}|{row.bundle_key}|"
+                f"{governance_seed}|{policy}|{budget_groups}"
+            )
             run_id = hashlib.sha256(identity.encode()).hexdigest()[:20]
             if run_id in completed:
                 continue
