@@ -41,9 +41,11 @@ def test_paired_averages_random_seeds_within_key():
 def test_semantic_v2_baseline_is_carried_by_primary_p3_row():
     import pandas as pd
     frame = pd.DataFrame([
-        {"dataset_index": 0, "strength": "S1", "training_seed": 13,
+        {"dataset_index": 0, "mechanism": "M09", "strength": "S1", "training_seed": 13,
          "policy": "P0_keep", "budget_fraction": 0.0, "strict_auc": 0.6, "full_auc": 0.8},
-        {"dataset_index": 0, "strength": "S1", "training_seed": 13,
+        {"dataset_index": 0, "mechanism": "M01", "strength": "S1", "training_seed": 13,
+         "policy": "P3_blind_mi", "budget_fraction": 0.2, "strict_auc": 0.4, "full_auc": 0.5},
+        {"dataset_index": 0, "mechanism": "M09", "strength": "S1", "training_seed": 13,
          "policy": "P3_blind_mi", "budget_fraction": 0.2, "strict_auc": 0.6, "full_auc": 0.8},
     ])
     assert encoded_baseline(frame, 0, "S1", 13) == (0.6, 0.8)

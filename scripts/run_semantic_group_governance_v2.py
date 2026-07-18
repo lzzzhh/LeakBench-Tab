@@ -37,6 +37,7 @@ def encoded_baseline(encoded, dataset_index, strength, training_seed):
     """Use the primary-budget P3 row, which carries the frozen strict/full AUCs."""
     match = encoded[
         (encoded.dataset_index == dataset_index)
+        & (encoded.mechanism == "M09")
         & (encoded.strength.astype(str) == str(strength))
         & (encoded.training_seed == training_seed)
         & (encoded.policy == "P3_blind_mi")
@@ -131,4 +132,3 @@ def main(argv=None):
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

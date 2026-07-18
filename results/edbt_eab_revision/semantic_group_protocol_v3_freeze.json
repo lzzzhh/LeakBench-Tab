@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_SEMANTIC_V3_EXECUTION",
+  "supersedes": "results/edbt_eab_revision/semantic_group_protocol_v2_freeze.json",
+  "pre_output_incidents": [
+    "v1 filtered P0 rows before baseline lookup",
+    "v2 baseline carrier lookup omitted the mechanism key"
+  ],
+  "rows_written_before_v3": 0,
+  "scientific_protocol_changed": false,
+  "dry_run_gate": {
+    "m09_primary_budget_carriers": 500,
+    "duplicate_keys": 0
+  },
+  "bindings": [
+    {
+      "path": "scripts/run_semantic_group_governance_v2.py",
+      "sha256": "038dd36d6d44eedb3af0d2b7b850f050c607a568561c0da1ae6dfacd5dae2836",
+      "size_bytes": 5969
+    },
+    {
+      "path": "tests/test_remaining_governance.py",
+      "sha256": "5dc4e3293ea26d64e6eeacc00e7be04f0e06850928a66ad51c5f8472e919add2",
+      "size_bytes": 2330
+    },
+    {
+      "path": "results/edbt_eab_revision/remaining_governance_protocol_freeze.json",
+      "sha256": "c4d8a8a83bd5fcb50eef75a03ecc3a454da701bf440f36a156203b6a2fd4bd0f",
+      "size_bytes": 4323
+    },
+    {
+      "path": "results/edbt_eab_revision/b1_multiseed_p2.csv",
+      "sha256": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237",
+      "size_bytes": 84659255
+    },
+    {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+      "size_bytes": 1770803
+    }
+  ]
+}
