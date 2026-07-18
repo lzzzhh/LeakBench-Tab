@@ -1,0 +1,106 @@
+{
+  "schema_version": 2,
+  "status": "FROZEN_BEFORE_OUTCOMES",
+  "timestamp_utc": "2026-07-18T15:01:49Z",
+  "git_commit": "c2d95b28b028ba8d83fe879c4989425111baf981",
+  "branch": "experiment/cdxr-crosslearner-confirmatory-v2",
+  "bundle_manifest_path": "artifacts/sp6/sp6_bundle_manifest.csv",
+  "bundle_manifest_sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+  "canonical_cells_path": "results/corrected_v2/canonical_cells.csv",
+  "canonical_cells_sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
+  "b1_selection_reference": "results/edbt_eab_revision/b1_multiseed_p2.csv",
+  "b1_selection_reference_sha256": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237",
+  "corrected_v2_config": "configs/paper/corrected_v2.yaml",
+  "corrected_v2_config_sha256": "71b210b055fb783b91c53f655aa20d6d42d6ceeb55453a477189102541566b17",
+  "model_adapter_path": "src/leakbench/models/core_models.py",
+  "model_adapter_sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e",
+  "models": {
+    "lr": {
+      "class": "LogisticRegression",
+      "max_iter": 2000,
+      "C": 1.0,
+      "random_state": "training_seed"
+    },
+    "rf": {
+      "class": "RandomForestClassifier",
+      "n_estimators": 250,
+      "min_samples_leaf": 2,
+      "max_features": "sqrt",
+      "random_state": "training_seed",
+      "n_jobs": 1
+    },
+    "lightgbm": {
+      "class": "LGBMClassifier",
+      "objective": "binary",
+      "n_estimators": 250,
+      "learning_rate": 0.05,
+      "num_leaves": 31,
+      "max_depth": 6,
+      "min_child_samples": 20,
+      "random_state": "training_seed",
+      "n_jobs": 1,
+      "verbosity": -1,
+      "early_stopping": 30
+    }
+  },
+  "budget_fraction": 0.2,
+  "budget_unit": "encoded_column",
+  "governance_seeds": [
+    2026071700,
+    2026071701,
+    2026071702,
+    2026071703,
+    2026071704,
+    2026071705,
+    2026071706,
+    2026071707,
+    2026071708,
+    2026071709,
+    2026071710,
+    2026071711,
+    2026071712,
+    2026071713,
+    2026071714,
+    2026071715,
+    2026071716,
+    2026071717,
+    2026071718,
+    2026071719
+  ],
+  "governance_seed_formula": "(gov_seed*100 + ds_index*7 + training_seed*13) % (2**31-1)",
+  "mi_seed": 42,
+  "selection_hash_scheme": "SHA256(b'encoded_column_indices_v1\\0' + sorted_indices_as_little_endian_int64_bytes)",
+  "key_columns": [
+    "dataset_index",
+    "mechanism",
+    "strength",
+    "training_seed",
+    "model"
+  ],
+  "expected_keys_per_model": 5500,
+  "expected_rows_per_model": 121000,
+  "expected_rows_total": 363000,
+  "expected_fits_per_model": 23,
+  "expected_fits_total": 379500,
+  "primary_estimand": "D_q = SDR_P3 - mean(SDR_P2 over 20 gov seeds)",
+  "bootstrap_design": {
+    "unit": "task(dataset_index)",
+    "inner": "training_seed resampling",
+    "reps": 20000,
+    "rng_seed": 20260719
+  },
+  "exact_test": "two-sided sign-flip, 2^20 assignments, Holm family of 3",
+  "parity_tolerance": {
+    "absolute": 1e-12,
+    "relative": 0
+  },
+  "allowed_wording": {
+    "positive": "Positive matched-cost repair advantage replicated across the three named frozen implementations.",
+    "interaction": "No reliable learner interaction was detected under the tested implementations.",
+    "structured": "The structured average combines low-opportunity mechanisms with the positive M09 counterexample."
+  },
+  "forbidden_wording": {
+    "learner_invariance": "Learners are equivalent/invariant.",
+    "model_independent": "Model-independent or universally robust repair."
+  }
+}
