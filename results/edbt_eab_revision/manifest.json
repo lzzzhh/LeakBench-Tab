@@ -1,30 +1,138 @@
 {
+  "schema_version": 2,
   "phase": "EDBT_governance_revision",
-  "status": "COMPLETE",
-  "protocol_sha": "e01d4f6388e2119c05fc5bbae6c819f0c43280cce89ef07ac8d33585abfad51f",
-  "analysis_script_sha": "304cd6eca0107d234c2ae81c0bc7d017738afa1d2802478c083b8cf9b80e7bbd",
-  "b1_lr_sha": "7cf1c84128829ba795dde77e20f7f74ca982a2a1cce33a578fc3a2be9bad291f",
-  "b2_rf_sha": "f70d83356dc8b037628a3c38ef5895dd6966f802391ba7da7bffc57f890268f3",
-  "b2_lgbm_sha": "8d589b5bb94e30c132b49a57cf0af8d89f5ec8df3dfb26faadc57ba93f6ca8ad",
-  "analysis_summary_sha": "d8081c01714bbe6aa334573aa0eeac6335ca9ec4c9fa3e4572289d4a6ec63612",
-  "a1_sha": "d0efd0bb0b17a5e210e0324f4c1184f74eb9ae4d955d745ef15dabb84024b48f",
-  "a2_sha": "d86619b9b716fa16c03936cfae86ff3786842f73eb07234a823b1d6bfbe4b87e",
-  "a3_sha": "67297fa9577d891e28e1c3b3b2b15e2168cd6c77249d7e3b4e582da0057abc47",
-  "budget": 0.2,
-  "bootstrap_seed": 20260717,
-  "bootstrap_reps": 10000,
-  "bootstrap_unit": "dataset_index",
-  "models": [
-    "LR",
-    "RF",
-    "LightGBM"
+  "status": "COMPLETE_WITH_DISCLOSED_LIMITATIONS",
+  "canonical_dataset": {
+    "format": "manifest_bound_csv_partitions",
+    "partitions": [
+      "b1_multiseed_p2.csv",
+      "b2_rf.csv",
+      "b2_lgbm.csv"
+    ],
+    "rows": 709500,
+    "duplicate_run_ids": 0
+  },
+  "analysis": {
+    "primary_budget": 0.2,
+    "bootstrap_seed": 20260717,
+    "bootstrap_repetitions": 10000,
+    "bootstrap_unit": "dataset_index",
+    "keys_per_model": 5500,
+    "governance_seeds": 20
+  },
+  "validation": {
+    "all_rows_success": true,
+    "selection_hashes_complete": true,
+    "cross_model_selection_hashes_matched": true,
+    "claim_state_builder_derived": true,
+    "analysis_inputs_bound": true,
+    "b2_baseline_refit_deviation_disclosed": true
+  },
+  "limitations": [
+    "B2 strict/full baselines were re-fitted under a disclosed post-run protocol deviation.",
+    "Natural-data governance was not run.",
+    "Semantic-group budget sensitivity was not run."
   ],
-  "mechanisms": 11,
-  "gov_seeds": 20,
-  "SP5_canonical_sha": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
-  "SP8_frozen_sha": "6e3aa4c7edbc6f476ad3494be659892a0dd7271a109a66ff69ee8f1d6dfca9d8",
-  "known_issues": {
-    "B1_P2_mask_hash": "empty (runner bug \u2014 selection not hashed)",
-    "B2_strict_full_reffitted": "Runner re-fits strict/full per model instead of using frozen SP8 references. Protocol amendment needed."
-  }
+  "tests": {
+    "command": "PYTHONPATH=. pytest -q",
+    "passed": 228,
+    "failed": 0
+  },
+  "git_head_at_build": "2c7e6af12d97d5148f277ceda4b196ddbfe8cd76",
+  "artifacts": [
+    {
+      "path": "results/edbt_eab_revision/b1_multiseed_p2.csv",
+      "sha256": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237",
+      "rows": 467500
+    },
+    {
+      "path": "results/edbt_eab_revision/b2_rf.csv",
+      "sha256": "b2f8ecb5fcec215d2239eec959ed416aa8efc009f2b5f918e246c9ffc2f5b678",
+      "rows": 121000
+    },
+    {
+      "path": "results/edbt_eab_revision/b2_lgbm.csv",
+      "sha256": "a51e1f53d8648d49a7689a2b16127a810ce84f4f98a2f099774a2e267addcb69",
+      "rows": 121000
+    },
+    {
+      "path": "results/edbt_eab_revision/a1_mechanism_level.csv",
+      "sha256": "65a06c98771f8197c8aa8e3ec126d6ed4c606ae795d2e7e3e37764a8f6b62093",
+      "rows": 11
+    },
+    {
+      "path": "results/edbt_eab_revision/a2_gap_stratification.csv",
+      "sha256": "aa61ca7630280a64826248a89d110f410321c145558508e56dc1e7b495042c99",
+      "rows": 4
+    },
+    {
+      "path": "results/edbt_eab_revision/a3_archetype.csv",
+      "sha256": "6a044f1e66803766edbbacc8000cb16f0141b67ab2a634a029d9369a5032fd05",
+      "rows": 10
+    },
+    {
+      "path": "results/edbt_eab_revision/analysis_summary.json",
+      "sha256": "509d91a417a3cdb222b4eb1cfe91be6f39d92654e1269e798846545c93299bc2"
+    },
+    {
+      "path": "results/edbt_eab_revision/claim_state.json",
+      "sha256": "4caecb6dc23c551f29afdbb3f3fd89aa20f663ab8e4d0018e968320bb4d75805"
+    },
+    {
+      "path": "results/edbt_eab_revision/selection_hash_backfill.json",
+      "sha256": "6974a71c90eb8273b0384a473f37ea2963bc1dcd1844b57ef8254110f6c4486f"
+    },
+    {
+      "path": "reports/edbt_eab/governance_revision_protocol.md",
+      "sha256": "de68b2f4542528b057b93f781857d7c9f77bd4da5eb92137f286ac87e3f36880"
+    },
+    {
+      "path": "reports/edbt_eab/revision_fix/final_report.md",
+      "sha256": "eb6a11766267e44a7f3b537eee1857a5fed5ccb065030e2a330fb28d761cdee5"
+    },
+    {
+      "path": "scripts/analyze_governance_revision.py",
+      "sha256": "ead8d28de4e0c25a72d4c4b50c912025981e6df98e4009e5ee144d0418210fa9"
+    },
+    {
+      "path": "scripts/backfill_governance_selection_hashes.py",
+      "sha256": "eb8e32613ad1306eb6e76d9b2df7222935023194a0266a64aff1c934b015b1c4"
+    },
+    {
+      "path": "scripts/build_governance_revision_claim_state.py",
+      "sha256": "750d336949f018954e3f1abe294313bccdba66d5f8ad6643fa5dca2cb289d1db"
+    },
+    {
+      "path": "scripts/build_governance_revision_manifest.py",
+      "sha256": "5670e1126aebd50c449e7beeb2e055bc21062d9c41c329e8e3b996ae96135cad"
+    },
+    {
+      "path": "scripts/run_sp8_b1_multiseed.py",
+      "sha256": "fa94152e3cd36828c2c42f3e0017ef89a54aa308c68a7b1070f389cdaed5ee8a"
+    },
+    {
+      "path": "scripts/run_sp8_b2_crosslearner.py",
+      "sha256": "227f73312ed1f157a731e0f7d12d6e2ac92de6107753ad10f11f6d9d2f8c0427"
+    },
+    {
+      "path": "scripts/run_sp8_b2_parallel.py",
+      "sha256": "8d1421243b2ed6425012db1250bc7accdfa51930a0aab15119a3fd1127e0d14a"
+    },
+    {
+      "path": "tests/test_governance_revision.py",
+      "sha256": "f6cbbb059aae1db91292a2f25b5e7d100af5dc7ba838b7c9cf3e783618fce660"
+    },
+    {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c"
+    },
+    {
+      "path": "results/corrected_v2/canonical_cells.csv",
+      "sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7"
+    },
+    {
+      "path": "artifacts/sp8/governance_clean.csv",
+      "sha256": "6e3aa4c7edbc6f476ad3494be659892a0dd7271a109a66ff69ee8f1d6dfca9d8"
+    }
+  ]
 }
