@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "derivation": "scripts/build_governance_revision_claim_state.py",
+  "primary_budget": 0.2,
+  "claims": {
+    "C1_MULTI_LEARNER_GOVERNANCE": {
+      "status": "SUPPORTED",
+      "evidence_tier": "confirmatory_with_disclosed_b2_protocol_deviation",
+      "allowed_wording": "At the 20% matched encoded-column budget, blind MI removal improves SDR over the mean of 20 random-removal realizations for LR, RF, and LightGBM in the controlled registry.",
+      "forbidden_wording": "MI removal generally solves tabular leakage.",
+      "evidence": [
+        "LR_overall",
+        "RF_overall",
+        "LightGBM_overall"
+      ]
+    },
+    "C2_NO_DETECTED_LEARNER_INTERACTION": {
+      "status": "SUPPORTED",
+      "evidence_tier": "confirmatory_with_disclosed_b2_protocol_deviation",
+      "allowed_wording": "Direct paired contrasts do not detect a reliable difference in the governance effect among LR, RF, and LightGBM.",
+      "forbidden_wording": "The governance effect is learner-invariant or equivalent across all learners.",
+      "evidence": [
+        "interaction_LR_vs_RF",
+        "interaction_LR_vs_LightGBM",
+        "interaction_RF_vs_LightGBM"
+      ]
+    },
+    "C3_STRUCTURED_HETEROGENEITY": {
+      "status": "NARROWED",
+      "evidence_tier": "mechanism_level_sensitivity",
+      "allowed_wording": "The structured-family average mixes low-gap mechanisms with M09, a structured mechanism showing substantial initial distortion and a positive MI-guided governance effect.",
+      "forbidden_wording": "MI fails on structured leakage or initial gap alone determines repairability.",
+      "evidence": [
+        "LR_structured",
+        "RF_structured",
+        "LightGBM_structured",
+        "LR_M04",
+        "LR_M05",
+        "LR_M08",
+        "LR_M09",
+        "RF_M09",
+        "LightGBM_M09"
+      ]
+    },
+    "C4_ARCHETYPE_SENSITIVITY": {
+      "status": "SUPPORTED",
+      "evidence_tier": "designed_registry_sensitivity",
+      "allowed_wording": "The overall point estimate remains positive in every leave-one-archetype-out analysis, while the sparse archetype is a negative regime.",
+      "forbidden_wording": "The governance advantage is uniform across archetypes.",
+      "evidence": [
+        "archetype_sparse",
+        "archetype_LOAO_linear",
+        "archetype_LOAO_interaction",
+        "archetype_LOAO_nonlinear",
+        "archetype_LOAO_sparse",
+        "archetype_LOAO_drifting"
+      ]
+    },
+    "C5_NATURAL_GOVERNANCE": {
+      "status": "NOT_RUN",
+      "evidence_tier": "missing",
+      "allowed_wording": "Natural case studies evaluate harm but not the governance policy.",
+      "forbidden_wording": "The governance result is validated on natural datasets.",
+      "evidence": []
+    },
+    "C6_SEMANTIC_GROUP_BUDGET": {
+      "status": "NOT_RUN",
+      "evidence_tier": "missing",
+      "allowed_wording": "The primary governance cost is encoded-column based.",
+      "forbidden_wording": "The result is invariant to semantic-group cost.",
+      "evidence": []
+    }
+  },
+  "global_limitations": [
+    "B2 strict/full baselines were re-fitted under a disclosed post-run protocol deviation.",
+    "Natural-data governance and semantic-group budget sensitivity were not run.",
+    "Gap quartiles and mechanism-level decomposition are sensitivity analyses, not standalone causal tests."
+  ],
+  "analysis_summary_sha256": "509d91a417a3cdb222b4eb1cfe91be6f39d92654e1269e798846545c93299bc2",
+  "builder_sha256": "750d336949f018954e3f1abe294313bccdba66d5f8ad6643fa5dca2cb289d1db"
+}

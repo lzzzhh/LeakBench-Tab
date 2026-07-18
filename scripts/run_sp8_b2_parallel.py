@@ -23,12 +23,17 @@ FIELDS = [
     "status","failure_reason",
     "strict_auc","full_auc","governed_auc",
     "strict_distance_reduction","initial_gap",
-    "removed_count",
+    "removed_count","selection_mask_hash",
 ]
 
 
 def sha_file(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+
+def selection_hash(indices):
+    values = np.sort(np.asarray(indices, dtype='<i8'))
+    return hashlib.sha256(b"encoded_column_indices_v1\0" + values.tobytes()).hexdigest()
 
 
 def load_cell(row):
@@ -91,8 +96,8 @@ def process_key(args):
             results.append(dict(run_id=rid0, dataset_index=ds_i, mechanism=mech, strength=strength,
                 training_seed=tseed, governance_seed=-1, model=model, policy="P0_keep", budget_k=0, budget_fraction=0.0,
                 status="SUCCESS", strict_auc=round(strict_auc, 6), full_auc=round(full_auc, 6),
-                governed_auc=round(strict_auc, 6), strict_distance_reduction=0.0, initial_gap=round(gap, 6),
-                removed_count=0))
+                governed_auc=round(full_auc, 6), strict_distance_reduction=0.0, initial_gap=round(gap, 6),
+                removed_count=0, selection_mask_hash=selection_hash([])))
 
             # P3
             mi_scores = mutual_info_classif(X[tr], y[tr], random_state=42)
@@ -106,7 +111,7 @@ def process_key(args):
                 training_seed=tseed, governance_seed=-1, model=model, policy="P3_blind_mi", budget_k=k, budget_fraction=BUDGET,
                 status="SUCCESS", strict_auc=round(strict_auc, 6), full_auc=round(full_auc, 6),
                 governed_auc=round(gov_auc, 6), strict_distance_reduction=round(sdr, 6),
-                initial_gap=round(gap, 6), removed_count=k))
+                initial_gap=round(gap, 6), removed_count=k, selection_mask_hash=selection_hash(mi_fields)))
 
             # P2 multi-seed
             for gs in GOV_SEEDS:
@@ -119,7 +124,7 @@ def process_key(args):
                     training_seed=tseed, governance_seed=gs, model=model, policy="P2_random", budget_k=k, budget_fraction=BUDGET,
                     status="SUCCESS", strict_auc=round(strict_auc, 6), full_auc=round(full_auc, 6),
                     governed_auc=round(gov_auc, 6), strict_distance_reduction=round(sdr, 6),
-                    initial_gap=round(gap, 6), removed_count=k))
+                    initial_gap=round(gap, 6), removed_count=k, selection_mask_hash=selection_hash(rm_fields)))
         except Exception as e:
             results.append({"run_id": f"err_{ds_i}_{mech}_{model}", "status": "FAILURE",
                 "failure_reason": str(e)[:200], "dataset_index": ds_i})

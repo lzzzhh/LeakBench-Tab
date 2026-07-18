@@ -79,3 +79,32 @@ Total: ~550,000 cell records
 - Claims builder-derived
 - Manifest fully bound
 - All tests pass
+
+## Post-run protocol deviation disclosure (2026-07-18)
+
+**Status:** DISCLOSED_AFTER_RESULTS; this section is not represented as a
+prospectively frozen amendment.
+
+The B2 runner did not numerically reuse strict/full AUROCs from the SP5
+canonical table as stated on line 58. It re-fitted strict and full RF and
+LightGBM baselines from the same immutable SP6 bundle views before fitting each
+governed view. The re-fit is internally consistent with the SDR definition used
+within each B2 key, but it is a deviation from the frozen wording. Therefore:
+
+- B2 is described as a pre-specified cross-learner extension with a disclosed
+  baseline-re-fit deviation, not as a bitwise reuse of SP5 model outputs.
+- Cross-learner claims are restricted to within-run P3-minus-mean(P2) contrasts
+  at the 20% encoded-column budget.
+- The manuscript must not imply numerical identity between B2 strict/full
+  baselines and SP5 canonical strict/full cells.
+
+The original B1/B2 outputs also omitted valid selection-mask hashes. Because
+the selections are deterministic functions of the immutable bundle, recorded
+budget, MI random state, and governance seed, hashes are reconstructed without
+model fitting by `scripts/backfill_governance_selection_hashes.py`. The
+backfill metadata records pre/post hashes, the hash scheme, bundle-manifest
+binding, and cross-model mask equality checks.
+
+For asset governance, the canonical revision dataset is the manifest-bound
+partition set `{b1_multiseed_p2.csv, b2_rf.csv, b2_lgbm.csv}` rather than a
+fourth concatenated copy of the same 709,500 rows.

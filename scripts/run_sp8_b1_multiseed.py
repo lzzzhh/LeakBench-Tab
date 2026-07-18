@@ -32,6 +32,11 @@ FIELDS = [
 def sha_file(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
+def selection_hash(indices):
+    values = np.sort(np.asarray(indices, dtype='<i8'))
+    return hashlib.sha256(b"encoded_column_indices_v1\0" + values.tobytes()).hexdigest()
+
+
 def load_cell(row):
     bundle = ROOT / row["bundle_path"]
     if sha_file(bundle) != str(row["bundle_sha256"]).lower():
@@ -82,15 +87,20 @@ def main(argv=None):
         completed = set(pd.read_csv(out)["run_id"].astype(str))
 
     n_keys = len(man)
-    est = n_keys * (1 + 1 + len(GOV_SEEDS) * len(BUDGET_FRACTIONS))
+    est = n_keys * (1 + len(BUDGET_FRACTIONS) + len(GOV_SEEDS) * len(BUDGET_FRACTIONS))
     print(f"B1 multi-seed P2: {n_keys} keys, est {est} rows", flush=True)
     started = time.time(); done = 0
 
     for _, row in man.iterrows():
         ds_i = int(row["dataset_index"]); mech = row["mechanism"]
         strength = row["strength"]; tseed = int(row["seed"])
-        try: X, y, tr, te, mask = load_cell(row)
-        except: continue
+        try:
+            X, y, tr, te, mask = load_cell(row)
+        except Exception as exc:
+            raise RuntimeError(
+                f"failed to load bundle for dataset={ds_i} mechanism={mech} "
+                f"strength={strength} seed={tseed}"
+            ) from exc
 
         n_features = X.shape[1]; strict_cols = np.where(~mask)[0]
         k_map, unique_ks = unique_budgets(n_features)
@@ -105,8 +115,8 @@ def main(argv=None):
             _append(out, dict(run_id=rid0, dataset_index=ds_i, mechanism=mech, strength=strength,
                 training_seed=tseed, governance_seed=-1, policy="P0_keep", budget_k=0, budget_fraction=0.0,
                 status="SUCCESS", strict_auc=round(strict_auc,6), full_auc=round(full_auc,6),
-                governed_auc=round(strict_auc,6), strict_distance_reduction=0.0, initial_gap=round(gap,6),
-                removed_count=0, selection_mask_hash=""))
+                governed_auc=round(full_auc,6), strict_distance_reduction=0.0, initial_gap=round(gap,6),
+                removed_count=0, selection_mask_hash=selection_hash([])))
 
         # P3: blind MI (one fit per unique k)
         mi_scores = mutual_info_classif(X[tr], y[tr], random_state=42)
@@ -126,7 +136,7 @@ def main(argv=None):
                         training_seed=tseed, governance_seed=-1, policy="P3_blind_mi", budget_k=k, budget_fraction=frac,
                         status="SUCCESS", strict_auc=round(strict_auc,6), full_auc=round(full_auc,6),
                         governed_auc=round(gov_auc,6), strict_distance_reduction=round(sdr,6),
-                        initial_gap=round(gap,6), removed_count=k, selection_mask_hash=sha_file.__name__))
+                        initial_gap=round(gap,6), removed_count=k, selection_mask_hash=selection_hash(mi_fields)))
 
         # P2: multi-governance-seed random
         for k in unique_ks:
@@ -145,7 +155,7 @@ def main(argv=None):
                             training_seed=tseed, governance_seed=gs, policy="P2_random", budget_k=k, budget_fraction=frac,
                             status="SUCCESS", strict_auc=round(strict_auc,6), full_auc=round(full_auc,6),
                             governed_auc=round(gov_auc,6), strict_distance_reduction=round(sdr,6),
-                            initial_gap=round(gap,6), removed_count=k, selection_mask_hash=""))
+                            initial_gap=round(gap,6), removed_count=k, selection_mask_hash=selection_hash(rm_fields)))
 
         if done % 5000 == 0:
             print(f"  {done}/{est} | {time.time()-started:.0f}s", flush=True)
