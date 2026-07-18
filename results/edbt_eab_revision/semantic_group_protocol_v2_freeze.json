@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_SEMANTIC_V2_EXECUTION",
+  "supersedes_semantic_runner_only": "scripts/run_remaining_governance.py semantic",
+  "v1_incident": {
+    "stage": "first-key frozen-baseline lookup",
+    "cause": "P0 baseline rows were filtered out by the 20% budget filter before lookup",
+    "experiment_rows_written": 0,
+    "scientific_protocol_changed": false
+  },
+  "correction": "carry strict/full AUCs from the unique encoded-cost P3 row at the primary 20% budget",
+  "bindings": [
+    {
+      "path": "scripts/run_semantic_group_governance_v2.py",
+      "sha256": "753709918fa14690a2f7f49b63deb4590841e4cc566c567fba0e5065de2f29a6",
+      "size_bytes": 5931
+    },
+    {
+      "path": "tests/test_remaining_governance.py",
+      "sha256": "0a0fd890a952415160701cc50fc227495630b3870fb7859ca44db3a295a36dba",
+      "size_bytes": 2107
+    },
+    {
+      "path": "results/edbt_eab_revision/remaining_governance_protocol_freeze.json",
+      "sha256": "c4d8a8a83bd5fcb50eef75a03ecc3a454da701bf440f36a156203b6a2fd4bd0f",
+      "size_bytes": 4323
+    },
+    {
+      "path": "results/edbt_eab_revision/b1_multiseed_p2.csv",
+      "sha256": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237",
+      "size_bytes": 84659255
+    },
+    {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+      "size_bytes": 1770803
+    }
+  ]
+}

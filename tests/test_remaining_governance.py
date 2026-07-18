@@ -5,6 +5,7 @@ import numpy as np
 
 from scripts.analyze_remaining_governance import paired
 from scripts.run_remaining_governance import m09_groups, random_selection, selection_hash
+from scripts.run_semantic_group_governance_v2 import encoded_baseline
 
 
 def test_m09_semantic_groups_collapse_only_one_hot_block():
@@ -36,3 +37,13 @@ def test_paired_averages_random_seeds_within_key():
     result = paired(pd.DataFrame(rows), ["task", "training_seed"])
     assert result.iloc[0].paired == 0.3
 
+
+def test_semantic_v2_baseline_is_carried_by_primary_p3_row():
+    import pandas as pd
+    frame = pd.DataFrame([
+        {"dataset_index": 0, "strength": "S1", "training_seed": 13,
+         "policy": "P0_keep", "budget_fraction": 0.0, "strict_auc": 0.6, "full_auc": 0.8},
+        {"dataset_index": 0, "strength": "S1", "training_seed": 13,
+         "policy": "P3_blind_mi", "budget_fraction": 0.2, "strict_auc": 0.6, "full_auc": 0.8},
+    ])
+    assert encoded_baseline(frame, 0, "S1", 13) == (0.6, 0.8)
