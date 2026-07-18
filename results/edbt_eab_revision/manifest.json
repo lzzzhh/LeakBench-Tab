@@ -1,0 +1,30 @@
+{
+  "phase": "EDBT_governance_revision",
+  "status": "COMPLETE",
+  "protocol_sha": "e01d4f6388e2119c05fc5bbae6c819f0c43280cce89ef07ac8d33585abfad51f",
+  "analysis_script_sha": "304cd6eca0107d234c2ae81c0bc7d017738afa1d2802478c083b8cf9b80e7bbd",
+  "b1_lr_sha": "7cf1c84128829ba795dde77e20f7f74ca982a2a1cce33a578fc3a2be9bad291f",
+  "b2_rf_sha": "f70d83356dc8b037628a3c38ef5895dd6966f802391ba7da7bffc57f890268f3",
+  "b2_lgbm_sha": "8d589b5bb94e30c132b49a57cf0af8d89f5ec8df3dfb26faadc57ba93f6ca8ad",
+  "analysis_summary_sha": "d8081c01714bbe6aa334573aa0eeac6335ca9ec4c9fa3e4572289d4a6ec63612",
+  "a1_sha": "d0efd0bb0b17a5e210e0324f4c1184f74eb9ae4d955d745ef15dabb84024b48f",
+  "a2_sha": "d86619b9b716fa16c03936cfae86ff3786842f73eb07234a823b1d6bfbe4b87e",
+  "a3_sha": "67297fa9577d891e28e1c3b3b2b15e2168cd6c77249d7e3b4e582da0057abc47",
+  "budget": 0.2,
+  "bootstrap_seed": 20260717,
+  "bootstrap_reps": 10000,
+  "bootstrap_unit": "dataset_index",
+  "models": [
+    "LR",
+    "RF",
+    "LightGBM"
+  ],
+  "mechanisms": 11,
+  "gov_seeds": 20,
+  "SP5_canonical_sha": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
+  "SP8_frozen_sha": "6e3aa4c7edbc6f476ad3494be659892a0dd7271a109a66ff69ee8f1d6dfca9d8",
+  "known_issues": {
+    "B1_P2_mask_hash": "empty (runner bug \u2014 selection not hashed)",
+    "B2_strict_full_reffitted": "Runner re-fits strict/full per model instead of using frozen SP8 references. Protocol amendment needed."
+  }
+}
