@@ -95,10 +95,14 @@ def test_formal_summary_is_matched_at_twenty_percent():
 
 def test_claim_state_is_builder_derivable():
     summary = json.loads((REVISION / "analysis_summary.json").read_text())
-    expected = derive(summary)
+    remaining = json.loads((REVISION / "remaining_governance_summary.json").read_text())
+    expected = derive(summary, remaining)
     actual = json.loads((REVISION / "claim_state.json").read_text())
     assert actual["claims"] == expected["claims"]
     assert actual["analysis_summary_sha256"] == sha256(REVISION / "analysis_summary.json")
+    assert actual["remaining_governance_summary_sha256"] == sha256(REVISION / "remaining_governance_summary.json")
+    assert actual["claims"]["C5_NATURAL_GOVERNANCE"]["status"] == "MIXED"
+    assert actual["claims"]["C6_SEMANTIC_GROUP_BUDGET"]["status"] == "NARROWED"
 
 
 def test_selection_hashes_are_complete_and_cross_model_matched():

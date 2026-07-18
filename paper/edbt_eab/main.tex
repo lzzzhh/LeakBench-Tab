@@ -55,18 +55,20 @@ cells across 20 panel tasks, 11 mechanisms, five strengths, five seeds, and
 five model families. In this registry, simple mechanisms produce \CoreContrast{}
 more paired AUROC harm than structured mechanisms (95\% CI
 [\CoreContrastLow{}, \CoreContrastHigh{}]). A separate oracle-isolated
-governance matrix contains \GovernanceCellCount{} logistic regression cells.
-At a 20\% removal budget, blind training side mutual information (P3) improves
-strict distance reduction over matched random removal (P2) by
-\GovTwentyDiff{} (95\% paired dataset-cluster bootstrap CI
-[\GovTwentyLow{}, \GovTwentyHigh{}]). The advantage is concentrated in simple
-and boundary mechanisms. Structured mechanisms show no reliable advantage
-(\GovStructuredDiff{}, CI [\GovStructuredLow{}, \GovStructuredHigh{}]). At a
-1\% budget, P3 recalls \GovOneRecall{} of contaminated fields while retaining
-\GovOneRetention{} of legitimate fields. These results establish a bounded
-measurement-to-action finding: blind feature scoring can mitigate leakage in a
-linear-model panel, but detectability is not a universal governance rule and
-structured contamination remains unresolved.
+governance experiment compares blind training-side mutual information (P3)
+with the mean of 20 matched random-removal realizations (P2). At a 20\%
+encoded-column budget, the P3--P2 strict-distance-reduction contrast is +0.043
+for logistic regression (95\% dataset-cluster bootstrap CI [+0.004,+0.078]),
++0.055 for random forest ([+0.025,+0.082]), and +0.056 for LightGBM
+([+0.028,+0.082]). Mechanism-level analysis shows that the structured average
+mixes near-zero-gap mechanisms with the positive M09 source-leakage
+counterexample. When the eight M09 indicators are charged as one semantic
+group, M09 remains positive (+0.109, [+0.054,+0.158]), but the recomposed
+overall interval crosses zero (+0.040, [-0.003,+0.077]). Five fixed natural
+cases provide mixed descriptive support: four favor P3 and NYC311 favors
+random removal. Blind scoring can therefore mitigate leakage in this
+controlled panel, but the result depends on repair opportunity,
+representation cost, and application context.
 \end{abstract}
 
 \keywords{data leakage, tabular benchmarks, experimental analysis, feature
@@ -414,16 +416,18 @@ means.
 \subsection{Matched-Cost Governance Policies}
 
 The governance experiment uses the same 5,500 combinations of task, mechanism,
-strength, and seed. Logistic regression is the downstream learner. P0 retains
+strength, and seed. Logistic regression, random forest, and LightGBM are the
+downstream learners. P0 retains
 all fields. P1 removes every field labeled contaminated by construction and
 serves only as an oracle reference. P2 removes $k$ fields uniformly at random
-with a frozen seed.
+under 20 frozen governance seeds.
 P3 removes the $k$ fields with the largest training side mutual information
-scores. More formally, if $\omega_0$ denotes the frozen random-policy
-realization and $I_{qj}^{\mathrm{train}}$ denotes the training-only MI score,
+scores. More formally, if $\omega\in\Omega$ denotes one of $|\Omega|=20$
+frozen random-policy realizations and $I_{qj}^{\mathrm{train}}$ denotes the
+training-only MI score,
 then
 \begin{align}
- \mathcal{R}_{q,\mathrm{P2},k}^{(\omega_0)}
+ \mathcal{R}_{q,\mathrm{P2},k}^{(\omega)}
  &\sim \mathrm{Unif}\{R\subseteq\mathcal{F}_q:|R|=k\},
  \label{eq:p2}\\
  \mathcal{R}_{q,\mathrm{P3},k}
@@ -439,13 +443,16 @@ $d_q=|\mathcal{F}_q|$ encoded fields, both policies use
 \end{equation}
 Thus the comparison satisfies the cellwise cost identity
 \begin{equation}
- |\mathcal{R}_{q,\mathrm{P2},k}^{(\omega_0)}|
+ |\mathcal{R}_{q,\mathrm{P2},k}^{(\omega)}|
  =|\mathcal{R}_{q,\mathrm{P3},k}|=k_q(p).
  \label{eq:matched-cost}
 \end{equation}
 P2 and P3 therefore remove exactly the same number of fields for each key and
-budget. Nominal budgets that collapse to the same integer $k$ reuse the same
-fitted result and retain both labels in the ledger.
+budget. The primary contrast uses
+$\Delta_q=\mathrm{SDR}_{q,\mathrm{P3}}-|\Omega|^{-1}
+\sum_{\omega\in\Omega}\mathrm{SDR}_{q,\mathrm{P2}}^{(\omega)}$ before
+dataset-cluster resampling. Nominal budgets that collapse to the same integer
+$k$ reuse the same fitted result and retain both labels in the ledger.
 
 The clean runner loads frozen bundles, verifies bundle and split hashes, and
 does not inject, split, or mutate data. Non-oracle selectors never receive the
@@ -461,10 +468,11 @@ boundaries: call completion for Bank Marketing, loan origination for Lending
 Club, scheduled departure for U.S. flights, inspection completion for Chicago
 food inspections, and complaint creation for NYC 311. For each task, the
 strict view removes fields declared unavailable at that boundary and the
-permissive view retains them. The audit crosses four CPU learner families with
-three seeds, producing 60 paired cells. TabM and the governance policies are
-not evaluated on these cases, so the natural audit can support only a
-descriptive exploitability check.
+permissive view retains them. The harm audit crosses four CPU learner families
+with three seeds, producing 60 paired cells. A separate LR governance
+sensitivity uses the 20\% retained-feature budget, three training seeds, and 20
+P2 governance seeds, producing 315 policy cells. The five cases are selected
+rather than sampled, so both analyses remain descriptive fixed-case evidence.
 
 Categorical preprocessing is fitted on training rows. Categories absent from
 training map to a reserved unknown value, missing categories receive a separate
@@ -676,8 +684,7 @@ a local Lending Club mirror, U.S. flight delays \cite{btsOnTime}, Chicago food
 inspections \cite{chicagoFoodInspections}, and NYC 311 \cite{nyc311}. All have
 positive mean paired harm, but their size, feature representation, and
 contamination labels differ. The mean over these five selected tasks is
-\NaturalMeanHarm{}. We do not use these cases for population inference or for
-a governance support decision.
+\NaturalMeanHarm{}. We do not use these cases for population inference.
 
 The five case means span a wide range rather than forming a homogeneous
 replication set. Flight and inspection boundaries show large observed harm,
@@ -690,25 +697,34 @@ summary, not a transport estimate. The fact that all five observed means are
 positive is reported as a fixed-case description and is not promoted to a
 population claim.
 
+The matched-cost governance sensitivity is also heterogeneous. The descriptive
+mean P3-minus-mean-P2 SDR across the five cases is +0.187 (case-bootstrap
+interval [+0.025,+0.323]), but the five cases do not form a population sample.
+Bank Marketing (+0.102), Lending Club (+0.266), BTS Flights (+0.348), and
+Chicago Food (+0.326) favor P3, whereas NYC311 favors P2 (-0.108). The exact
+two-sided sign-flip value over the five fixed case effects is 0.1875. We
+therefore classify natural governance as mixed descriptive evidence rather
+than external confirmation.
+
 \input{generated/table_natural.tex}
 
 \section{Governance Results}
 
 \subsection{Blind MI Outperforms Random Removal Across Budgets}
 
-At a 20\% budget, P3 exceeded matched random removal by \GovTwentyDiff{} SDR
-(95\% paired cluster-bootstrap CI [\GovTwentyLow{}, \GovTwentyHigh{}]). The
-bootstrap superiority probability was \GovTwentyProb{}. At 1\%, 5\%, and 10\%
-budgets, the corresponding intervals also remained above zero. The observed
-P3--P2 difference was \GovOneDiff{} at 1\%, where P3 recalled \GovOneRecall{}
-of contaminated fields and retained \GovOneRetention{} of legitimate fields.
-Increasing the nominal budget raised recall but reduced legitimate retention,
-making the policy trade-off visible rather than collapsing it into SDR alone.
+At a 20\% encoded-column budget, P3 exceeded the within-key mean of 20 P2
+realizations by +0.043 SDR for LR (95\% paired dataset-cluster bootstrap CI
+[+0.004,+0.078]), +0.055 for RF ([+0.025,+0.082]), and +0.056 for LightGBM
+([+0.028,+0.082]). Direct paired learner contrasts all cross zero, so the
+supported statement is that the direction and magnitude are similar in this
+three-learner panel, not that the effects are equivalent or learner-invariant.
+The encoded-column budget curve additionally shows the recall--retention
+trade-off across 1\%, 5\%, 10\%, and 20\% removal.
 
 Random removal is a meaningful negative control in this setting because feature
 deletion can improve SDR without locating contamination. A permissive model may
 overfit weak legitimate fields, and deleting any such field can move its AUROC
-toward the strict score. P3 must therefore exceed the paired P2 realization,
+toward the strict score. P3 must therefore exceed the within-key mean P2 result,
 not merely obtain positive SDR. The observed advantage at all four nominal
 budgets indicates that MI ranking contributes information beyond deletion
 count in this LR panel.
@@ -732,7 +748,7 @@ of encoded fields at each task and nominal budget.}
 \label{fig:budget}
 \end{figure*}
 
-\subsection{The Overall Advantage Hides a Structured Failure Boundary}
+\subsection{The Structured Average Hides Repair-Opportunity Heterogeneity}
 
 At a 20\% budget, the P3--P2 difference was \GovSimpleDiff{} for simple
 mechanisms (CI [\GovSimpleLow{}, \GovSimpleHigh{}]) and \GovBoundaryDiff{} for
@@ -740,15 +756,18 @@ boundary mechanisms (CI [\GovBoundaryLow{}, \GovBoundaryHigh{}]). For
 structured mechanisms it was \GovStructuredDiff{} (CI
 [\GovStructuredLow{}, \GovStructuredHigh{}]). The structured interval crosses
 zero, so the supported statement is that this experiment finds no reliable P3
-advantage for that family. It does not establish equivalence between P3 and P2.
+advantage for that family. It does not establish equivalence between P3 and P2
+or a general failure of MI on structured leakage. M04, M05, and M08 have little
+initial strict--full gap, whereas M09 combines substantial distortion with a
+positive P3--P2 contrast across all three evaluated learners.
 
 The family decomposition is a direct effect comparison, not an inference from
 one interval being above zero and another crossing zero. Each family estimate
 recomputes the paired P3--P2 difference within its declared mechanism set and
 then clusters over tasks. The positive simple and boundary estimates therefore
 identify where the aggregate gain is concentrated. The structured estimate
-shows that the same ranking rule does not deliver a stable improvement once
-future, entity, and source relations dominate the family average.
+instead averages mechanisms with different repair opportunity and should not
+be treated as a category-level capability boundary.
 
 \begin{figure}[t]
 \centering
@@ -761,6 +780,24 @@ negative result, not an equivalence claim.}
 \end{figure}
 
 \input{generated/table_governance.tex}
+
+\subsection{Semantic-Group Cost Narrows the Overall Claim}
+
+The primary protocol charges encoded columns, so removing the complete M09
+source field costs eight units. A frozen sensitivity instead treats its eight
+one-hot indicators as one semantic group, scores each group by the maximum
+training-side MI of its members, and samples P2 uniformly over groups. M09 is
+the only mechanism whose frozen representation expands one semantic source
+into several encoded columns; the remaining 5,000 keys therefore retain their
+encoded-cost results in the 5,500-key recomposition.
+
+M09 remains positive under group cost: its P3--P2 contrast changes from +0.149
+(95\% CI [+0.125,+0.171]) to +0.109 ([+0.054,+0.158]). The paired
+semantic-minus-encoded change is -0.040 ([-0.076,-0.008]). After recomposition,
+the overall estimate is +0.040 with an interval that crosses zero
+([-0.003,+0.077]), compared with +0.043 ([+0.004,+0.078]) under encoded cost.
+Thus M09 is not an artifact of charging eight units, but the aggregate
+governance claim is sensitive to the representation-cost definition.
 
 \subsection{From Measurement to Action}
 
@@ -887,14 +924,13 @@ signal, calibration, and decision utility. The benchmark exposes ingredients
 for that choice but deliberately does not collapse them into a universal scalar
 utility.
 
-The structured failure boundary points toward metadata-aware governance. A
-future policy could rank semantic groups rather than encoded columns, enforce
-feature-lineage constraints, or treat temporal availability and entity
-aggregation as first-class metadata. Such policies would answer a different
-question from P3 and require a matched group-level cost definition. Their
-evaluation should preserve the same oracle-isolation rule: metadata available
-to the policy may be used, but the hidden contamination label should remain an
-evaluation object.
+The semantic-group sensitivity shows why cost definition must be part of the
+audit contract. Grouping M09's indicators preserves its positive effect but
+widens the full-panel uncertainty enough to cross zero. Richer policies could
+add feature-lineage constraints or treat temporal availability and entity
+aggregation as first-class metadata. Their evaluation should preserve the same
+oracle-isolation rule: metadata available to the policy may be used, but the
+hidden contamination label should remain an evaluation object.
 
 \subsection{Alternative Explanations and Required Follow-Ups}
 
@@ -902,43 +938,40 @@ The observed family pattern can have several compatible explanations. Simple
 mechanisms may be easier for MI to rank because their invalid signal is carried
 by individual encoded columns. Structured mechanisms may require group or
 conditional statistics, but they may also exhibit weaker exploitability in the
-particular generators, leaving less inflation for any policy to repair. The LR
-downstream model adds a third possibility: its representation may underuse some
-structured fields even when a more flexible learner would exploit them. The
-current factorial design describes the joint outcome of these factors; it does
-not identify their separate causal contributions.
+particular generators, leaving less inflation for any policy to repair.
+Learner representation adds a third possibility, although the similar LR, RF,
+and LightGBM contrasts do not reveal a detectable learner interaction in the
+present panel. The current factorial design describes the joint outcome of
+these factors; it does not identify their separate causal contributions.
 
-Three follow-up experiments would resolve the largest ambiguities. Repeating
-P2 selection over independent governance seeds would integrate random-policy
-variance rather than conditioning on one realization. Extending matched-cost
-governance to the four non-LR learner families would test whether the family
-boundary survives changes in downstream capacity. Finally, introducing
-lineage-, time-, entity-, and group-aware policies under frozen cost units would
-test whether the structured result is a limitation of MI or a more general
-constraint of blind columnwise removal. These are new experiments, not implied
-by the present confidence intervals.
+The largest remaining ambiguity concerns policies that use lineage, temporal,
+or entity metadata rather than blind univariate association. These policies
+would test whether low-gap structured mechanisms become governable when the
+intervention represents their construction semantics. Natural evaluation also
+remains narrow: five fixed cases cannot establish a population-level transport
+claim, and the negative NYC311 effect requires application-specific explanation
+rather than averaging away.
 
 \subsection{Limitations}
 
 The controlled tasks are synthetic panel generators, not twenty independent
 real-world datasets. Their bootstrap intervals describe registry stability,
-not a task population. The governance experiment uses logistic regression only;
-therefore the policy findings do not establish cross-model governance
-generalization. Extending matched cost governance to tree and neural learners
-is a separate empirical question.
+not a task population. The governance experiment covers LR, RF, and LightGBM,
+but these named implementations do not establish invariance across model
+families or tuning choices. The direct learner-interaction intervals cross
+zero; they are tests of detected difference, not equivalence tests.
 
-P2 uses one frozen random field selection for each task key and budget. The
-governance intervals therefore quantify task reweighting conditional on that
-policy realization; they do not integrate over random policy seed variance.
-Repeating P2 field selection across independent governance seeds would provide
-a stronger estimate of expected random removal performance. Nominal budget
-labels can also map to the same integer removal count on tasks with few fields,
+P2 uses 20 frozen random field selections for each task key and budget, and the
+primary estimand averages P2 within key before task-cluster resampling. This
+integrates the declared random-policy variance but does not cover every possible
+randomization scheme. Nominal budget labels can also map to the same integer
+removal count on tasks with few fields,
 so adjacent budget points are not fully distinct interventions for every task.
 
 The primary blind policy is univariate mutual information. It does not encode
 lineage, temporal availability, entity grouping, or source semantics. The
-negative structured result should not be generalized to all metadata aware or
-group aware policies. Conversely, P3's aggregate advantage should not be read
+structured-family average should not be generalized to all metadata-aware or
+group-aware policies. Conversely, P3's aggregate advantage should not be read
 as evidence that association determines validity.
 
 The five real-data audits are selected, boundary-specific case studies. One
@@ -963,8 +996,7 @@ metrics.
 \textbf{Internal validity.} The paired protocol holds splits, task content,
 model seeds, and removal cost fixed within each comparison. Bundle, split, and
 runner hashes reduce implementation drift, but they cannot rule out all
-library-specific behavior. The fixed P2 realization described above remains the
-largest unresolved baseline-sensitivity risk. Hyperparameters are fixed named
+library-specific behavior. Hyperparameters are fixed named
 implementations rather than optimized independently for every mechanism; this
 improves comparability but may understate the response of a specially tuned
 learner. Protocol amendments are provenance-bound and replace affected cells,
@@ -975,8 +1007,8 @@ completion checks.
 varies mechanism structure, but it does not define a sampling frame of tabular
 applications. Mechanism-family intervals and bootstrap probabilities should be
 read as stability summaries for this registry. The natural cases broaden the
-contexts inspected but remain selected case studies, and governance has not yet
-been evaluated on them. Multiplicity correction protects the declared contrast
+contexts inspected but remain selected case studies; their governance result is
+mixed and descriptive. Multiplicity correction protects the declared contrast
 families, but descriptive mechanism profiles and diagnostic sensitivity rows
 should not be mined as independent confirmatory discoveries.
 
@@ -985,7 +1017,7 @@ should not be mined as independent confirmatory discoveries.
 The release binds the canonical 27,500-cell measurement table, paper claim
 state, governance runner, 55,000-cell policy ledger, bootstrap analysis, and
 paper-facing CSV tables by SHA-256. The release validator deep-runs statistical
-tables and reports 281 passing tests with three skips. Superseded runners and
+tables and reports 233 passing tests with no failures. Superseded runners and
 intermediate cluster summaries are retained for provenance but excluded from
 claim generation. Paper figures and tables are regenerated from three compact
 CSV assets: the mechanism results, governance results, and natural cases.
@@ -1017,23 +1049,24 @@ used only for evaluation after selection.
 \section{Conclusion}
 
 LeakBench-Tab connects leakage measurement to matched budget action. Across a
-frozen controlled registry, blind training side mutual information removal
-has a positive observed P3--P2 interval at every nominal budget in the logistic
-regression panel; the predeclared 20\% contrast supports the primary governance
-claim. The advantage is concentrated in simple and boundary contamination,
-while structured mechanisms show no reliable advantage. This boundary is the
-main empirical lesson: detectability can guide low-cost repair in some regimes,
-but it cannot replace prediction time semantics or serve as a universal leakage
-governance rule.
+frozen controlled registry, blind training-side mutual information removal has
+a positive 20\% encoded-cost P3--P2 interval for LR, RF, and LightGBM. The
+structured family average is not a failure boundary: it mixes low-gap
+mechanisms with the positive M09 counterexample. Semantic grouping preserves
+the M09 advantage but causes the recomposed overall interval to cross zero, and
+natural governance is positive in four of five fixed cases. The central lesson
+is therefore conditional: detectability can guide repair when distortion is
+both present and localizable, but the conclusion depends on cost representation
+and application context.
 
 Leakage benchmarks should separate invalidity, localization, exploitation, and
 repair. These quantities coincide for direct proxies but diverge for
 interactions, future aggregates, entities, sources, and redundant groups. A
 defensible result therefore requires a semantic reference, oracle isolation,
 matched cost, paired downstream evaluation, and task-level uncertainty. The
-release provides these components for the present scope. Next experiments should
-vary governance seeds and learners and test metadata-aware policies on controlled
-and natural tasks.
+release provides these components for the present scope. Next experiments
+should test lineage-, time-, and entity-aware policies and explain the negative
+NYC311 governance result under its application boundary.
 
 \balance
 \bibliographystyle{ACM-Reference-Format}

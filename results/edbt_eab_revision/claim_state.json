@@ -57,25 +57,32 @@
       ]
     },
     "C5_NATURAL_GOVERNANCE": {
-      "status": "NOT_RUN",
-      "evidence_tier": "missing",
-      "allowed_wording": "Natural case studies evaluate harm but not the governance policy.",
-      "forbidden_wording": "The governance result is validated on natural datasets.",
-      "evidence": []
+      "status": "MIXED",
+      "evidence_tier": "descriptive_fixed_case_studies",
+      "allowed_wording": "Across five fixed natural case studies, blind MI removal exceeds mean random removal in four cases, while NYC311 is negative; this is mixed descriptive evidence, not population-level external validation.",
+      "forbidden_wording": "The governance result is validated or generally effective on natural datasets.",
+      "evidence": [
+        "remaining_governance.natural"
+      ]
     },
     "C6_SEMANTIC_GROUP_BUDGET": {
-      "status": "NOT_RUN",
-      "evidence_tier": "missing",
-      "allowed_wording": "The primary governance cost is encoded-column based.",
-      "forbidden_wording": "The result is invariant to semantic-group cost.",
-      "evidence": []
+      "status": "NARROWED",
+      "evidence_tier": "representation_cost_sensitivity",
+      "allowed_wording": "Under semantic-group cost, the M09 governance advantage remains positive, but the recomposed 5,500-key overall interval crosses zero; the overall claim is cost-sensitive.",
+      "forbidden_wording": "The overall governance result is invariant to semantic-group cost.",
+      "evidence": [
+        "remaining_governance.semantic.semantic_M09",
+        "remaining_governance.semantic.semantic_recomposed_overall"
+      ]
     }
   },
   "global_limitations": [
     "B2 strict/full baselines were re-fitted under a disclosed post-run protocol deviation.",
-    "Natural-data governance and semantic-group budget sensitivity were not run.",
+    "Natural governance covers five selected case studies and is mixed, with a negative NYC311 result.",
+    "The semantic-group full-panel interval crosses zero even though M09 remains positive.",
     "Gap quartiles and mechanism-level decomposition are sensitivity analyses, not standalone causal tests."
   ],
   "analysis_summary_sha256": "509d91a417a3cdb222b4eb1cfe91be6f39d92654e1269e798846545c93299bc2",
-  "builder_sha256": "750d336949f018954e3f1abe294313bccdba66d5f8ad6643fa5dca2cb289d1db"
+  "remaining_governance_summary_sha256": "b9e24e1ee92573282b6b797b6f65759de560f17eccb5ba1e0e393309ff459fad",
+  "builder_sha256": "67e5eb8727ec945eae06c164f510624e74b452697361d3e1cab0ce2e35e470e4"
 }

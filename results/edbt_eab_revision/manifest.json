@@ -30,15 +30,15 @@
   },
   "limitations": [
     "B2 strict/full baselines were re-fitted under a disclosed post-run protocol deviation.",
-    "Natural-data governance was not run.",
-    "Semantic-group budget sensitivity was not run."
+    "Natural governance is descriptive over five selected cases and is mixed (NYC311 is negative).",
+    "Under semantic-group cost M09 remains positive, but the recomposed overall interval crosses zero."
   ],
   "tests": {
     "command": "PYTHONPATH=. pytest -q",
-    "passed": 228,
+    "passed": 233,
     "failed": 0
   },
-  "git_head_at_build": "2c7e6af12d97d5148f277ceda4b196ddbfe8cd76",
+  "git_head_at_build": "fbf8fc92742080867cdb02225595aa3027b02701",
   "artifacts": [
     {
       "path": "results/edbt_eab_revision/b1_multiseed_p2.csv",
@@ -71,16 +71,48 @@
       "rows": 10
     },
     {
+      "path": "results/edbt_eab_revision/natural_governance_cells.csv",
+      "sha256": "26b860845c578ef8cd17ad8b558c3eea59be3e50143dff4478ba8ae68d6b34fa",
+      "rows": 315
+    },
+    {
+      "path": "results/edbt_eab_revision/semantic_m09_cells.csv",
+      "sha256": "f2e98d3cae365b66f901d1695a58b5ebe3447159a54294cf88fdd66e8d805d41",
+      "rows": 10500
+    },
+    {
+      "path": "results/edbt_eab_revision/natural_governance_summary.csv",
+      "sha256": "2d58a3f171fdcd52fbeca2b01806d21def2b64c106efdc8c99a72d1880806fdc",
+      "rows": 5
+    },
+    {
+      "path": "results/edbt_eab_revision/semantic_budget_summary.csv",
+      "sha256": "9d0d06e01d3ca5847290e40323c9d8ff430d03cc9a7eef5f28f7e17dfb700db0",
+      "rows": 5
+    },
+    {
       "path": "results/edbt_eab_revision/analysis_summary.json",
       "sha256": "509d91a417a3cdb222b4eb1cfe91be6f39d92654e1269e798846545c93299bc2"
     },
     {
       "path": "results/edbt_eab_revision/claim_state.json",
-      "sha256": "4caecb6dc23c551f29afdbb3f3fd89aa20f663ab8e4d0018e968320bb4d75805"
+      "sha256": "b76106e5dab52c77874d10cbdf1978ae8e0dc4c95fb3047219152255162fba99"
     },
     {
       "path": "results/edbt_eab_revision/selection_hash_backfill.json",
       "sha256": "6974a71c90eb8273b0384a473f37ea2963bc1dcd1844b57ef8254110f6c4486f"
+    },
+    {
+      "path": "results/edbt_eab_revision/remaining_governance_summary.json",
+      "sha256": "b9e24e1ee92573282b6b797b6f65759de560f17eccb5ba1e0e393309ff459fad"
+    },
+    {
+      "path": "results/edbt_eab_revision/remaining_governance_protocol_freeze.json",
+      "sha256": "c4d8a8a83bd5fcb50eef75a03ecc3a454da701bf440f36a156203b6a2fd4bd0f"
+    },
+    {
+      "path": "results/edbt_eab_revision/semantic_group_protocol_v4_freeze.json",
+      "sha256": "13ef54a62963ce1e3b6ad5265343337b8ae16c176f951b89d8eb70158a2617af"
     },
     {
       "path": "reports/edbt_eab/governance_revision_protocol.md",
@@ -89,6 +121,14 @@
     {
       "path": "reports/edbt_eab/revision_fix/final_report.md",
       "sha256": "eb6a11766267e44a7f3b537eee1857a5fed5ccb065030e2a330fb28d761cdee5"
+    },
+    {
+      "path": "reports/edbt_eab/remaining_governance_protocol.md",
+      "sha256": "fde3a7472256442ac1851bb7d450bac6a9a65c14d02504af4c4cfcd6a942bee9"
+    },
+    {
+      "path": "reports/edbt_eab/remaining_governance/final_report.md",
+      "sha256": "5faac40053ec93b464aedfffd828e31bb33a82ff338250293121ac66672fc807"
     },
     {
       "path": "scripts/analyze_governance_revision.py",
@@ -100,11 +140,11 @@
     },
     {
       "path": "scripts/build_governance_revision_claim_state.py",
-      "sha256": "750d336949f018954e3f1abe294313bccdba66d5f8ad6643fa5dca2cb289d1db"
+      "sha256": "67e5eb8727ec945eae06c164f510624e74b452697361d3e1cab0ce2e35e470e4"
     },
     {
       "path": "scripts/build_governance_revision_manifest.py",
-      "sha256": "5670e1126aebd50c449e7beeb2e055bc21062d9c41c329e8e3b996ae96135cad"
+      "sha256": "666d485550e05557265d0e7d90530d87de45645708e42b676d9bd0c1f6f0b9f4"
     },
     {
       "path": "scripts/run_sp8_b1_multiseed.py",
@@ -119,8 +159,24 @@
       "sha256": "8d1421243b2ed6425012db1250bc7accdfa51930a0aab15119a3fd1127e0d14a"
     },
     {
+      "path": "scripts/run_remaining_governance.py",
+      "sha256": "ef33e702f7d6a2cf8f477bcb5c6c161a7c2990c150e5cadbf49594fb71d36dce"
+    },
+    {
+      "path": "scripts/run_semantic_group_governance_v2.py",
+      "sha256": "3201df448f2d4baeb29957861374b560630f558a247d257d0574cdd375d44fc9"
+    },
+    {
+      "path": "scripts/analyze_remaining_governance.py",
+      "sha256": "e1c5e574d32fc9528019c06f5938dd68bb06fe2a5518dc2aa8a2c50271d96a09"
+    },
+    {
       "path": "tests/test_governance_revision.py",
-      "sha256": "f6cbbb059aae1db91292a2f25b5e7d100af5dc7ba838b7c9cf3e783618fce660"
+      "sha256": "834ec1be55555d69d56c9fd4043a1ffd32327aa90cbbe00d97b1230a9aceb8bf"
+    },
+    {
+      "path": "tests/test_remaining_governance.py",
+      "sha256": "cd3bd39c5d53129ed31ef8203d9afff522f80326334b838295a149d48b3ca101"
     },
     {
       "path": "artifacts/sp6/sp6_bundle_manifest.csv",

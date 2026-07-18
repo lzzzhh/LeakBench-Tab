@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "primary_budget": 0.2,
+  "bootstrap_seed": 20260718,
+  "bootstrap_repetitions": 5000,
+  "natural_interpretation": "five fixed case studies; descriptive sensitivity, not population inference",
+  "semantic_interpretation": "full-panel recomposition; only M09 changes because only M09 expands one semantic source into multiple encoded columns",
+  "natural": {
+    "estimate": 0.18661131712423917,
+    "bootstrap_mean": 0.1850798302574906,
+    "ci_lo": 0.025016979551726427,
+    "ci_hi": 0.32256855655027644,
+    "probability_positive": 0.9912,
+    "clusters": 5,
+    "exact_two_sided_sign_flip_p": 0.1875,
+    "all_case_effects_positive": false,
+    "task_effects": {
+      "BTSFlights": 0.34777021183216356,
+      "BankMarketing": 0.10188378537295867,
+      "ChicagoFood": 0.325710070855485,
+      "LendingClub": 0.2658822173760853,
+      "NYC311": -0.1081896998154967
+    }
+  },
+  "semantic": {
+    "encoded_overall": {
+      "estimate": 0.043413451136363634,
+      "bootstrap_mean": 0.04365218306032364,
+      "ci_lo": 0.004081873319772728,
+      "ci_hi": 0.07813079981454543,
+      "probability_positive": 0.9826,
+      "clusters": 20,
+      "n_keys": 5500
+    },
+    "semantic_recomposed_overall": {
+      "estimate": 0.03980477360353263,
+      "bootstrap_mean": 0.04007403140351206,
+      "ci_lo": -0.0031407324569980685,
+      "ci_hi": 0.07716368826578238,
+      "probability_positive": 0.9664,
+      "clusters": 20,
+      "n_keys": 5500
+    },
+    "encoded_M09": {
+      "estimate": 0.1489025015,
+      "bootstrap_mean": 0.14895913736444,
+      "ci_lo": 0.12480514356250001,
+      "ci_hi": 0.1709131063525,
+      "probability_positive": 1.0,
+      "clusters": 20,
+      "n_keys": 500
+    },
+    "semantic_M09": {
+      "estimate": 0.10920704863885881,
+      "bootstrap_mean": 0.1095994691395126,
+      "ci_lo": 0.05407330165246268,
+      "ci_hi": 0.15797831210453978,
+      "probability_positive": 0.9998,
+      "clusters": 20,
+      "n_keys": 500
+    },
+    "semantic_minus_encoded_M09": {
+      "estimate": -0.03969545286114119,
+      "bootstrap_mean": -0.0393596682249274,
+      "ci_lo": -0.07575098960888536,
+      "ci_hi": -0.008004236152104246,
+      "probability_positive": 0.0054,
+      "clusters": 20
+    }
+  },
+  "input_hashes": {
+    "natural_governance_cells": "26b860845c578ef8cd17ad8b558c3eea59be3e50143dff4478ba8ae68d6b34fa",
+    "semantic_m09_cells": "f2e98d3cae365b66f901d1695a58b5ebe3447159a54294cf88fdd66e8d805d41",
+    "encoded_b1": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237"
+  }
+}

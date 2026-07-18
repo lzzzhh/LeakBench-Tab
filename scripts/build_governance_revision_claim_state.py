@@ -23,7 +23,7 @@ def crosses_zero(result):
     return float(result["ci_lo"]) <= 0 <= float(result["ci_hi"])
 
 
-def derive(summary):
+def derive(summary, remaining=None):
     if summary.get("primary_budget") != 0.20:
         raise ValueError("claim state requires the 20% primary budget")
     if summary.get("expected_keys_per_model") != 5500:
@@ -52,6 +52,23 @@ def derive(summary):
         for name in ("linear", "interaction", "nonlinear", "sparse", "drifting")
     )
     sparse_negative = float(summary["archetype_sparse"]["ci_hi"]) < 0
+
+    natural_result = (remaining or {}).get("natural")
+    semantic_result = (remaining or {}).get("semantic")
+    natural_mixed = bool(
+        natural_result
+        and natural_result.get("clusters") == 5
+        and sum(value > 0 for value in natural_result.get("task_effects", {}).values()) == 4
+        and any(value < 0 for value in natural_result.get("task_effects", {}).values())
+    )
+    semantic_m09_positive = bool(
+        semantic_result and float(semantic_result["semantic_M09"]["ci_lo"]) > 0
+    )
+    semantic_overall_crosses = bool(
+        semantic_result
+        and float(semantic_result["semantic_recomposed_overall"]["ci_lo"]) <= 0
+        <= float(semantic_result["semantic_recomposed_overall"]["ci_hi"])
+    )
 
     claims = {
         "C1_MULTI_LEARNER_GOVERNANCE": {
@@ -103,18 +120,28 @@ def derive(summary):
             ],
         },
         "C5_NATURAL_GOVERNANCE": {
-            "status": "NOT_RUN",
-            "evidence_tier": "missing",
-            "allowed_wording": "Natural case studies evaluate harm but not the governance policy.",
-            "forbidden_wording": "The governance result is validated on natural datasets.",
-            "evidence": [],
+            "status": "MIXED" if natural_mixed else "NOT_RUN",
+            "evidence_tier": "descriptive_fixed_case_studies" if natural_mixed else "missing",
+            "allowed_wording": (
+                "Across five fixed natural case studies, blind MI removal exceeds mean random removal "
+                "in four cases, while NYC311 is negative; this is mixed descriptive evidence, not "
+                "population-level external validation."
+            ) if natural_mixed else "Natural case studies evaluate harm but not the governance policy.",
+            "forbidden_wording": "The governance result is validated or generally effective on natural datasets.",
+            "evidence": ["remaining_governance.natural"] if natural_mixed else [],
         },
         "C6_SEMANTIC_GROUP_BUDGET": {
-            "status": "NOT_RUN",
-            "evidence_tier": "missing",
-            "allowed_wording": "The primary governance cost is encoded-column based.",
-            "forbidden_wording": "The result is invariant to semantic-group cost.",
-            "evidence": [],
+            "status": "NARROWED" if semantic_m09_positive and semantic_overall_crosses else "NOT_RUN",
+            "evidence_tier": "representation_cost_sensitivity" if semantic_result else "missing",
+            "allowed_wording": (
+                "Under semantic-group cost, the M09 governance advantage remains positive, but the "
+                "recomposed 5,500-key overall interval crosses zero; the overall claim is cost-sensitive."
+            ) if semantic_result else "The primary governance cost is encoded-column based.",
+            "forbidden_wording": "The overall governance result is invariant to semantic-group cost.",
+            "evidence": [
+                "remaining_governance.semantic.semantic_M09",
+                "remaining_governance.semantic.semantic_recomposed_overall",
+            ] if semantic_result else [],
         },
     }
     return {
@@ -124,7 +151,8 @@ def derive(summary):
         "claims": claims,
         "global_limitations": [
             "B2 strict/full baselines were re-fitted under a disclosed post-run protocol deviation.",
-            "Natural-data governance and semantic-group budget sensitivity were not run.",
+            "Natural governance covers five selected case studies and is mixed, with a negative NYC311 result.",
+            "The semantic-group full-panel interval crosses zero even though M09 remains positive.",
             "Gap quartiles and mechanism-level decomposition are sensitivity analyses, not standalone causal tests.",
         ],
     }
@@ -134,12 +162,16 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--summary", default="results/edbt_eab_revision/analysis_summary.json")
     parser.add_argument("--output", default="results/edbt_eab_revision/claim_state.json")
+    parser.add_argument("--remaining-summary", default="results/edbt_eab_revision/remaining_governance_summary.json")
     args = parser.parse_args(argv)
     summary_path = ROOT / args.summary
     output_path = ROOT / args.output
     summary = json.loads(summary_path.read_text())
-    payload = derive(summary)
+    remaining_path = ROOT / args.remaining_summary
+    remaining = json.loads(remaining_path.read_text())
+    payload = derive(summary, remaining)
     payload["analysis_summary_sha256"] = sha256(summary_path)
+    payload["remaining_governance_summary_sha256"] = sha256(remaining_path)
     payload["builder_sha256"] = sha256(Path(__file__))
     output_path.write_text(json.dumps(payload, indent=2) + "\n")
     print(json.dumps({key: value["status"] for key, value in payload["claims"].items()}, indent=2))

@@ -84,6 +84,20 @@ def main(argv=None):
     claims = json.loads(claim_path.read_text())
     if claims.get("analysis_summary_sha256") != sha256(summary_path):
         raise ValueError("claim state is not bound to the current summary")
+    remaining_path = REVISION / "remaining_governance_summary.json"
+    remaining = json.loads(remaining_path.read_text())
+    if claims.get("remaining_governance_summary_sha256") != sha256(remaining_path):
+        raise ValueError("claim state is not bound to remaining governance")
+    natural = pd.read_csv(REVISION / "natural_governance_cells.csv")
+    semantic = pd.read_csv(REVISION / "semantic_m09_cells.csv")
+    for name, frame, rows, policies in (
+        ("natural", natural, 315, {"P2_random": 300, "P3_blind_mi": 15}),
+        ("semantic", semantic, 10500, {"P2_random": 10000, "P3_blind_mi": 500}),
+    ):
+        if len(frame) != rows or frame["run_id"].duplicated().any():
+            raise ValueError(f"{name} remaining-governance coverage failure")
+        if set(frame["status"]) != {"SUCCESS"} or frame["policy"].value_counts().to_dict() != policies:
+            raise ValueError(f"{name} remaining-governance status/policy failure")
 
     backfill_path = REVISION / "selection_hash_backfill.json"
     backfill = json.loads(backfill_path.read_text())
@@ -104,13 +118,22 @@ def main(argv=None):
         ("results/edbt_eab_revision/a1_mechanism_level.csv", 11),
         ("results/edbt_eab_revision/a2_gap_stratification.csv", 4),
         ("results/edbt_eab_revision/a3_archetype.csv", 10),
+        ("results/edbt_eab_revision/natural_governance_cells.csv", len(natural)),
+        ("results/edbt_eab_revision/semantic_m09_cells.csv", len(semantic)),
+        ("results/edbt_eab_revision/natural_governance_summary.csv", 5),
+        ("results/edbt_eab_revision/semantic_budget_summary.csv", 5),
     ]
     paths_without_rows = [
         "results/edbt_eab_revision/analysis_summary.json",
         "results/edbt_eab_revision/claim_state.json",
         "results/edbt_eab_revision/selection_hash_backfill.json",
+        "results/edbt_eab_revision/remaining_governance_summary.json",
+        "results/edbt_eab_revision/remaining_governance_protocol_freeze.json",
+        "results/edbt_eab_revision/semantic_group_protocol_v4_freeze.json",
         "reports/edbt_eab/governance_revision_protocol.md",
         "reports/edbt_eab/revision_fix/final_report.md",
+        "reports/edbt_eab/remaining_governance_protocol.md",
+        "reports/edbt_eab/remaining_governance/final_report.md",
         "scripts/analyze_governance_revision.py",
         "scripts/backfill_governance_selection_hashes.py",
         "scripts/build_governance_revision_claim_state.py",
@@ -118,7 +141,11 @@ def main(argv=None):
         "scripts/run_sp8_b1_multiseed.py",
         "scripts/run_sp8_b2_crosslearner.py",
         "scripts/run_sp8_b2_parallel.py",
+        "scripts/run_remaining_governance.py",
+        "scripts/run_semantic_group_governance_v2.py",
+        "scripts/analyze_remaining_governance.py",
         "tests/test_governance_revision.py",
+        "tests/test_remaining_governance.py",
         "artifacts/sp6/sp6_bundle_manifest.csv",
         "results/corrected_v2/canonical_cells.csv",
         "artifacts/sp8/governance_clean.csv",
@@ -155,12 +182,12 @@ def main(argv=None):
         },
         "limitations": [
             "B2 strict/full baselines were re-fitted under a disclosed post-run protocol deviation.",
-            "Natural-data governance was not run.",
-            "Semantic-group budget sensitivity was not run.",
+            "Natural governance is descriptive over five selected cases and is mixed (NYC311 is negative).",
+            "Under semantic-group cost M09 remains positive, but the recomposed overall interval crosses zero.",
         ],
         "tests": {
             "command": "PYTHONPATH=. pytest -q",
-            "passed": 228,
+            "passed": 233,
             "failed": 0,
         },
         "git_head_at_build": git_head,

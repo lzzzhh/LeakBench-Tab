@@ -6,17 +6,25 @@ workspace and the repository's only active manuscript tree.
 ## Argument
 
 In budget-constrained tabular evaluation, LeakBench-Tab shows that blind
-training-side mutual-information removal outperforms matched random removal in
-a logistic-regression panel, with gains concentrated in simple and boundary
-contamination and no reliable advantage for structured contamination.
+training-side mutual-information removal exceeds mean matched random removal
+for LR, RF, and LightGBM under encoded-column cost. The structured average is
+gap-heterogeneous rather than a general failure boundary; M09 remains positive
+under semantic-group cost, while the recomposed overall interval crosses zero.
+Five fixed natural cases provide mixed descriptive evidence.
 
 ## Build inputs
 
-Only these governed CSV files provide numeric paper results:
+The legacy measurement figures and tables use these governed CSV files:
 
 - `source_data/generated/main_results.csv`
 - `source_data/generated/governance_results.csv`
 - `source_data/generated/natural_cases.csv`
+
+The governance revision text is additionally bound to the compact formal
+tables `results/edbt_eab_revision/natural_governance_summary.csv` and
+`results/edbt_eab_revision/semantic_budget_summary.csv`; their derivation and
+raw-cell hashes are recorded in `remaining_governance_summary.json` and the
+revision manifest.
 
 Regenerate macros, tables, and figures with:
 
