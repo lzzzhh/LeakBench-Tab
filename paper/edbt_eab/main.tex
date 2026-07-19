@@ -28,7 +28,7 @@
 
 \input{generated/result_macros.tex}
 
-\title{[EA\&B] When Blind Feature Removal Mitigates Tabular Leakage}
+\title{[EA\&B] CDXR: A Contract-Grounded Evaluation Architecture for Tabular Leakage Repair}
 
 % EDBT uses non-anonymous submissions. Replace these draft fields before submission.
 \author{Author Names Pending}
@@ -43,119 +43,158 @@
 \setlength{\emergencystretch}{0.75em}
 
 \begin{abstract}
-Feature contamination can make offline tabular evaluation optimistic, but an
-invalid field need not be easy to locate or useful to every learner. This
-distinction also complicates governance: removing highly associated fields may
-repair simple contamination while missing leakage encoded by time, entity, or
-source structure. We present LeakBench-Tab, a frozen experimental benchmark
-that separates construction validity (C), statistical detectability (D), and
-model exploitability (X), then evaluates leakage removal under matched feature
-budgets. The controlled measurement matrix contains \CoreCellCount{} paired
-cells across 20 panel tasks, 11 mechanisms, five strengths, five seeds, and
-five model families. In this registry, simple mechanisms produce \CoreContrast{}
-more paired AUROC harm than structured mechanisms (95\% CI
-[\CoreContrastLow{}, \CoreContrastHigh{}]). A separate oracle-isolated
-governance experiment compares blind training-side mutual information (P3)
-with the mean of 20 matched random-removal realizations (P2). At a 20\%
-encoded-column budget, the P3--P2 strict-distance-reduction contrast is +0.043
-for logistic regression (95\% dataset-cluster bootstrap CI [+0.004,+0.078]),
-+0.055 for random forest ([+0.025,+0.082]), and +0.056 for LightGBM
-([+0.028,+0.082]). Mechanism-level analysis shows that the structured average
-mixes near-zero-gap mechanisms with the positive M09 source-leakage
-counterexample. When the eight M09 indicators are charged as one semantic
-group, M09 remains positive (+0.109, [+0.054,+0.158]), but the recomposed
-overall interval crosses zero (+0.040, [-0.003,+0.077]). Five fixed natural
-cases provide mixed descriptive support: four favor P3 and NYC311 favors
-random removal. Blind scoring can therefore mitigate leakage in this
-controlled panel, but the result depends on repair opportunity,
-representation cost, and application context.
+Leakage repair is usually evaluated as a feature-detection problem, even though
+four different questions determine whether an intervention is defensible: Is a
+field invalid at prediction time? Can a blind statistic locate it? Does the
+learner exploit it? Does removing it improve a boundary-valid reference beyond
+what equal-cost deletion would achieve? We introduce \emph{CDXR}, a
+contract-grounded evaluation architecture that makes construction validity
+(C), detectability (D), exploitability (X), and repair response (R) separate,
+auditable objects. CDXR enforces semantic precedence, oracle-isolated policy
+selection, matched intervention cost, paired downstream evaluation, and
+task-level uncertainty. We instantiate the architecture in LeakBench-Tab, a
+frozen registry with \CoreCellCount{} measurement cells spanning 20 designed
+tasks, 11 leakage mechanisms, five strengths, five injection seeds, and five
+learners. A \GovernanceCellCount{}-row repair ledger then compares training-side
+mutual-information removal with 20 matched random-removal realizations per key.
+Under the primary 20\% encoded-column contract, the LR repair advantage is
+\GovTwentyDiff{} (95\% task-cluster interval [\GovTwentyLow{},
+\GovTwentyHigh{}]). A corroborative post-LR extension, whose learner pair,
+budget, seeds, and estimand were frozen before its outcomes, gives
+\GovRFDiff{} for RF ([\GovRFLow{}, \GovRFHigh{}]) and \GovLGBMDiff{} for
+LightGBM ([\GovLGBMLow{}, \GovLGBMHigh{}]) under disclosed 100-estimator
+baseline refits. The architecture exposes why the aggregate is conditional:
+low-opportunity strata are negative, M09 is a positive structured
+counterexample, semantic-group cost moves the recomposed overall interval
+across zero, and five fixed natural cases provide mixed evidence. CDXR therefore
+converts leakage repair from an uncalibrated deletion heuristic into a bounded,
+falsifiable evaluation claim.
 \end{abstract}
 
-\keywords{data leakage, tabular benchmarks, experimental analysis, feature
-governance, reproducible evaluation}
+\keywords{data leakage, repair evaluation, information contracts, matched-cost
+governance, tabular machine learning}
 
 \maketitle
 
 \section{Introduction}
 
-Tabular prediction pipelines routinely inherit fields whose values are only
-available after the prediction event, are derived from the target, or summarize
-future entities and outcomes. Such contamination can invalidate evaluation and
-distort model comparison even when the learning algorithm and held-out split
-are otherwise conventional \cite{kaufman2011leakage,kapoor2023leakage}. The
-practical response is often to remove suspicious fields, but this response
-combines three different questions: whether a field is semantically valid at
-prediction time, whether an oracle-blind statistic can locate it, and whether a
-learner exploits it enough to change measured performance.
+Tabular leakage is not one statistical defect. A field can violate the
+prediction-time contract while showing weak marginal association; a valid
+field can be strongly predictive; and a learner can exploit an invalid
+interaction that a univariate detector barely ranks. Nevertheless, leakage
+audits often compress semantic invalidity, statistical suspicion, and observed
+performance inflation into one label \cite{kaufman2011leakage,kapoor2023leakage}.
+That compression becomes consequential when an analyst moves from diagnosis to
+deletion.
 
-Existing leakage studies establish the importance of prediction boundaries,
-scientific validity, and domain-specific label leakage
-\cite{davis2024framework,rosenblatt2024connectome}. Detection work also spans
-code analysis and empirical contamination audits
-\cite{subotic2022static,magar2022contamination}. These perspectives do not by
-themselves determine whether a deployable, budget-limited removal policy will
-repair an affected tabular pipeline. A detector can rank target proxies highly
-yet fail on future aggregation or entity structure. Conversely, a semantically
-invalid field can be hard to rank but still inflate a learner's score.
+Deletion is an intervention on a learned representation. Removing a suspicious
+field can eliminate invalid information, discard legitimate signal, or merely
+regularize the learner. A comparison against the unmodified table cannot
+separate these effects. A comparison against an oracle mask instead measures
+perfection, not whether a blind ranking adds value. The missing control is an
+equal-cost intervention that removes the same amount of representation without
+using the ranking. Only then does the contrast answer a governance question:
+did the policy improve the boundary-valid reference beyond deletion alone?
 
-This gap matters because leakage response is an intervention, not merely a
-diagnosis. Removing a field changes the representation on which the learner is
-fitted and may discard legitimate predictive information along with the
-contamination. Comparing a removal policy only with the unmodified table
-confounds two effects: locating invalid information and reducing model
-capacity. Comparing it only with an oracle mask instead asks whether the policy
-is perfect, not whether its ranking is useful under realistic constraints. A
-matched random policy supplies the missing negative control: it estimates how
-much movement toward a strict reference is obtained merely by deleting the
-same number of encoded fields.
+Existing work supplies important pieces of this problem. Semantic leakage
+frameworks emphasize the prediction boundary and scientific validity
+\cite{davis2024framework,rosenblatt2024connectome}; static and empirical audits
+search for contamination at code or data level
+\cite{subotic2022static,magar2022contamination}; and feature-selection methods
+rank predictive variables. None of these pieces alone specifies an evaluation
+contract for a budget-limited repair policy. The contract must declare which
+fields are invalid before scoring, hide that declaration from non-oracle
+selectors, hold intervention cost fixed, and preserve the task hierarchy during
+inference.
 
-A credible benchmark for this question must preserve several separations at
-once. Semantic invalidity must be declared before examining feature scores;
-diagnostics must be fitted without the contamination mask; strict, permissive,
-and governed learners must share task content and test rows; and uncertainty
-must respect the task hierarchy rather than treating repeated mechanisms,
-strengths, seeds, or models as independent datasets. These requirements turn a
-seemingly simple feature-ranking comparison into a protocol-design problem.
+We introduce \textbf{CDXR}, a contract-grounded architecture for this missing
+evaluation layer. CDXR separates four objects: construction validity (C), blind
+detectability (D), learner-conditional exploitability (X), and matched-cost
+repair response (R). The architecture does not propose mutual information as a
+new detector. Instead, it specifies the interfaces and controls required to
+turn any candidate selector into a falsifiable repair claim. LeakBench-Tab is
+the controlled instantiation: eleven audited mechanisms perturb a fixed
+prediction boundary, and a representative MI policy is evaluated against
+matched random deletion.
 
-This paper treats leakage evaluation and governance as an experimental analysis
-problem rather than proposing a new feature selection algorithm. LeakBench-Tab
-crosses eleven audited mechanisms with controlled panel tasks,
-strengths, injection seeds, and learner families. It records three distinct
-quantities: construction validity (C), statistical detectability (D), and model
-exploitability (X). We then evaluate a representative blind policy, training
-side mutual information removal, against a matched cost random baseline. Policy
-selection is isolated from the contamination mask; the mask is used only after
-selection to evaluate recall and legitimate field retention.
-
-Our analysis asks three questions. \textbf{RQ1} characterizes how D and X vary
-across contamination mechanisms. \textbf{RQ2} tests whether blind feature
-removal improves a governed model's distance to the strict reference under
-matched budgets. \textbf{RQ3} identifies the mechanism families for which the
-policy advantage persists or fails. The results show a consistent overall P3
-advantage in the logistic regression panel, including at small budgets, but
-also expose a sharp boundary: simple and boundary mechanisms drive the gain,
-whereas structured mechanisms show no reliable advantage. The contribution is
-therefore an empirical map of strengths and failure conditions, not a claim
-that mutual information is a general leakage detector.
+The architecture yields four research questions. \textbf{RQ1} asks whether D
+and X coincide across mechanisms. \textbf{RQ2} asks whether a blind ranking adds
+repair value beyond equal-cost deletion across learners and budgets.
+\textbf{RQ3} asks how repair opportunity and task archetype condition that
+response. \textbf{RQ4} asks whether the conclusion survives changes in the cost
+unit and application context. Each question targets one CDXR interface rather
+than treating all successful cells as interchangeable evidence.
 
 \paragraph{Contributions.}
-The paper makes four bounded contributions. First, it operationalizes leakage
-as a three-axis measurement problem: construction validity is supplied by the
-prediction-time contract, detectability is conditional on a blind diagnostic,
-and exploitability is conditional on a learner. Second, it provides a frozen
-factorial registry that varies task archetype, contamination mechanism,
-strength, injection seed, and learner while preserving paired strict and
-permissive evaluation. Third, it connects measurement to action through an
-oracle-isolated, matched-cost governance experiment with explicit localization
-and legitimate-retention outcomes. Fourth, it reports both the positive result
-and its failure boundary: blind MI removal improves the LR panel overall, but
-the gain is not reliable for structured contamination. The artifact binds each
-paper-facing estimate to canonical cells, protocol manifests, analysis code,
-and content hashes.
+This paper makes three contributions.
+\begin{itemize}
+  \item We formalize CDXR and its four protocol invariants: semantic precedence,
+  oracle isolation, matched intervention cost, and paired reference evaluation.
+  The repair layer returns downstream distance, contamination recall, and
+  legitimate retention rather than a detector score alone.
+  \item We instantiate CDXR in a frozen factorial registry with \CoreCellCount{}
+  measurement cells and a \GovernanceCellCount{}-row multi-seed repair ledger.
+  The design distinguishes learner, mechanism, opportunity, archetype, and cost
+  sensitivity while keeping the controlled task as the independent unit.
+  \item We establish a bounded empirical result: MI-guided removal has a positive
+  primary encoded-cost repair advantage for LR, corroborated by separately
+  frozen RF and LightGBM extensions. Low-opportunity strata, the sparse
+  archetype, semantic-group recomposition, and NYC311 expose where that
+  statement narrows or fails.
+\end{itemize}
 
-\section{Problem Formulation}
+\section{The CDXR Architecture}
 
-\subsection{Prediction Boundary and the C/D/X Axes}
+\subsection{Contract Schema and Role-Separated Interfaces}
+
+A CDXR evaluation begins with an explicit contract, not a feature score. For
+task $q$, the minimum contract is
+\begin{equation}
+ \mathcal{K}_q=
+ (p_q,h_q,\mathcal{G}_q,\rho_q,a_q,\mathcal{M}^{\mathrm{pol}}_q,
+  \kappa_q,\Pi_q,\ell,\mu).
+ \label{eq:contract-schema}
+\end{equation}
+Here $p_q$ and $h_q$ declare the prediction event and horizon;
+$\mathcal{G}_q$ is the set of semantic fields; $\rho_q$ maps each semantic
+field to its encoded columns; and $a_q$ records availability and lineage at
+$p_q$. The remaining entries declare policy-visible metadata
+$\mathcal{M}^{\mathrm{pol}}_q$, intervention cost $\kappa_q$, split and
+independent-unit plan $\Pi_q$, learner $\ell$, and metric $\mu$. The hidden
+oracle mask $\mathcal{L}_q$ is induced from $(p_q,h_q,\rho_q,a_q)$ before any
+diagnostic or learner outcome is inspected.
+
+CDXR separates three roles. A selector receives training data, its declared
+metadata, and a budget, but not the oracle mask or held-out outcomes:
+\begin{equation}
+ \phi_r:(X_q^{\mathrm{tr}},y_q^{\mathrm{tr}},
+          \mathcal{M}^{\mathrm{pol}}_q,k)
+ \longmapsto \mathcal{R}_{q,r,k}.
+ \label{eq:selector-interface}
+\end{equation}
+An evaluator fits the named learner on strict, full, and governed views under
+$\Pi_q$ and returns their held-out scores. Only after
+$\mathcal{R}_{q,r,k}$ is frozen may a verifier read $\mathcal{L}_q$ and emit
+the claim certificate
+\begin{equation}
+ \Gamma=(S,u,\widehat{\Delta}_R,\mathrm{CI},
+          \mathrm{Rec},\mathrm{Ret},P,z),
+ \label{eq:claim-certificate}
+\end{equation}
+where $S$ is the claim scope, $u$ the cost unit, $P$ the provenance binding,
+and $z$ the claim status. The verifier returns \textsc{invalid} if contract
+completeness, role access, cost matching, pairing, or provenance fails. Given a
+valid protocol, a prespecified positive claim is \textsc{supported} only when
+its task-level interval excludes zero in the declared direction; otherwise it
+is \textsc{unsupported}. A claim is \textsc{narrowed} when a declared
+mechanism, cost, or context sensitivity changes its support boundary, while discordant
+fixed cases without a population estimand are \textsc{mixed}. These gates map
+directly to the artifact's machine-built claim state. A lineage-aware,
+time-aware, or group-aware policy plugs into the same selector by changing
+$\mathcal{M}^{\mathrm{pol}}_q$ and $\kappa_q$; it may not change which role can
+read $\mathcal{L}_q$.
+
+\subsection{Construction, Detectability, and Exploitability}
 
 Let $q=(t,m,a,s)$ index a controlled cell by task $t$, contamination
 mechanism $m$, strength $a$, and injection seed $s$. Its encoded feature
@@ -204,47 +243,59 @@ unsupported directional effect, not as evidence of equivalence.
 
 \begin{figure}[t]
 \centering
-\setlength{\fboxsep}{5pt}
+\setlength{\fboxsep}{4pt}
 \fbox{\parbox{0.92\columnwidth}{\centering
-\textbf{Declared prediction-time boundary}\\[-1pt]
-Defines which fields are legitimate when a prediction is made.}}
+\textbf{Information contract}\\[-1pt]
+Event/horizon, semantic encoding, availability/lineage, policy metadata,
+cost, split, independent unit, learner, and metric.}}
 \par\vspace{2pt}$\downarrow$\par\vspace{2pt}
-\fbox{\parbox{0.92\columnwidth}{\centering
-\textbf{C: construction validity}\\[-1pt]
-Frozen semantic label, independent of statistics and learners.}}
-\par\vspace{2pt}$\swarrow\hspace{0.30\columnwidth}\searrow$\par\vspace{2pt}
 \begin{tabular}{@{}cc@{}}
-\colorbox{LBLavender!45}{\parbox{0.39\columnwidth}{\centering
-\textbf{D: detectability}\\Can a blind score localize contaminated fields?}} &
-\colorbox{LBCoral!35}{\parbox{0.39\columnwidth}{\centering
-\textbf{X: exploitability}\\How much does permissive evaluation inflate AUROC?}}
+\colorbox{LBLavender!55}{\parbox{0.39\columnwidth}{\centering
+\textbf{C $\rightarrow$ D}\\Freeze invalidity; evaluate blind localization.}} &
+\colorbox{LBCoral!40}{\parbox{0.39\columnwidth}{\centering
+\textbf{C $\rightarrow$ X}\\Compare paired permissive and strict learners.}}
 \end{tabular}
-\par\vspace{4pt}$\downarrow$\par\vspace{2pt}
+\par\vspace{3pt}$\searrow\hspace{0.30\columnwidth}\swarrow$\par\vspace{2pt}
+\colorbox{LBGold!30}{\parbox{0.87\columnwidth}{\centering
+\textbf{Repair opportunity $O$ + matched control}\\[-1pt]
+Hold the cost unit fixed; compare P3 with mean random removal P2.}}
+\par\vspace{3pt}$\downarrow$\par\vspace{2pt}
 \colorbox{LBSage!45}{\parbox{0.87\columnwidth}{\centering
-\textbf{Matched-budget governance}\\Does blind removal move performance toward the strict reference?}}
-\caption{Simplified measurement-to-governance architecture. C defines the
-semantic target. D and X are separate empirical measurements. Governance is
-evaluated against the strict reference under matched removal cost. A more
-detailed system architecture is intentionally deferred.}
+\textbf{R: repair response $\rightarrow$ claim certificate $\Gamma$}\\[-1pt]
+$\Delta_R$, interval, recall, retention, scope, provenance, and status.}}
+\caption{The CDXR architecture. The information contract defines C before any
+score or learner is inspected. D and X are measured independently. The initial
+strict--full distance defines repair opportunity; R is evaluated against an
+equal-cost negative control. The diagram shows interfaces rather than a
+production deployment architecture.}
 \label{fig:architecture}
 \end{figure}
 
-\subsection{Governance Objective}
+\subsection{Repair Opportunity and Response}
 
 For a policy $r$ and removal budget $k$, let
 $\mathcal{R}_{q,r,k}\subseteq\mathcal{F}_q$ be its selected removal set. The
-governed feature view and its matched-cost constraint are
+governed feature view is
 \begin{equation}
  \mathcal{F}^{\mathrm{gov}}_{q,r,k}
- =\mathcal{F}_q\setminus\mathcal{R}_{q,r,k},
- \qquad |\mathcal{R}_{q,r,k}|=k.
+ =\mathcal{F}_q\setminus\mathcal{R}_{q,r,k}.
  \label{eq:governed-view}
 \end{equation}
 Let $A_s$, $A_f$, and $A_g$ denote strict, full, and governed test AUROC for a
-fixed $q$ and learner. We define strict distance reduction (SDR) as
+fixed $q$ and learner. Their initial distance defines the available repair
+opportunity
 \begin{equation}
- \mathrm{SDR}_{q,r,k}
- = |A_{f,q}-A_{s,q}|-|A_{g,q,r,k}-A_{s,q}|.
+ O_{q\ell}=|A^{\mathrm{full}}_{q\ell}-A^{\mathrm{strict}}_{q\ell}|
+ =|X_{q\ell}|.
+ \label{eq:repair-opportunity}
+\end{equation}
+Opportunity is necessary for a large score repair but is not sufficient for
+localization: a policy must still identify a useful intervention. We measure
+strict distance reduction (SDR) as
+\begin{equation}
+ \mathrm{SDR}_{q\ell r k}
+ = O_{q\ell}-|A^{\mathrm{gov}}_{q\ell r k}
+                 -A^{\mathrm{strict}}_{q\ell}|.
  \label{eq:sdr}
 \end{equation}
 Positive SDR means governance moves the evaluated learner closer to the strict
@@ -252,20 +303,35 @@ reference. This symmetric distance avoids treating negative residual harm as
 automatic success. We also report contaminated field recall and legitimate
 retention:
 \begin{align}
- \mathrm{Rec}_{q,r,k}
+ \mathrm{Rec}_{qrk}
  &=\frac{|\mathcal{R}_{q,r,k}\cap\mathcal{L}_q|}{|\mathcal{L}_q|},
  \label{eq:recall}\\
- \mathrm{Ret}_{q,r,k}
+ \mathrm{Ret}_{qrk}
  &=1-\frac{|\mathcal{R}_{q,r,k}\setminus\mathcal{L}_q|}
  {|\mathcal{F}_q\setminus\mathcal{L}_q|}.
  \label{eq:retention}
 \end{align}
-These outcomes are evaluation quantities and can read $C$ after a policy has
-selected fields; non-oracle policy selection cannot.
+The R layer is therefore the vector
+\begin{equation}
+ R_{q\ell r k}
+ =\bigl(\mathrm{SDR}_{q\ell r k},\mathrm{Rec}_{qrk},
+         \mathrm{Ret}_{qrk}\bigr).
+ \label{eq:repair-vector}
+\end{equation}
+For candidate P3 and random control P2 with governance realization $\omega$,
+the primary scalar contrast is the repair advantage
+\begin{equation}
+ \Delta_{R,q\ell k}=\mathrm{SDR}_{q\ell,\mathrm{P3},k}
+ -\mathbb{E}_{\omega}\!\left[
+  \mathrm{SDR}_{q\ell,\mathrm{P2},k}^{(\omega)}\right].
+ \label{eq:repair-advantage}
+\end{equation}
+These R outcomes may read C only after a policy has selected fields; a
+non-oracle selector cannot.
 
-\subsection{Evaluation Conditions}
+\subsection{Architectural Invariants}
 
-Four conditions distinguish the benchmark from ordinary feature selection.
+Four invariants distinguish CDXR from ordinary feature selection.
 \textit{Semantic precedence} requires $\mathcal{L}_q$ to be determined by the
 prediction-time contract rather than by a score threshold. A feature can be
 invalid with low marginal association, or valid with high association; neither
@@ -274,14 +340,18 @@ $\mathcal{R}_{q,r,k}=\phi_r(X_q^{\mathrm{train}},y_q^{\mathrm{train}},k)$
 to exclude $\mathcal{L}_q$ for non-oracle policies. The mask enters only after
 $\mathcal{R}_{q,r,k}$ is frozen, when recall and retention are evaluated.
 
-\textit{Cost matching} holds the encoded-field removal count fixed within each
-comparison. This is important because one-hot expansion makes a semantic field
-and an encoded column different units. The present experiment governs encoded
-columns: removing all eight source indicators for M09 costs eight units, while
-removing a single numeric target proxy costs one. The paper therefore does not
-equate a nominal percentage with a constant semantic intervention across
-mechanisms. Instead, it exposes both the nominal fraction $p$ and the realized
-integer $k_q(p)$.
+\textit{Cost matching} declares a cost map
+$\kappa_q^{(u)}:2^{\mathcal{F}_q}\rightarrow\mathbb{N}$ for representation
+unit $u$ and requires
+\begin{equation}
+ \kappa_q^{(u)}(\mathcal{R}_{q,\mathrm{P2},k})
+ =\kappa_q^{(u)}(\mathcal{R}_{q,\mathrm{P3},k})=k.
+ \label{eq:general-matched-cost}
+\end{equation}
+The primary unit is an encoded column. Removing all eight M09 source indicators
+therefore costs eight units, while removing one numeric target proxy costs one.
+A frozen sensitivity replaces $u$ with a semantic feature group. CDXR treats
+this unit as part of the intervention contract rather than a formatting detail.
 
 \textit{Paired reference evaluation} keeps the task, split, mechanism,
 strength, injection seed, and learner seed fixed when strict, full, and
@@ -293,14 +363,14 @@ reported alongside SDR precisely to reveal that ambiguity. Likewise, negative
 SDR identifies movement away from the strict reference but does not by itself
 distinguish residual contamination from over-removal of legitimate signal.
 
-These conditions define the scope of a governance claim. A policy is useful in
-this benchmark only when it improves the paired distance under equal removal
+These invariants define the scope of a repair claim. A policy is useful in
+CDXR only when it improves the paired distance under equal removal
 cost and its localization trade-off remains visible. The formulation does not
 assert that the strict model is optimal for a business objective, only that it
 is the evaluation reference consistent with the declared information
 boundary.
 
-\section{Benchmark and Experimental Design}
+\section{Controlled Instantiation and Design}
 
 \subsection{Controlled Registry}
 
@@ -413,19 +483,21 @@ fallback under another model identity. The completed canonical matrix contains
 all 27,500 planned model cells, so no failed-cell exclusion enters the reported
 means.
 
-\subsection{Matched-Cost Governance Policies}
+\subsection{Repair Policies and Negative Control}
 
-The governance experiment uses the same 5,500 combinations of task, mechanism,
-strength, and seed. Logistic regression, random forest, and LightGBM are the
-downstream learners. P0 retains
-all fields. P1 removes every field labeled contaminated by construction and
-serves only as an oracle reference. P2 removes $k$ fields uniformly at random
-under 20 frozen governance seeds.
-P3 removes the $k$ fields with the largest training side mutual information
-scores. More formally, if $\omega\in\Omega$ denotes one of $|\Omega|=20$
-frozen random-policy realizations and $I_{qj}^{\mathrm{train}}$ denotes the
-training-only MI score,
-then
+The R experiment uses the same 5,500 combinations of task, mechanism,
+strength, and injection seed. LR is evaluated at all four budgets; RF and
+LightGBM test the primary 20\% budget. LR is the primary repair panel. The
+post-LR B2 extension uses separately frozen repair factories: a 100-tree RF and
+a 100-estimator CPU LightGBM, both with the recorded training seed and without
+the measurement panel's RF-250 or validation-early-stopping configuration.
+They are therefore corroborative learner interventions rather than bitwise
+continuations of the five-learner measurement matrix. P0 retains all fields. P1 removes every
+construction-labeled field and defines the strict oracle reference. P2 removes
+$k$ fields uniformly at random under 20 frozen governance seeds. P3 removes the
+$k$ fields with the largest training-side MI scores. If $\omega\in\Omega$
+denotes one of $|\Omega|=20$ frozen P2 realizations and
+$I_{qj}^{\mathrm{train}}$ denotes the training-only score, then
 \begin{align}
  \mathcal{R}_{q,\mathrm{P2},k}^{(\omega)}
  &\sim \mathrm{Unif}\{R\subseteq\mathcal{F}_q:|R|=k\},
@@ -448,18 +520,17 @@ Thus the comparison satisfies the cellwise cost identity
  \label{eq:matched-cost}
 \end{equation}
 P2 and P3 therefore remove exactly the same number of fields for each key and
-budget. The primary contrast uses
-$\Delta_q=\mathrm{SDR}_{q,\mathrm{P3}}-|\Omega|^{-1}
-\sum_{\omega\in\Omega}\mathrm{SDR}_{q,\mathrm{P2}}^{(\omega)}$ before
-dataset-cluster resampling. Nominal budgets that collapse to the same integer
-$k$ reuse the same fitted result and retain both labels in the ledger.
+budget. The implementation estimates Eq.~\ref{eq:repair-advantage} by averaging
+P2 within key before task-cluster resampling. Nominal fractions that collapse
+to the same integer $k$ reuse the same fitted result and retain both labels in
+the ledger.
 
 The clean runner loads frozen bundles, verifies bundle and split hashes, and
 does not inject, split, or mutate data. Non-oracle selectors never receive the
 contamination mask. Strict and full baselines are shared only within an
-identical task, mechanism, strength, and seed key. All \GovernanceCellCount{} policy
-cells completed successfully across \GovernanceKeyCount{} keys, with no
-duplicate run identifiers.
+identical task, mechanism, strength, and seed key. The final revision contains
+\GovernanceCellCount{} successful policy rows across \GovernanceKeyCount{} keys
+per learner, with complete selection hashes and no duplicate run identifiers.
 
 \subsection{Natural-Case Audit}
 
@@ -500,6 +571,21 @@ preprocessing is training-fitted. Superseded rows are
 retained for provenance but excluded from canonical claim generation. These
 amendments narrow the evidence to the final protocol and prevent earlier,
 semantically different outputs from being averaged into the paper results.
+The B2 chronology is part of the evidence tier. The LR-only limitation was
+visible first. The dated revision protocol then froze RF and LightGBM, the
+20\% budget, 20 governance seeds, model factories, and the within-key
+P3-minus-mean-P2 estimand before either cross-learner outcome was observed.
+After the RF outcome, LightGBM moved from a failed GPU attempt to CPU before
+any completed LightGBM result; its model class, estimator count, seeds, budget,
+and estimand were unchanged. B2 is therefore a prespecified post-LR extension,
+not part of the original measurement protocol.
+
+A later audit found that the B2 runner re-fitted strict and full baselines with
+its 100-estimator repair factories instead of numerically reusing the earlier
+canonical RF-250 and early-stopped LightGBM fits. This post-run deviation is
+bound in the revision manifest and claim state. It preserves within-row pairing
+and the frozen P3--P2 estimand, but it restricts RF and LightGBM to corroborative
+within-run contrasts rather than baseline-continuity evidence.
 
 \subsection{Statistical Analysis and Claim Scope}
 
@@ -551,38 +637,40 @@ uses the two-sided absolute mean. Holm adjustment is applied jointly to the
 three declared family contrasts. The eleven mechanism tests form a different
 Holm family; their profiles remain descriptive regardless of adjusted value.
 
-Governance differences are first averaged within each of the 20 controlled
-tasks. With $\mathcal{M}$, $\mathcal{A}$, and $\mathcal{S}$ denoting the
-mechanism, strength, and injection-seed sets, the task-level paired effect is
+Repair differences are first averaged within each of the 20 controlled tasks.
+Let $\overline{\mathrm{SDR}}^{\,\Omega}_{q\ell,\mathrm{P2},k}$ denote the
+within-key mean over the 20 P2 realizations. With $\mathcal{M}$,
+$\mathcal{A}$, and $\mathcal{S}$ denoting the mechanism, strength, and
+injection-seed sets, the learner-specific task effect is
 \begin{equation}
 \begin{split}
- d_{t,p}={1\over|\mathcal{M}||\mathcal{A}||\mathcal{S}|}
+ d_{t\ell p}={1\over|\mathcal{M}||\mathcal{A}||\mathcal{S}|}
  \sum_{m\in\mathcal{M}}\sum_{a\in\mathcal{A}}\sum_{s\in\mathcal{S}}
- \bigl(&\mathrm{SDR}_{q,\mathrm{P3},k_q(p)}\\[-2pt]
-       &-\mathrm{SDR}_{q,\mathrm{P2},k_q(p)}\bigr),
+ \bigl(&\mathrm{SDR}_{q\ell,\mathrm{P3},k_q(p)}\\[-2pt]
+       &-\overline{\mathrm{SDR}}^{\,\Omega}_{q\ell,\mathrm{P2},k_q(p)}\bigr),
 \end{split}
  \label{eq:task-effect}
 \end{equation}
 and the registry-level estimand is the equal-task average
 \begin{equation}
- \widehat{\Delta}_p=\frac{1}{|\mathcal{T}|}
- \sum_{t\in\mathcal{T}}d_{t,p}.
+ \widehat{\Delta}_{R,\ell p}=\frac{1}{|\mathcal{T}|}
+ \sum_{t\in\mathcal{T}}d_{t\ell p}.
  \label{eq:registry-effect}
 \end{equation}
 For a mechanism family $c$ with member set $\mathcal{M}_c$, replacing
 $\mathcal{M}$ by $\mathcal{M}_c$ in Eq.~\ref{eq:task-effect} gives
 \begin{equation}
- \widehat{\Delta}_{p,c}=\frac{1}{|\mathcal{T}|}
- \sum_{t\in\mathcal{T}}d_{t,p,c}.
+ \widehat{\Delta}_{R,\ell p c}=\frac{1}{|\mathcal{T}|}
+ \sum_{t\in\mathcal{T}}d_{t\ell p c}.
  \label{eq:family-effect}
 \end{equation}
 We assess these estimands with a paired 10,000-draw cluster bootstrap over
 tasks. For draw $b$, tasks are sampled with replacement and the complete task
 effect is carried with each sampled index:
 \begin{equation}
- \widehat{\Delta}^{*(b)}_p
+ \widehat{\Delta}^{*(b)}_{R,\ell p}
  =\frac{1}{|\mathcal{T}|}\sum_{i=1}^{|\mathcal{T}|}
- d_{T_i^{*(b)},p},
+ d_{T_i^{*(b)},\ell p},
  \quad T_i^{*(b)}\stackrel{\mathrm{iid}}{\sim}\mathrm{Unif}(\mathcal{T}).
  \label{eq:cluster-bootstrap}
 \end{equation}
@@ -591,23 +679,28 @@ fraction of bootstrap draws above zero:
 \begin{equation}
 \begin{split}
  \mathrm{CI}_{0.95}
- &=\left[Q_{0.025}(\widehat{\Delta}^{*}_p),
-          Q_{0.975}(\widehat{\Delta}^{*}_p)\right],\\
+ &=\left[Q_{0.025}(\widehat{\Delta}^{*}_{R,\ell p}),
+          Q_{0.975}(\widehat{\Delta}^{*}_{R,\ell p})\right],\\
  \widehat{P}_{\mathrm{P3>P2}}
  &=\frac{1}{B}\sum_{b=1}^{B}\mathbf{1}
-   [\widehat{\Delta}^{*(b)}_p>0].
+   [\widehat{\Delta}^{*(b)}_{R,\ell p}>0].
 \end{split}
  \label{eq:bootstrap-summary}
 \end{equation}
-The latter is a bootstrap superiority probability, not a $p$-value. Because
+Learner interactions are direct paired contrasts of task effects, not
+comparisons of whether two separate intervals contain zero. Gap quartiles and
+archetype rows reuse the same LR task-cluster procedure as declared
+sensitivities. Semantic-cost and fixed-natural-case summaries use 5,000 draws;
+the natural analysis also reports the exact two-sided sign-flip value over its
+five fixed case effects. The bootstrap fraction is not a $p$-value. Because
 tasks form a designed registry rather than
 a sample from a defined task population, all intervals quantify stability to
 registry reweighting. They do not support population inference to arbitrary
 tabular datasets.
 
-\section{Measurement Results}
+\section{CDX Measurement Results}
 
-\subsection{Simple Contamination Produces More Harm on Average}
+\subsection{X: Construction Family Changes Exploitability}
 
 The prespecified simple-minus-structured contrast in paired AUROC harm was
 \CoreContrast{} (95\% hierarchical bootstrap CI [\CoreContrastLow{},
@@ -637,7 +730,7 @@ complete one-hot representation makes the source shift exploitable. Therefore
 ``structured'' describes how invalid information is organized, not a guarantee
 of low statistical association or low downstream harm.
 
-\subsection{Detectability and Exploitability Form Crossed Profiles}
+\subsection{D Does Not Determine X}
 
 Mechanism profiles show why a single leakage severity score is insufficient.
 M03 combines low primary-MI detectability (D=0.079) with substantial harm
@@ -661,22 +754,22 @@ At the eleven-mechanism level, D and X have a positive descriptive rank
 association, but category membership explains much of the apparent relation
 and leave-one-mechanism-out checks do not support a portable prediction rule.
 This is why Fig.~\ref{fig:cdx} is a profile map rather than a fitted calibration
-curve. The benchmark can identify mechanisms for which a diagnostic and a
+curve. The controlled instantiation can identify mechanisms for which a diagnostic and a
 learner co-vary; it cannot infer exploitability for an unseen mechanism from D
 alone.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/generated/cdx_profiles.pdf}
-\caption{C/D/X measurement profiles. Each point is one mechanism mean over the
+\caption{CDX measurement profiles. Each point is one mechanism mean over the
 frozen registry. D is normalized average precision under the primary
-training side mutual information diagnostic; X is paired AUROC harm. Shape and
+training-side mutual-information diagnostic; X is paired AUROC harm. Shape and
 color encode construction family. The figure is descriptive and does not fit a
 deployment rule.}
 \label{fig:cdx}
 \end{figure}
 
-\subsection{Natural Cases Broaden Context but Not the Sampling Frame}
+\subsection{Natural Boundaries Broaden Context, Not the Sampling Frame}
 
 Five selected real-data case studies provide boundary-specific consistency
 checks (Table~\ref{tab:natural}): UCI Bank Marketing \cite{uciBankMarketing},
@@ -698,7 +791,7 @@ positive is reported as a fixed-case description and is not promoted to a
 population claim.
 
 The matched-cost governance sensitivity is also heterogeneous. The descriptive
-mean P3-minus-mean-P2 SDR across the five cases is +0.187 (case-bootstrap
+mean P3-minus-mean-P2 SDR across the five cases is \NaturalMeanRepair{} (case-bootstrap
 interval [+0.025,+0.323]), but the five cases do not form a population sample.
 Bank Marketing (+0.102), Lending Club (+0.266), BTS Flights (+0.348), and
 Chicago Food (+0.326) favor P3, whereas NYC311 favors P2 (-0.108). The exact
@@ -706,18 +799,29 @@ two-sided sign-flip value over the five fixed case effects is 0.1875. We
 therefore classify natural governance as mixed descriptive evidence rather
 than external confirmation.
 
-\input{generated/table_natural.tex}
+NYC311 explains why the positive four-of-five count is not a transport claim.
+Its signed harm is +0.013, but the symmetric repair opportunity is only
+\NYCInitialGap{}. At $k=8$ of 40 fields, hash-verified P3 selection removes
+\texttt{resolution\_description} but misses \texttt{status}, giving
+\NYCRecall{} recall; it simultaneously removes \NYCRemovedValid{}
+contract-valid context fields and retains \NYCRetention{} of legitimate
+fields. The resulting \NYCRepairDiff{} advantage is therefore a low-opportunity
+failure in which deletion cost exceeds the available distortion. Here
+``contract-valid'' means available under the declared complaint-creation
+boundary, not necessarily useful or stable for deployment.
 
-\section{Governance Results}
+\section{R: Matched-Cost Repair Results}
 
-\subsection{Blind MI Outperforms Random Removal Across Budgets}
+\subsection{Blind MI Adds Repair Value Beyond Deletion Count}
 
 At a 20\% encoded-column budget, P3 exceeded the within-key mean of 20 P2
-realizations by +0.043 SDR for LR (95\% paired dataset-cluster bootstrap CI
-[+0.004,+0.078]), +0.055 for RF ([+0.025,+0.082]), and +0.056 for LightGBM
-([+0.028,+0.082]). Direct paired learner contrasts all cross zero, so the
-supported statement is that the direction and magnitude are similar in this
-three-learner panel, not that the effects are equivalent or learner-invariant.
+realizations by \GovTwentyDiff{} SDR for the primary LR panel (95\% paired
+task-cluster interval [\GovTwentyLow{},\GovTwentyHigh{}]). The corroborative
+B2 extension gives \GovRFDiff{} for RF ([\GovRFLow{}, \GovRFHigh{}]) and
+\GovLGBMDiff{} for LightGBM ([\GovLGBMLow{}, \GovLGBMHigh{}]). Direct paired
+contrasts among these named implementations all cross zero, so no reliable
+difference is detected; this is not equivalence, learner invariance, or
+baseline continuity with the measurement matrix.
 The encoded-column budget curve additionally shows the recall--retention
 trade-off across 1\%, 5\%, 10\%, and 20\% removal.
 
@@ -740,26 +844,48 @@ dose-response model.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.88\textwidth]{figures/generated/governance_budget.pdf}
-\caption{Budget sensitivity of blind MI governance. \textbf{a}, observed P3
-minus P2 SDR with paired dataset-cluster bootstrap 95\% intervals over 20
-controlled tasks. Positive values favor P3. \textbf{b}, contaminated field
-recall and legitimate-field retention for P3. P2 and P3 remove the same number
-of encoded fields at each task and nominal budget.}
+\caption{Budget sensitivity of the R layer. \textbf{a}, observed repair
+advantage $\Delta_R$ with paired task-cluster 95\% intervals over 20 controlled
+tasks. Positive values favor P3 over mean P2. \textbf{b}, contaminated-field
+recall and legitimate-field retention for P3. P2 and P3 remove the same encoded
+cost at every task and nominal budget.}
 \label{fig:budget}
 \end{figure*}
 
-\subsection{The Structured Average Hides Repair-Opportunity Heterogeneity}
+\subsection{Repair Opportunity Resolves the Structured Average}
 
-At a 20\% budget, the P3--P2 difference was \GovSimpleDiff{} for simple
+At a 20\% budget, $\Delta_R$ was \GovSimpleDiff{} for simple
 mechanisms (CI [\GovSimpleLow{}, \GovSimpleHigh{}]) and \GovBoundaryDiff{} for
 boundary mechanisms (CI [\GovBoundaryLow{}, \GovBoundaryHigh{}]). For
 structured mechanisms it was \GovStructuredDiff{} (CI
 [\GovStructuredLow{}, \GovStructuredHigh{}]). The structured interval crosses
-zero, so the supported statement is that this experiment finds no reliable P3
-advantage for that family. It does not establish equivalence between P3 and P2
-or a general failure of MI on structured leakage. M04, M05, and M08 have little
-initial strict--full gap, whereas M09 combines substantial distortion with a
-positive P3--P2 contrast across all three evaluated learners.
+zero, so this experiment finds no reliable P3 advantage for that family. It
+does not establish equivalence or a general failure of MI on structured
+leakage. M04, M05, and M08 have little initial strict--full gap, whereas M09
+combines an LR opportunity of 0.225 with \GovMNineDiff{} repair advantage (CI
+[\GovMNineLow{},\GovMNineHigh{}]) and remains positive for RF and LightGBM.
+
+The opportunity strata sharpen this interpretation. The lowest LR gap quartile
+has $\Delta_R=-0.056$ (CI [-0.096,-0.021]), whereas the highest quartile has
+\GovQFourDiff{} ([\GovQFourLow{},\GovQFourHigh{}]). The sparse archetype is a
+separate negative regime (\GovSparseDiff{}, [\GovSparseLow{},
+\GovSparseHigh{}]); the other four archetypes are positive, and every
+leave-one-archetype-out point estimate remains positive. These are sensitivity
+patterns, not evidence that opportunity or archetype causally determines repair.
+
+We diagnosed the sparse failure without re-fitting a downstream model. A
+post-hoc reconstruction matched all 1,100 P3 selection hashes to the frozen B1
+ledger. The mean is negative in \GovSparseNegativeTasks{} tasks and
+\GovSparseNegativeMechanisms{} mechanisms; P3 recall is \GovSparseRecall{} and
+legitimate retention is \GovSparseRetention{}. The clean sparse generator
+concentrates its legitimate signal in
+$1.1x_0-0.8x_3+0.5\mathbf{1}[x_5>0]$. At 20\%, P3 removes on average
+\GovSparseSignalRemoved{} of these three fields; $x_0$ and $x_3$ are removed in
+\GovSparseXZeroRemoval{} and \GovSparseXThreeRemoval{} of keys. Thus the
+failure is consistent with a marginal ranker targeting concentrated legitimate
+signal, not merely with collapsed contamination recall. Because signal
+concentration was not separately randomized, this is a construction-grounded
+diagnosis rather than a causal decomposition.
 
 The family decomposition is a direct effect comparison, not an inference from
 one interval being above zero and another crossing zero. Each family estimate
@@ -772,16 +898,16 @@ be treated as a category-level capability boundary.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/generated/governance_by_category.pdf}
-\caption{Mechanism-family heterogeneity at a 20\% budget. Points show observed
-P3 minus P2 SDR and bars show paired dataset-cluster bootstrap 95\% intervals.
-Marker shape and color redundantly encode family. The structured estimate is a
-negative result, not an equivalence claim.}
+\caption{Mechanism-family heterogeneity at a 20\% encoded cost. Points show
+$\Delta_R$ and bars show paired task-cluster 95\% intervals. Marker shape and
+color redundantly encode family. The structured interval crosses zero and is
+not an equivalence result.}
 \label{fig:category}
 \end{figure}
 
 \input{generated/table_governance.tex}
 
-\subsection{Semantic-Group Cost Narrows the Overall Claim}
+\subsection{The Cost Contract Changes Aggregate Support}
 
 The primary protocol charges encoded columns, so removing the complete M09
 source field costs eight units. A frozen sensitivity instead treats its eight
@@ -791,22 +917,40 @@ the only mechanism whose frozen representation expands one semantic source
 into several encoded columns; the remaining 5,000 keys therefore retain their
 encoded-cost results in the 5,500-key recomposition.
 
-M09 remains positive under group cost: its P3--P2 contrast changes from +0.149
-(95\% CI [+0.125,+0.171]) to +0.109 ([+0.054,+0.158]). The paired
-semantic-minus-encoded change is -0.040 ([-0.076,-0.008]). After recomposition,
-the overall estimate is +0.040 with an interval that crosses zero
-([-0.003,+0.077]), compared with +0.043 ([+0.004,+0.078]) under encoded cost.
-Thus M09 is not an artifact of charging eight units, but the aggregate
-governance claim is sensitive to the representation-cost definition.
+The two cost contracts give
+\begin{align}
+ \widehat{\Delta}^{\mathrm{M09}}_{R,\mathrm{enc}}
+ &=\GovMNineDiff{}, &
+ \mathrm{CI}_{.95}&=[\GovMNineLow{},\GovMNineHigh{}],\\
+ \widehat{\Delta}^{\mathrm{M09}}_{R,\mathrm{grp}}
+ &=\SemanticMNineDiff{}, &
+ \mathrm{CI}_{.95}&=[\SemanticMNineLow{},\SemanticMNineHigh{}].
+ \label{eq:m09-cost}
+\end{align}
+The paired group-minus-encoded change is -0.040; its 95\% CI is
+[-0.076,-0.008]. After recomposition, the semantic-group overall estimate is
+\SemanticOverallDiff{}. Its interval crosses zero
+([\SemanticOverallLow{},\SemanticOverallHigh{}]), whereas the encoded-cost
+estimate is \EncodedOverallDiff{} with a positive interval. M09 is not an
+artifact of charging eight units, but the aggregate repair claim is sensitive
+to the representation-cost definition.
 
-\subsection{From Measurement to Action}
+Table~\ref{tab:natural} places the cost contract beside the five natural
+boundaries. Their mean repair response is \NaturalMeanRepair{}, but only four
+cases favor P3; NYC311 is negative. The five-case exact sign-flip value is
+0.1875. Natural governance is therefore mixed despite its positive descriptive
+mean.
+
+\input{generated/table_natural.tex}
+
+\subsection{CDXR Connects Measurement to Action}
 
 The measurement and governance results align at the family level without
 establishing a universal transfer rule. Simple contamination is usually highly
 detectable, strongly exploited, and amenable to top-ranked field removal.
 Boundary mechanisms are heterogeneous but retain a positive aggregate P3
 advantage. Structured mechanisms encode invalidity through time, entity, and
-source relationships that a univariate training side score does not represent
+source relationships that a univariate training-side score does not represent
 uniformly. This interpretation is consistent with the observed profiles and
 policy outcomes, but it is not a causal decomposition of policy performance.
 
@@ -814,7 +958,7 @@ The crossed profiles also warn against treating high D as sufficient for
 governance. M09 is detectable and harmful under its fixed representation, yet
 structured governance as a family does not show a reliable advantage. A field
 ranking can identify association while still removing legitimate correlates or
-failing to represent the semantic group that should be governed. The benchmark
+failing to represent the semantic group that should be governed. CDXR
 therefore evaluates localization, downstream distance, recall, and retention
 as separate outcomes.
 
@@ -822,13 +966,25 @@ The policy results also separate identification from repair. A contaminated
 column counted in recall may be statistically redundant with another retained
 column, so removing it need not change AUROC. Conversely, removing a legitimate
 correlate can accidentally offset permissive inflation and improve SDR while
-reducing retention. The joint outcome vector
-$(\mathrm{SDR},\mathrm{Rec},\mathrm{Ret})$ prevents either case from being
+reducing retention. The repair vector
+$R=(\mathrm{SDR},\mathrm{Rec},\mathrm{Ret})$ prevents either case from being
 reported as unqualified success. In the present results, low-budget P3 combines
 a positive paired advantage with high legitimate retention, whereas larger
 budgets buy additional recall at a visible retention cost.
 
 \section{Related Work}
+
+\paragraph{Data contracts and validation.}
+Production ML creates data-management problems around understanding,
+validating, cleaning, and enriching training data
+\cite{polyzotis2017data}. Declarative quality systems scale constraints and
+anomaly checks over large datasets \cite{schelter2018automating}, while ML data
+validation additionally targets schemas, unexpected patterns, and
+training-serving skew \cite{polyzotis2019validation}. CDXR is complementary:
+observed-data constraints cannot by themselves decide whether a field is
+semantically available at a prediction event, and anomaly detection does not
+measure whether a removal policy repairs a boundary-valid reference. CDXR adds
+that semantic and interventional contract.
 
 \paragraph{Leakage semantics.}
 Classical leakage formulations distinguish information that is available when
@@ -841,9 +997,9 @@ and formalizes domain-specific label leakage in health care
 \cite{davis2024framework}. Empirical studies in connectome
 prediction further show that leakage can inflate reported performance under
 otherwise familiar modeling pipelines \cite{rosenblatt2024connectome}.
-LeakBench-Tab adopts the same boundary-first principle, but turns it into a
-factorial measurement contract in which validity, localization, and
-exploitation are separate variables.
+CDXR adopts the same boundary-first principle, but extends it to a repair
+contract in which validity, localization, exploitation, opportunity, and
+intervention response remain separately auditable.
 
 \paragraph{Detection at code, data, and representation levels.}
 Static program analysis targets leakage pathways visible in data-science code,
@@ -857,8 +1013,9 @@ approaches are complementary because they observe different evidence. Code
 analysis can reveal an invalid fit scope without ranking columns; a statistical
 ranker can reveal a target proxy without knowing its lineage; and a semantic
 contract can identify a future field even when its sample association is weak.
-Our C/D/X decomposition makes these non-equivalences explicit rather than
-combining them into a single detector score.
+The C/D/X interfaces of CDXR make these non-equivalences explicit, while the R
+interface tests whether a detector ranking remains useful after an equal-cost
+negative control.
 
 \paragraph{Tabular evaluation under controlled shifts.}
 TableShift studies tabular prediction under distribution shifts, while broad
@@ -880,15 +1037,15 @@ importance measure predictive relevance under different function classes.
 None is intrinsically a semantic validity test. Conventional feature selection
 usually optimizes predictive performance or sparsity; leakage governance asks
 whether a constrained intervention moves an evaluation toward a boundary-valid
-reference while preserving legitimate information. Our P2/P3 comparison
-therefore matches removal cost, records contaminated-field recall and
-legitimate-field retention, and evaluates downstream strict distance. The
-scientific contribution lies in the observed regime map and negative structured
-result, not in presenting MI ranking as a new selection algorithm.
+reference while preserving legitimate information. Our P2/P3 comparison holds
+removal cost fixed. It reports leak recall, legitimate retention, and downstream
+strict distance. The method contribution is the contract-grounded repair
+architecture and its controls; MI supplies a deliberately conventional test
+policy.
 
 \section{Discussion}
 
-\subsection{What the Evaluation Changes}
+\subsection{What CDXR Changes}
 
 Leakage audits often end after declaring suspicious fields or measuring an
 inflated score. Our results show that an actionable evaluation needs at least
@@ -949,17 +1106,22 @@ or entity metadata rather than blind univariate association. These policies
 would test whether low-gap structured mechanisms become governable when the
 intervention represents their construction semantics. Natural evaluation also
 remains narrow: five fixed cases cannot establish a population-level transport
-claim, and the negative NYC311 effect requires application-specific explanation
-rather than averaging away.
+claim. The NYC311 anatomy explains the observed deletion path under its declared
+contract, but application-specific review must still decide whether fields
+such as identifiers and service descriptors belong in an operational policy.
 
 \subsection{Limitations}
 
 The controlled tasks are synthetic panel generators, not twenty independent
-real-world datasets. Their bootstrap intervals describe registry stability,
+real-world application environments. Their bootstrap intervals describe registry stability,
 not a task population. The governance experiment covers LR, RF, and LightGBM,
 but these named implementations do not establish invariance across model
 families or tuning choices. The direct learner-interaction intervals cross
-zero; they are tests of detected difference, not equivalence tests.
+zero; they are tests of detected difference, not equivalence tests. The RF and
+LightGBM extension uses separately frozen 100-estimator repair factories and
+re-fitted strict/full baselines under a disclosed protocol deviation. Those
+results retain within-run paired validity but not model-factory or bitwise
+baseline continuity with the earlier measurement run.
 
 P2 uses 20 frozen random field selections for each task key and budget, and the
 primary estimand averages P2 within key before task-cluster resampling. This
@@ -989,7 +1151,7 @@ depends on the correctness of each declared prediction boundary and mechanism
 contract. Recall and retention use the contamination mask only after policy
 selection and are therefore evaluation measures rather than deployable
 observables. Encoded-column recall also differs from semantic-field recall when
-categorical fields expand into multiple indicators. The benchmark states the
+categorical fields expand into multiple indicators. CDXR states the
 encoded unit explicitly, but a production policy may require group-level
 metrics.
 
@@ -1014,9 +1176,10 @@ should not be mined as independent confirmatory discoveries.
 
 \section{Reproducibility and Artifact Boundary}
 
-The release binds the canonical 27,500-cell measurement table, paper claim
-state, governance runner, 55,000-cell policy ledger, bootstrap analysis, and
-paper-facing CSV tables by SHA-256. The release validator deep-runs statistical
+The release binds the canonical 27,500-cell measurement table, separate
+measurement and governance claim states, repair runners, the
+\GovernanceCellCount{}-row revision ledger, bootstrap analyses, and paper-facing
+CSV tables by SHA-256. The release validator deep-runs statistical
 tables and reports 233 passing tests with no failures. Superseded runners and
 intermediate cluster summaries are retained for provenance but excluded from
 claim generation. Paper figures and tables are regenerated from three compact
@@ -1035,10 +1198,13 @@ hardware are available.
 
 Claim state is machine-readable and distinct from prose. Each central claim
 records an estimand, evidence tier, allowed wording, prohibited wording, and
-scope limitation. The paper generator does not infer support from arbitrary
-tables; it consumes the frozen paper-facing assets. This separation is intended
-to prevent a later figure edit, exploratory table, or superseded run from
-silently changing a conclusion.
+scope limitation. This is the artifact realization of certificate
+$\Gamma$: invalid access, cost, pairing, or provenance blocks generation before
+statistical support is considered. The post-hoc failure anatomy has a separate
+manifest and cannot promote the confirmatory claim state. The paper generator
+does not infer support from arbitrary tables; it consumes the frozen
+paper-facing assets. This separation prevents a later figure edit, exploratory
+table, or superseded run from silently changing a conclusion.
 
 The public artifact and reproduction instructions are maintained at
 \url{https://github.com/lzzzhh/LeakBench-Tab}. The paper-facing artifact does
@@ -1048,25 +1214,24 @@ used only for evaluation after selection.
 
 \section{Conclusion}
 
-LeakBench-Tab connects leakage measurement to matched budget action. Across a
-frozen controlled registry, blind training-side mutual information removal has
-a positive 20\% encoded-cost P3--P2 interval for LR, RF, and LightGBM. The
-structured family average is not a failure boundary: it mixes low-gap
-mechanisms with the positive M09 counterexample. Semantic grouping preserves
-the M09 advantage but causes the recomposed overall interval to cross zero, and
-natural governance is positive in four of five fixed cases. The central lesson
-is therefore conditional: detectability can guide repair when distortion is
-both present and localizable, but the conclusion depends on cost representation
-and application context.
+CDXR reframes tabular leakage repair as a contract-grounded evaluation
+architecture rather than a detector leaderboard. C freezes semantic invalidity,
+D measures blind localization, X measures learner exploitation, and R evaluates
+the intervention against equal-cost deletion. Semantic precedence, oracle
+isolation, matched cost, paired reference evaluation, and task-level uncertainty
+make the resulting claim falsifiable.
 
-Leakage benchmarks should separate invalidity, localization, exploitation, and
-repair. These quantities coincide for direct proxies but diverge for
-interactions, future aggregates, entities, sources, and redundant groups. A
-defensible result therefore requires a semantic reference, oracle isolation,
-matched cost, paired downstream evaluation, and task-level uncertainty. The
-release provides these components for the present scope. Next experiments
-should test lineage-, time-, and entity-aware policies and explain the negative
-NYC311 governance result under its application boundary.
+The LeakBench-Tab instantiation supports one bounded repair result: under the
+primary 20\% encoded-column contract, training-side MI has a positive advantage
+for LR. Separately frozen, protocol-deviating RF and LightGBM extensions
+corroborate its direction without establishing implementation continuity or
+learner invariance. CDXR also makes the boundary visible. Low-opportunity strata and the sparse
+archetype are negative; M09 refutes a blanket structured-failure narrative;
+semantic grouping moves the aggregate interval across zero; and natural
+governance is mixed. The contribution is therefore not that MI solves leakage,
+but that leakage repair can be measured without conflating validity,
+detectability, exploitation, and deletion cost. Lineage-, time-, and
+entity-aware policies can now be tested through the same interfaces.
 
 \balance
 \bibliographystyle{ACM-Reference-Format}

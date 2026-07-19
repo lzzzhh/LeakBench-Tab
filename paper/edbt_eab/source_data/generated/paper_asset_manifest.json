@@ -1,28 +1,23 @@
 {
   "canonical_sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
-  "evidence_tier": "confirmatory_plus_case_study",
-  "legacy_disposition": {
-    "artifacts/edbt_eab/baseline_matrix.csv": "METHOD_DOCUMENTATION_NOT_A_RESULTS_TABLE",
-    "artifacts/edbt_eab/claim_evidence_matrix.csv": "STALE_DO_NOT_CITE",
-    "artifacts/edbt_eab/mechanism_contract_matrix.csv": "INCOMPLETE_7_OF_11_ARTIFACT_ONLY"
-  },
+  "evidence_tier": "confirmatory_plus_declared_sensitivities_and_fixed_cases",
+  "governance_claims_sha256": "b76106e5dab52c77874d10cbdf1978ae8e0dc4c95fb3047219152255162fba99",
+  "measurement_claims_sha256": "ce88fca4c06af5a84e7f6288e97b108abacb7380ebb3fad067733598526917ec",
   "output_sha256": {
-    "governance_results.csv": "b43d2b259149a132a1f764cbc7fdf1cbaed1318de0c7f216d1399a97cf2c644c",
+    "governance_results.csv": "b9c206eedb7b105b7a8f5021b09076dbd0eeab5cfe8460e6f30327ea448eab50",
     "main_results.csv": "e791801ed1c1fd4e9aa281fe153b7ee3493b7f7ac314451ca56ae047cf0c5b7d",
-    "natural_cases.csv": "458cad5ef36b7dc2d558f5ea0c97cfa3331f87d52a49afda132262ad0d4587b6"
+    "natural_cases.csv": "a24b737d96b794ebc9092e26f54624be7e31038a07982336c70f87be9d67e2de"
   },
-  "paper_claims_sha256": "ce88fca4c06af5a84e7f6288e97b108abacb7380ebb3fad067733598526917ec",
   "paper_table_count": 3,
   "row_counts": {
-    "governance_results.csv": 7,
+    "governance_results.csv": 69,
     "main_results.csv": 12,
     "natural_cases.csv": 5
   },
-  "schema_version": 1,
+  "schema_version": 2,
   "source_sha256": {
     "artifacts/sp8/bootstrap_analysis.json": "51c9e877ec1ced01a828598d66004e182478483726f111c7b9989ffed0ceabff",
-    "artifacts/sp8/claims/claim_evidence_matrix_sp8.json": "482710508f853516b1c8bf0a075328ea1bddb6f3a8bfa6a3914483906f33c97e",
-    "paper/edbt_eab/source_data/build_paper_assets.py": "a4b17dc14e4e3b7065422458f6a358e2eaa4d22b6ec36e2662dc479752996b28",
+    "paper/edbt_eab/source_data/build_paper_assets.py": "c6cc74cd0742e95d40d8b15f323f16ebf03b6f2d7563c442d9445d8f573a867d",
     "results/corrected_v2/canonical_cells.csv": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
     "results/corrected_v2/canonical_manifest.json": "7f07f0cb5ad729c900fa69f9938493e171519e57249128a66b6d109516b2474e",
     "results/corrected_v2/claim_state.json": "ce88fca4c06af5a84e7f6288e97b108abacb7380ebb3fad067733598526917ec",
@@ -31,16 +26,26 @@
     "results/corrected_v2/public_natural/natural_task_summary.csv": "ceda9121ff15e8f79a5506fee25e8f24976e64be6c56218836f964c6472281e4",
     "results/corrected_v2/statistics/detectability_mechanism_summary.csv": "961ab717fddd3d4397817c7c5e65f3ccc523bbf0917a15c31641220a33ab95f1",
     "results/corrected_v2/statistics/mechanism_summary.csv": "6e982bafa315398042d926b20fd12b6d07a529c36473d7e020bfd1d7f261329f",
-    "results/corrected_v2/statistics/strength_dose_response.csv": "544dc28f57c3f49eec35ab7d9f97a3c5c95f670db38aec06f1793f895a99588a"
+    "results/corrected_v2/statistics/strength_dose_response.csv": "544dc28f57c3f49eec35ab7d9f97a3c5c95f670db38aec06f1793f895a99588a",
+    "results/edbt_eab_revision/a1_mechanism_level.csv": "65a06c98771f8197c8aa8e3ec126d6ed4c606ae795d2e7e3e37764a8f6b62093",
+    "results/edbt_eab_revision/a2_gap_stratification.csv": "aa61ca7630280a64826248a89d110f410321c145558508e56dc1e7b495042c99",
+    "results/edbt_eab_revision/a3_archetype.csv": "6a044f1e66803766edbbacc8000cb16f0141b67ab2a634a029d9369a5032fd05",
+    "results/edbt_eab_revision/analysis_summary.json": "509d91a417a3cdb222b4eb1cfe91be6f39d92654e1269e798846545c93299bc2",
+    "results/edbt_eab_revision/claim_state.json": "b76106e5dab52c77874d10cbdf1978ae8e0dc4c95fb3047219152255162fba99",
+    "results/edbt_eab_revision/failure_anatomy/failure_anatomy_manifest.json": "a5aab9ca9681d6c8b6a82d8294c43253444c88b011326099422925dee6cff4c3",
+    "results/edbt_eab_revision/failure_anatomy/failure_anatomy_summary.json": "e56a6ad7405d63b36c4317491080a8a8b38b7f7af8bdb2e8ba349262911075c8",
+    "results/edbt_eab_revision/failure_anatomy/nyc311_selection_diagnostic.csv": "334c59052020ad4db19af829a74ff46b6c28b8f817e552370686e1a300666623",
+    "results/edbt_eab_revision/failure_anatomy/sparse_failure_anatomy.csv": "f49ed1f45dcee63608e0c7adbb72e24f07130b032be5f7b499b2e1c3c7f1ba36",
+    "results/edbt_eab_revision/manifest.json": "d094cf6c83e8c0ea42d815ac4bc564d0f68704dcaf51e9a586ac2804063644e4",
+    "results/edbt_eab_revision/natural_governance_summary.csv": "2d58a3f171fdcd52fbeca2b01806d21def2b64c106efdc8c99a72d1880806fdc",
+    "results/edbt_eab_revision/remaining_governance_summary.json": "b9e24e1ee92573282b6b797b6f65759de560f17eccb5ba1e0e393309ff459fad",
+    "results/edbt_eab_revision/semantic_budget_summary.csv": "9d0d06e01d3ca5847290e40323c9d8ff430d03cc9a7eef5f28f7e17dfb700db0"
   },
   "status": "EDBT_EAB_PAPER_ASSETS_READY",
   "table_policy": {
     "claim_scope": "PROSE_PLUS_MACHINE_READABLE_CLAIMS",
-    "diagnostic_method_by_mechanism.csv": "MACHINE_READABLE_ONLY_OR_FIGURE_SOURCE",
-    "governance_results.csv": "MAIN_TABLE",
-    "main_results.csv": "MAIN_OR_APPENDIX_SINGLE_SOURCE_TABLE",
-    "mechanism_model_summary.csv": "MACHINE_READABLE_ONLY_OR_FIGURE_SOURCE",
-    "natural_cases.csv": "MAIN_OR_COMPACT_APPENDIX_TABLE",
-    "task_manifest.csv": "ARTIFACT_ONLY"
+    "governance_results.csv": "R_LAYER_TABLES_AND_FIGURE_SOURCE",
+    "main_results.csv": "CDX_MEASUREMENT_TABLE_AND_FIGURE_SOURCE",
+    "natural_cases.csv": "FIXED_CASE_CONTRACT_TABLE"
   }
 }

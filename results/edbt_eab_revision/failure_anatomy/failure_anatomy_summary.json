@@ -1,0 +1,74 @@
+{
+  "allowed_wording": {
+    "nyc311": "NYC311 is a low-opportunity fixed-case failure in which P3 removes one of two invalid fields together with seven contract-valid fields.",
+    "sparse": "The sparse failure is distributed across all four tasks and most mechanisms; deterministic selection frequently removes construction-defined legitimate signal fields, while recall and retention remain near other archetypes."
+  },
+  "downstream_model_fits": 0,
+  "forbidden_wording": {
+    "nyc311": "NYC311 proves that MI fails on natural data.",
+    "sparse": "Sparse signal concentration causally explains every MI failure."
+  },
+  "nyc311": {
+    "budget_k": 8,
+    "initial_gap": 0.019045731232445,
+    "interpretation": "NYC311 offers little initial repair opportunity. P3 removes one of two invalid fields together with seven contract-valid context fields, so deletion cost exceeds the small available strict-full distortion in this fixed case.",
+    "invalid_fields": [
+      "status",
+      "resolution_description"
+    ],
+    "missed_invalid_fields": [
+      "status"
+    ],
+    "n_features": 40,
+    "n_invalid_fields": 2,
+    "p3_leak_recall": 0.5,
+    "p3_legitimate_retention": 0.8157894736842105,
+    "preprocessing_mapping_sha256": "f6a58f6b392ba3f3995ba00f43a44febd0f388c82d39765b1b0c6768551a6b35",
+    "repair_advantage": -0.1081896998154967,
+    "scope": "NYC311 LR at 20% retained-feature cost",
+    "selected_invalid_fields": [
+      "resolution_description"
+    ],
+    "selected_valid_fields": [
+      "descriptor",
+      "complaint_type",
+      "unique_key",
+      "agency",
+      "agency_name",
+      "location_type",
+      "descriptor_2"
+    ],
+    "selection_hashes_verified": 3,
+    "selection_mask_hash": "f0c54aeca2b67da7570d42abcf9d13e1b6334feb749448d45752944e1b731fed",
+    "source_sha256": "20d2b0b64ca32a6081f9577295f927d44e62767bc7cbcf013cad0e5a59c25f26",
+    "status": "POST_HOC_DESCRIPTIVE_DIAGNOSTIC"
+  },
+  "schema_version": 1,
+  "sparse": {
+    "interpretation": "The negative response is present in every sparse task and most mechanisms. Localization summaries do not show a gross recall or retention collapse relative to other archetypes; deterministic selection frequently removes the three legitimate fields that define the sparse generator's clean signal. This is a construction-grounded failure diagnosis, not a randomized causal decomposition.",
+    "mean_sparse_signal_fields_removed": 1.9181818181818182,
+    "n_keys": 1100,
+    "n_mechanisms": 11,
+    "n_tasks": 4,
+    "negative_mechanisms": 9,
+    "negative_tasks": 4,
+    "other_archetype_localization_ranges": {
+      "leak_recall_max": 0.6276520909090909,
+      "leak_recall_min": 0.5956446363636364,
+      "legitimate_retention_max": 0.8537459090909091,
+      "legitimate_retention_min": 0.8510766363636364
+    },
+    "p3_leak_recall": 0.5699621212121212,
+    "p3_legitimate_retention": 0.848104439677969,
+    "repair_advantage": -0.11833214827272728,
+    "scope": "LR sparse archetype at 20% matched encoded-column cost",
+    "selection_hashes_verified": 1100,
+    "sparse_signal_removal_rates": {
+      "x_000": 0.8927272727272727,
+      "x_003": 0.8490909090909091,
+      "x_005": 0.17636363636363636
+    },
+    "status": "POST_HOC_DESCRIPTIVE_DIAGNOSTIC"
+  },
+  "status": "POST_HOC_DESCRIPTIVE_DIAGNOSTIC"
+}

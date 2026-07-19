@@ -5,26 +5,29 @@ workspace and the repository's only active manuscript tree.
 
 ## Argument
 
-In budget-constrained tabular evaluation, LeakBench-Tab shows that blind
-training-side mutual-information removal exceeds mean matched random removal
-for LR, RF, and LightGBM under encoded-column cost. The structured average is
-gap-heterogeneous rather than a general failure boundary; M09 remains positive
-under semantic-group cost, while the recomposed overall interval crosses zero.
-Five fixed natural cases provide mixed descriptive evidence.
+CDXR is a contract-grounded evaluation architecture with a minimum information
+contract, role-separated selector/evaluator/verifier interfaces, and a
+machine-readable claim certificate. It separates construction validity (C),
+blind detectability (D), learner exploitability (X), and matched-cost repair
+response (R). LeakBench-Tab is its controlled instantiation. The frozen evidence
+shows a positive primary encoded-cost repair advantage for LR, with
+corroborative RF and LightGBM extensions under disclosed implementation and
+baseline-refit deviations. Opportunity, archetype, semantic cost, and fixed
+natural cases expose the boundary of that result.
 
 ## Build inputs
 
-The legacy measurement figures and tables use these governed CSV files:
+All paper figures, tables, and numeric macros use these three governed CSV files:
 
 - `source_data/generated/main_results.csv`
 - `source_data/generated/governance_results.csv`
 - `source_data/generated/natural_cases.csv`
 
-The governance revision text is additionally bound to the compact formal
-tables `results/edbt_eab_revision/natural_governance_summary.csv` and
-`results/edbt_eab_revision/semantic_budget_summary.csv`; their derivation and
-raw-cell hashes are recorded in `remaining_governance_summary.json` and the
-revision manifest.
+The asset builder verifies corrected-v2 measurement claims and the final EDBT
+governance-revision claim state, analysis summaries, natural cases, semantic
+cost sensitivity, revision manifest, and the separately manifested post-hoc
+sparse/NYC311 failure anatomy before emitting those CSVs. Post-hoc diagnostics
+cannot promote the frozen claim state.
 
 Regenerate macros, tables, and figures with:
 
@@ -65,6 +68,13 @@ Build the compact, standalone LaTeX source package with:
 python paper/edbt_eab/source_data/build_edbt_source_package.py
 ```
 
+Build the complete paper bundle, including all figure formats, paper-facing
+assets, generation scripts, compiled PDF, and compact evidence tables, with:
+
+```bash
+python paper/edbt_eab/source_data/build_edbt_complete_package.py
+```
+
 ## Locked terminology
 
 | Canonical term | Meaning |
@@ -73,6 +83,11 @@ python paper/edbt_eab/source_data/build_edbt_source_package.py
 | construction validity (C) | Semantic invalidity under the prediction boundary |
 | statistical detectability (D) | Diagnostic-conditional localization quality |
 | model exploitability (X) | Permissive-minus-strict paired AUROC harm |
+| repair opportunity (O) | Absolute strict--full AUROC distance available to repair |
+| repair response (R) | SDR, contamination recall, and legitimate retention after intervention |
+| repair advantage ($\Delta_R$) | P3 SDR minus within-key mean P2 SDR under matched cost |
+| claim certificate ($\Gamma$) | Scope, cost, effect, interval, localization, provenance, and status |
+| corroborative extension | Post-LR RF/LightGBM evidence frozen before its own outcomes; not original-protocol continuity |
 | strict-distance reduction (SDR) | Movement of governed AUROC toward the strict reference |
 | P2 matched random removal | Random policy removing the same number of fields as P3 |
 | P3 blind MI removal | Training-side mutual-information ranking without mask access |

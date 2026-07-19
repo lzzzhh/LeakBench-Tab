@@ -1,18 +1,21 @@
 \begin{table*}[t]
-\caption{Matched-cost governance results. Differences are P3 minus P2 strict-distance reduction (SDR); positive values favor blind MI. Probability is the fraction of paired dataset-cluster bootstrap draws above zero, not a $p$-value. Recall and retention describe P3.}
+\caption{CDXR repair stress tests at the 20\% encoded-column budget. $\Delta_R$ is P3 minus the within-key mean of 20 matched P2 realizations; positive values favor blind MI. Intervals resample the 20 controlled tasks, except archetype rows, which contain four tasks. Opportunity strata are sensitivity analyses, not causal effects.}
 \label{tab:governance}
 \centering\small
-\begin{tabular}{llrrrrr}
+\begin{tabular}{lllrrrl}
 \toprule
-Scope & Budget & P3--P2 SDR & 95\% CI & $\Pr_{boot}(\Delta>0)$ & Leak recall & Legit. retention \\
+Stress test & Scope & Learner & Opportunity & $\Delta_R$ & 95\% interval & Unit \\
 \midrule
-All Mechanisms & 1\% & +0.059 & [+0.044, +0.071] & 1.000 & 40.5\% & 97.6\% \\
-All Mechanisms & 5\% & +0.061 & [+0.046, +0.073] & 1.000 & 41.0\% & 97.6\% \\
-All Mechanisms & 10\% & +0.060 & [+0.033, +0.083] & 1.000 & 49.7\% & 94.6\% \\
-All Mechanisms & 20\% & +0.050 & [+0.008, +0.087] & 0.989 & 60.1\% & 85.1\% \\
-Simple & 20\% & +0.109 & [+0.060, +0.153] & 1.000 & 92.9\% & 86.7\% \\
-Boundary & 20\% & +0.044 & [+0.002, +0.079] & 0.980 & 56.2\% & 85.7\% \\
-Structured & 20\% & -0.003 & [-0.039, +0.027] & 0.449 & 30.2\% & 83.1\% \\
+Across learners & All mechanisms & LR & -- & +0.043 & [+0.004, +0.078] & 5500 keys \\
+Across learners & All mechanisms & RF & -- & +0.055 & [+0.025, +0.082] & 5500 keys \\
+Across learners & All mechanisms & LightGBM & -- & +0.056 & [+0.028, +0.082] & 5500 keys \\
+Mechanism family & simple & LR & -- & +0.094 & [+0.050, +0.133] & 20 tasks \\
+Mechanism family & boundary & LR & -- & +0.039 & [-0.000, +0.073] & 20 tasks \\
+Mechanism family & structured & LR & -- & -0.004 & [-0.039, +0.026] & 20 tasks \\
+Counterexample & M09 & LR & 0.225 & +0.149 & [+0.126, +0.171] & 500 keys \\
+Opportunity & Q1\_low & LR & [0.0000,0.0028] & -0.056 & [-0.096, -0.021] & 1375 keys \\
+Opportunity & Q4\_high & LR & [0.2478,0.4296] & +0.203 & [+0.179, +0.223] & 1375 keys \\
+Archetype & sparse & LR & -- & -0.118 & [-0.160, -0.093] & 4 tasks \\
 \bottomrule
 \end{tabular}
 \end{table*}

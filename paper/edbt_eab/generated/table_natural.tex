@@ -1,16 +1,20 @@
 \begin{table*}[t]
-\caption{Boundary-specific real-data case studies. These selected tasks provide descriptive consistency checks, not population inference.}
+\caption{Context and cost-contract sensitivities. Natural rows report fixed-case harm (X) and LR repair response at 20\%; no case-level inferential interval is claimed. Cost rows report controlled-registry $\Delta_R$ with 95\% task-cluster intervals. Natural governance is mixed because NYC311 is negative.}
 \label{tab:natural}
 \centering\small
-\begin{tabular}{llrrr}
+\begin{tabular}{lllrrrl}
 \toprule
-Task & Declared prediction boundary & Features & Leak fields & Mean harm \\
+Setting & Case / scope & Boundary or cost & X / opportunity & $\Delta_R$ & 95\% interval & Evidence \\
 \midrule
-BankMarketing & Before call completion & 20 & 1 & +0.131 \\
-LendingClub & At loan origination & 140 & 29 & +0.319 \\
-BTSFlights & Before scheduled departure & 108 & 72 & +0.470 \\
-ChicagoFood & Before inspection outcome & 16 & 2 & +0.430 \\
-NYC311 & At complaint creation & 40 & 2 & +0.013 \\
+Natural & BankMarketing & Before call completion & +0.131 & +0.102 & -- & fixed case \\
+Natural & LendingClub & At loan origination & +0.319 & +0.266 & -- & fixed case \\
+Natural & BTSFlights & Before scheduled departure & +0.470 & +0.348 & -- & fixed case \\
+Natural & ChicagoFood & Before inspection outcome & +0.430 & +0.326 & -- & fixed case \\
+Natural & NYC311 & At complaint creation & +0.013 & -0.108 & -- & fixed case \\
+\midrule
+Cost & All mechanisms & encoded column & -- & +0.043 & [+0.004, +0.078] & positive interval \\
+Cost & All mechanisms & semantic group & -- & +0.040 & [-0.003, +0.077] & interval crosses 0 \\
+Cost & M09 & semantic group & -- & +0.109 & [+0.054, +0.158] & positive interval \\
 \bottomrule
 \end{tabular}
 \end{table*}

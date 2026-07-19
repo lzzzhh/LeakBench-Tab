@@ -1,0 +1,31 @@
+{
+  "analysis_scope": "failure anatomy; no downstream model fitting or claim-state promotion",
+  "input_sha256": {
+    "artifacts/sp6/sp6_bundle_manifest.csv": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+    "artifacts/sp8/governance_clean.csv": "6e3aa4c7edbc6f476ad3494be659892a0dd7271a109a66ff69ee8f1d6dfca9d8",
+    "benchmark_v2/datasets/confirmatory_adapters.py": "77f0606103201ea253f61e916c48406c2e953833395d1f3c2efe0f450fa2fe6e",
+    "data/nyc311/nyc311_cache.csv": "20d2b0b64ca32a6081f9577295f927d44e62767bc7cbcf013cad0e5a59c25f26",
+    "experiments/leakbench/run_natural_case_studies.py": "590b2fd88fbfeb0320ea1f2ae114de61c579544ed6a1e7fd4e40f5b4346ac2f2",
+    "experiments/leakbench/run_natural_case_studies_trainfit.py": "fb9e3caf8a460f340f92061c728f17f1e4553a84022a1126875611ed7fd6534c",
+    "results/corrected_v2/canonical_cells.csv": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
+    "results/edbt_eab_revision/b1_multiseed_p2.csv": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237",
+    "results/edbt_eab_revision/manifest.json": "d094cf6c83e8c0ea42d815ac4bc564d0f68704dcaf51e9a586ac2804063644e4",
+    "results/edbt_eab_revision/natural_governance_cells.csv": "26b860845c578ef8cd17ad8b558c3eea59be3e50143dff4478ba8ae68d6b34fa",
+    "results/edbt_eab_revision/natural_governance_summary.csv": "2d58a3f171fdcd52fbeca2b01806d21def2b64c106efdc8c99a72d1880806fdc",
+    "scripts/analyze_edbt_failure_anatomy.py": "01f36cf187b29684e6c1a8a05945648b8b8215eccc953b0c601a8518472c4dc7",
+    "src/leakbench/datasets.py": "e09970695c25034d023902f1593dc8ecff3ce3d6ceb113da7d36f55a7547de23"
+  },
+  "output_sha256": {
+    "results/edbt_eab_revision/failure_anatomy/failure_anatomy_summary.json": "e56a6ad7405d63b36c4317491080a8a8b38b7f7af8bdb2e8ba349262911075c8",
+    "results/edbt_eab_revision/failure_anatomy/nyc311_selection_diagnostic.csv": "334c59052020ad4db19af829a74ff46b6c28b8f817e552370686e1a300666623",
+    "results/edbt_eab_revision/failure_anatomy/sparse_failure_anatomy.csv": "f49ed1f45dcee63608e0c7adbb72e24f07130b032be5f7b499b2e1c3c7f1ba36"
+  },
+  "parent_revision_status": "COMPLETE_WITH_DISCLOSED_LIMITATIONS",
+  "schema_version": 1,
+  "selection_hash_validation": {
+    "all_matched": true,
+    "nyc311_rows": 3,
+    "sparse_keys": 1100
+  },
+  "status": "POST_HOC_DESCRIPTIVE_DIAGNOSTIC_COMPLETE"
+}

@@ -2,20 +2,20 @@
   "output_sha256": {
     "figures/generated/cdx_profiles.pdf": "75d2f37a6b5f5bd71cdb47ec019b65fb52444e9fdf872c167f49f19bc31c4c4c",
     "figures/generated/cdx_profiles.png": "28307a7715832ac519826ee34ea095ba3e406884c5be00a9b36688e065cd1251",
-    "figures/generated/cdx_profiles.svg": "a6eb21d3ba3052e484a0e941039a11517f3a7135f5efcd1ca9966903030e039d",
+    "figures/generated/cdx_profiles.svg": "df1c46a1964edfa55f0032b95fe2dbab1e28f5d618688dcffaf8c183eb9808bd",
     "figures/generated/cdx_profiles.tiff": "4abf68c9f0150e07bb52c6b320d43edb41826f987f4424b3e089c3d467d5f066",
-    "figures/generated/governance_budget.pdf": "d5bb3f2827b565ae460497c58da66ee179a3a800f9c01805afef6616dd879255",
-    "figures/generated/governance_budget.png": "5c98b43fc0bc7acbdde1b6f1a711958a12f039819cca857e03c408c0b0e8575c",
-    "figures/generated/governance_budget.svg": "4318bd6ebe049409aa568ea0c152f114afbe59330b34333878bbce376f2346c6",
-    "figures/generated/governance_budget.tiff": "1b4a827711df4da005407e20123cfbd47a206e2e48fc6981a07b78d2503670d8",
-    "figures/generated/governance_by_category.pdf": "232e23b3a5223b65fd7680181f588759bbc35b0dc8c830c7ca2783cd528ebd3e",
-    "figures/generated/governance_by_category.png": "40c930a3ba4058d19e28f0ee80e6f1cf92399fb1d434e6a060f94e22b19dbb9b",
-    "figures/generated/governance_by_category.svg": "8f5bed902e122cf10520fa4d77b781a269961564c85b84262b862b16188f1539",
-    "figures/generated/governance_by_category.tiff": "a7140042dd446ef3ab83b4265b8b8bf9dcd1a2066a7da72d6f238267b0b55f4a",
-    "generated/result_macros.tex": "9d9c1bef5c4089cf4817d5feff9b07b7c6489d15b3f151fff6023244895a1cbb",
-    "generated/table_governance.tex": "85dad61536928f094e11e1926605a1b860ba3fff1934ebf3532d2c40a0e834c2",
-    "generated/table_measurement.tex": "23c702e70339f8bde739cc9abe16cc345ec75012697ee5294f72399a50fb34f8",
-    "generated/table_natural.tex": "68b1f7d9332843f9d947fb2cb1e37f877e445de76438feda60df94a73fbb2ad4"
+    "figures/generated/governance_budget.pdf": "9d43b75656d33f98bb5e0b1aba9a17bfcb6fd0afa15e81fa7c7a93a49edf1c2f",
+    "figures/generated/governance_budget.png": "e4253b6edc9c367f22327549415df3b7a3d627430ffb1196f5a40be1662aaae0",
+    "figures/generated/governance_budget.svg": "4c75f806148229ed20dd9f79f89ff41c0ca2cc2557547e162fc8ea186d0189d5",
+    "figures/generated/governance_budget.tiff": "367150ec02ac92f94c3ed9cfe64cd3c2150b1ff3513983f0cc56f9258fb2e5b7",
+    "figures/generated/governance_by_category.pdf": "e8ac6ef7b6da61290a6192d12213fa8ad849041081dcb935b0d6cd6246d4f00c",
+    "figures/generated/governance_by_category.png": "6342473f9707ee35935c6abbf82462804d2810c606f65196ee0a294c00a3dc18",
+    "figures/generated/governance_by_category.svg": "4add031295463e30e91e3ed3400856e77b882fedfec84a0ee1d006b419616f7c",
+    "figures/generated/governance_by_category.tiff": "2e577dd8fd94bc003d89cc5aab4db9521d1ed4eb99f8b854a5a3006b90ad3ff4",
+    "generated/result_macros.tex": "f144240f2ed3d453c9ba96e317ed9bf87ce6d06793bba3aa55ff0694798f2e6c",
+    "generated/table_governance.tex": "b08ca9248631ce33e710c1f9d8ea477f59f8967dcc5b8cb09fd34fb0048492d3",
+    "generated/table_measurement.tex": "4b69584b766db49b04118e47adc311e4478867ec4ebe420aff7c42a096b19525",
+    "generated/table_natural.tex": "3723bf8daccd81c31a293757af01b9ac6a2ca1c9e3a471a689e1495d548b5a12"
   },
   "palette": {
     "boundary": "#E6B94E",
@@ -29,13 +29,13 @@
     "simple": "#FE9696",
     "structured": "#B6D7A8"
   },
-  "schema_version": 1,
+  "schema_version": 2,
   "source_sha256": {
-    "source_data/generate_paper_artifacts.py": "1ca72afbbfcdbc9059088c7532d1c27e3b5e2fda2c94c79c08fd748a4314c596",
-    "source_data/generated/governance_results.csv": "b43d2b259149a132a1f764cbc7fdf1cbaed1318de0c7f216d1399a97cf2c644c",
+    "source_data/generate_paper_artifacts.py": "edd2426412437575c43a1a4fbad18a3445e992ff7eae3d194054afb0a7a7ebff",
+    "source_data/generated/governance_results.csv": "b9c206eedb7b105b7a8f5021b09076dbd0eeab5cfe8460e6f30327ea448eab50",
     "source_data/generated/main_results.csv": "e791801ed1c1fd4e9aa281fe153b7ee3493b7f7ac314451ca56ae047cf0c5b7d",
-    "source_data/generated/natural_cases.csv": "458cad5ef36b7dc2d558f5ea0c97cfa3331f87d52a49afda132262ad0d4587b6",
-    "source_data/generated/paper_asset_manifest.json": "23b9f6e16306c08e857b960554ede159c10e480ad382b26a15b46e14bdddabd5"
+    "source_data/generated/natural_cases.csv": "a24b737d96b794ebc9092e26f54624be7e31038a07982336c70f87be9d67e2de",
+    "source_data/generated/paper_asset_manifest.json": "40b879d29bbb34d20f058b38b02ac454c4b0510dc51845a3a0e8b49198135073"
   },
-  "status": "EDBT_PAPER_ARTIFACTS_READY"
+  "status": "CDXR_PAPER_ARTIFACTS_READY"
 }

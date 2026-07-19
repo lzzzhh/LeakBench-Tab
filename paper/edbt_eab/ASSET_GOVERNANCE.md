@@ -15,15 +15,23 @@ Only the following three generated CSV files are paper-table inputs:
 1. `source_data/generated/main_results.csv` combines the frozen directional
    category contrast, all eleven mechanism C/D/X profiles, and their ordered
    strength slopes. It replaces separate mechanism, strength, and claim tables.
-2. `source_data/generated/governance_results.csv` combines the four nominal
-   SP8 budgets and the simple/boundary/structured 20% breakdown.
-3. `source_data/generated/natural_cases.csv` contains the five fixed real-data
-   cases. These rows remain case-study-only evidence.
+2. `source_data/generated/governance_results.csv` contains the final R-layer
+   evidence: four LR budgets, three learner panels, mechanism families and
+   mechanisms, opportunity strata, archetypes, leave-one-archetype-out rows,
+   encoded/semantic cost sensitivity, and one separately manifested post-hoc
+   sparse failure-anatomy row.
+3. `source_data/generated/natural_cases.csv` joins harm and matched-cost repair
+   response for the five fixed real-data cases. These rows remain mixed,
+   case-study-only evidence; the NYC311 row additionally binds its post-hoc
+   selection diagnosis.
 
 The generator fails closed unless `paper_claims.json` equals
 `claim_state.json`, the corrected-v2 release is validated, the canonical SHA is
-bound, all eleven mechanisms are present, and the SP8 claim registry has the
-expected G1--G4 states.
+bound, all eleven mechanisms are present, every final revision input matches its
+manifest hash, selection hashes are complete and cross-model matched, and the
+six governance claims retain their frozen SUPPORT/NARROWED/MIXED states. The
+post-hoc failure-anatomy manifest is validated separately and cannot promote or
+rewrite those claim states.
 
 ```bash
 python paper/edbt_eab/source_data/build_paper_assets.py

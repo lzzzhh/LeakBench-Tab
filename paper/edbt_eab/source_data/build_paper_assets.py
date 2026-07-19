@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Build the minimal EDBT EA&B paper-table asset set from frozen evidence."""
+"""Build the three governed EDBT paper assets from frozen evidence.
+
+Measurement rows come from corrected-v2. Governance rows come from the final
+EDBT revision bundle. The builder verifies every revision source against its
+manifest before producing paper-facing CSVs.
+"""
 
 from __future__ import annotations
 
@@ -21,8 +26,27 @@ CANONICAL = ROOT / "results/corrected_v2/canonical_cells.csv"
 CANONICAL_MANIFEST = ROOT / "results/corrected_v2/canonical_manifest.json"
 STATS = ROOT / "results/corrected_v2/statistics"
 NATURAL = ROOT / "results/corrected_v2/public_natural"
+
+REVISION = ROOT / "results/edbt_eab_revision"
+REVISION_MANIFEST = REVISION / "manifest.json"
+REVISION_CLAIMS = REVISION / "claim_state.json"
+REVISION_ANALYSIS = REVISION / "analysis_summary.json"
+REVISION_REMAINING = REVISION / "remaining_governance_summary.json"
+REVISION_A1 = REVISION / "a1_mechanism_level.csv"
+REVISION_A2 = REVISION / "a2_gap_stratification.csv"
+REVISION_A3 = REVISION / "a3_archetype.csv"
+REVISION_NATURAL = REVISION / "natural_governance_summary.csv"
+REVISION_SEMANTIC = REVISION / "semantic_budget_summary.csv"
+FAILURE = REVISION / "failure_anatomy"
+FAILURE_MANIFEST = FAILURE / "failure_anatomy_manifest.json"
+FAILURE_SUMMARY = FAILURE / "failure_anatomy_summary.json"
+FAILURE_SPARSE = FAILURE / "sparse_failure_anatomy.csv"
+FAILURE_NYC = FAILURE / "nyc311_selection_diagnostic.csv"
+
+# The final revision does not duplicate P3 localization outcomes. These values
+# are read from the frozen SP8 bootstrap after verifying that the revision
+# manifest records complete, cross-model-matched selection hashes.
 SP8_BOOTSTRAP = ROOT / "artifacts/sp8/bootstrap_analysis.json"
-SP8_CLAIMS = ROOT / "artifacts/sp8/claims/claim_evidence_matrix_sp8.json"
 
 MECHANISMS = [f"M{index:02d}" for index in range(1, 12)]
 MECHANISM_NAMES = {
@@ -62,6 +86,15 @@ OUTPUT_NAMES = (
     "natural_cases.csv",
     "paper_asset_manifest.json",
 )
+GOV_FIELDS = [
+    "row_type", "scope", "learner", "budget_fraction", "cost_unit",
+    "effect", "ci_low", "ci_high", "probability_positive",
+    "initial_gap", "gap_range", "n_keys", "n_tasks", "p3_recall",
+    "p3_legitimate_retention", "negative_task_count", "negative_mechanism_count",
+    "mean_signal_fields_removed", "signal_x000_removal_rate",
+    "signal_x003_removal_rate", "signal_x005_removal_rate",
+    "claim_id", "claim_status", "interpretation",
+]
 
 
 class AssetError(ValueError):
@@ -85,9 +118,13 @@ def load_json(path: Path) -> Any:
         return json.load(handle)
 
 
-def read_csv(path: Path, key: str) -> dict[str, dict[str, str]]:
+def read_rows(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as handle:
-        rows = list(csv.DictReader(handle))
+        return list(csv.DictReader(handle))
+
+
+def read_csv(path: Path, key: str) -> dict[str, dict[str, str]]:
+    rows = read_rows(path)
     if not rows or key not in rows[0]:
         raise AssetError(f"{relative(path)} lacks key column {key}")
     indexed = {row[key]: row for row in rows}
@@ -104,35 +141,100 @@ def write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, Any]]) -> 
         writer.writerows(rows)
 
 
-def validate_release() -> tuple[dict[str, Any], dict[str, Any]]:
+def validate_release() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     if CLAIMS.read_bytes() != CLAIM_STATE.read_bytes():
         raise AssetError("paper_claims.json and claim_state.json are not byte-identical")
-    claims = load_json(CLAIMS)
+    measurement_claims = load_json(CLAIMS)
     canonical_manifest = load_json(CANONICAL_MANIFEST)
-    canonical_sha256 = sha256(CANONICAL)
+    canonical_sha = sha256(CANONICAL)
     if (
         canonical_manifest.get("status") != "CANONICAL"
-        or canonical_manifest.get("canonical_sha256") != canonical_sha256
-        or canonical_sha256
-        != claims.get("provenance", {}).get("input_sha256", {}).get(
+        or canonical_manifest.get("canonical_sha256") != canonical_sha
+        or canonical_sha
+        != measurement_claims.get("provenance", {}).get("input_sha256", {}).get(
             "results/corrected_v2/canonical_cells.csv"
         )
     ):
-        raise AssetError("corrected_v2 canonical or claim binding is not current")
-    if claims.get("evidence_tier") != "confirmatory":
-        raise AssetError("paper claims are not confirmatory evidence")
-    return claims, canonical_manifest
+        raise AssetError("corrected-v2 canonical or claim binding is not current")
+    if measurement_claims.get("evidence_tier") != "confirmatory":
+        raise AssetError("measurement claims are not confirmatory evidence")
+
+    manifest = load_json(REVISION_MANIFEST)
+    if manifest.get("status") != "COMPLETE_WITH_DISCLOSED_LIMITATIONS":
+        raise AssetError("governance revision is not in its final disclosed state")
+    validation = manifest.get("validation", {})
+    required_validation = (
+        "all_rows_success",
+        "selection_hashes_complete",
+        "cross_model_selection_hashes_matched",
+        "claim_state_builder_derived",
+        "analysis_inputs_bound",
+        "b2_baseline_refit_deviation_disclosed",
+    )
+    if not all(validation.get(key) is True for key in required_validation):
+        raise AssetError("governance revision validation gate is incomplete")
+    manifest_hashes = {entry["path"]: entry["sha256"] for entry in manifest["artifacts"]}
+    for path in (
+        REVISION_CLAIMS,
+        REVISION_ANALYSIS,
+        REVISION_REMAINING,
+        REVISION_A1,
+        REVISION_A2,
+        REVISION_A3,
+        REVISION_NATURAL,
+        REVISION_SEMANTIC,
+    ):
+        expected = manifest_hashes.get(relative(path))
+        if expected != sha256(path):
+            raise AssetError(f"revision manifest binding failed: {relative(path)}")
+    revision_claims = load_json(REVISION_CLAIMS)
+    expected_status = {
+        "C1_MULTI_LEARNER_GOVERNANCE": "SUPPORTED",
+        "C2_NO_DETECTED_LEARNER_INTERACTION": "SUPPORTED",
+        "C3_STRUCTURED_HETEROGENEITY": "NARROWED",
+        "C4_ARCHETYPE_SENSITIVITY": "SUPPORTED",
+        "C5_NATURAL_GOVERNANCE": "MIXED",
+        "C6_SEMANTIC_GROUP_BUDGET": "NARROWED",
+    }
+    observed_status = {
+        key: value["status"] for key, value in revision_claims["claims"].items()
+    }
+    if observed_status != expected_status:
+        raise AssetError("governance revision claim-state identity changed")
+    return measurement_claims, canonical_manifest, revision_claims
+
+
+def validate_failure_anatomy() -> dict[str, Any]:
+    manifest = load_json(FAILURE_MANIFEST)
+    if (
+        manifest.get("status") != "POST_HOC_DESCRIPTIVE_DIAGNOSTIC_COMPLETE"
+        or manifest.get("parent_revision_status") != "COMPLETE_WITH_DISCLOSED_LIMITATIONS"
+        or manifest.get("selection_hash_validation")
+        != {"all_matched": True, "nyc311_rows": 3, "sparse_keys": 1100}
+    ):
+        raise AssetError("failure-anatomy validation state is incomplete")
+    for section in ("input_sha256", "output_sha256"):
+        for name, expected in manifest.get(section, {}).items():
+            path = ROOT / name
+            if not path.is_file() or sha256(path) != expected:
+                raise AssetError(f"failure-anatomy binding failed: {name}")
+    summary = load_json(FAILURE_SUMMARY)
+    if (
+        summary.get("status") != "POST_HOC_DESCRIPTIVE_DIAGNOSTIC"
+        or summary.get("downstream_model_fits") != 0
+        or summary.get("sparse", {}).get("n_keys") != 1100
+        or summary.get("nyc311", {}).get("budget_k") != 8
+    ):
+        raise AssetError("failure-anatomy identity changed")
+    return summary
 
 
 def build_main_results(claims: dict[str, Any]) -> list[dict[str, Any]]:
-    harm_path = STATS / "mechanism_summary.csv"
-    detect_path = STATS / "detectability_mechanism_summary.csv"
-    dose_path = STATS / "strength_dose_response.csv"
-    harm = read_csv(harm_path, "mechanism")
-    detect = read_csv(detect_path, "mechanism")
-    dose = read_csv(dose_path, "mechanism")
+    harm = read_csv(STATS / "mechanism_summary.csv", "mechanism")
+    detect = read_csv(STATS / "detectability_mechanism_summary.csv", "mechanism")
+    dose = read_csv(STATS / "strength_dose_response.csv", "mechanism")
     if set(harm) != set(MECHANISMS) or set(detect) != set(MECHANISMS) or set(dose) != set(MECHANISMS):
-        raise AssetError("mechanism result identity set is not the complete M01-M11 registry")
+        raise AssetError("mechanism result identity is not the complete M01-M11 registry")
 
     contrast = claims["claims"]["simple_vs_structured"]
     metrics = contrast["metrics"]
@@ -159,7 +261,7 @@ def build_main_results(claims: dict[str, Any]) -> list[dict[str, Any]]:
         detect_row = detect[mechanism]
         dose_row = dose[mechanism]
         category = CATEGORIES[mechanism]
-        if harm_row["category"] != category or detect_row["category"] != category or dose_row["category"] != category:
+        if any(row["category"] != category for row in (harm_row, detect_row, dose_row)):
             raise AssetError(f"category mismatch for {mechanism}")
         claim_id = PROFILE_CLAIMS.get(mechanism, "")
         status = claims["claims"][claim_id]["status"] if claim_id else "DESCRIPTIVE_ONLY"
@@ -184,78 +286,153 @@ def build_main_results(claims: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
-def build_governance_results() -> list[dict[str, Any]]:
-    bootstrap = load_json(SP8_BOOTSTRAP)
-    claim_rows = load_json(SP8_CLAIMS)
-    claim_status = {row["id"]: row["status"] for row in claim_rows}
-    if claim_status != {
-        "G1": "SUPPORTED", "G2": "INCONCLUSIVE",
-        "G3": "SUPPORTED", "G4": "SUPPORTED",
-    }:
-        raise AssetError("SP8 claim-state identity or status changed")
-    results = bootstrap.get("results", {})
-    expected = {
-        "budget_0.01", "budget_0.05", "budget_0.10", "budget_0.20",
-        "category_simple", "category_boundary", "category_structured",
-    }
-    if set(results) != expected:
-        raise AssetError("SP8 bootstrap result registry changed")
+def gov_row(**values: Any) -> dict[str, Any]:
+    row = {field: "" for field in GOV_FIELDS}
+    row.update(values)
+    return row
 
+
+def build_governance_results(
+    claims: dict[str, Any], failure: dict[str, Any]
+) -> list[dict[str, Any]]:
+    summary = load_json(REVISION_ANALYSIS)
+    remaining = load_json(REVISION_REMAINING)
+    p3_profiles = load_json(SP8_BOOTSTRAP)["results"]
+    claim_status = {key: value["status"] for key, value in claims["claims"].items()}
     rows: list[dict[str, Any]] = []
-    for key in ("budget_0.01", "budget_0.05", "budget_0.10", "budget_0.20"):
-        item = results[key]
-        fraction = float(key.removeprefix("budget_"))
-        claim_id = "G4" if fraction == 0.01 else "G1" if fraction == 0.20 else ""
-        rows.append({
-            "row_type": "budget",
-            "scope": f"{fraction:.0%} budget",
-            "budget_fraction": fraction,
-            "p3_minus_p2_sdr": item["observed_diff"],
-            "ci_low": item["ci_lo"],
-            "ci_high": item["ci_hi"],
-            "p3_better_probability": item["p3_better_prob"],
-            "p3_sdr": item["p3_sdr"],
-            "p2_sdr": item["p2_sdr"],
-            "p3_recall": item["p3_recall"],
-            "p3_legitimate_retention": item["p3_retention"],
-            "claim_id": claim_id,
-            "claim_status": claim_status[claim_id] if claim_id else "DESCRIPTIVE_ONLY",
-            "result_interpretation": "P3_ADVANTAGE" if item["ci_lo"] > 0 else "NO_RELIABLE_ADVANTAGE",
-        })
-    for category in ("simple", "boundary", "structured"):
-        item = results[f"category_{category}"]
-        rows.append({
-            "row_type": "category_at_20pct",
-            "scope": category,
-            "budget_fraction": 0.20,
-            "p3_minus_p2_sdr": item["observed_diff"],
-            "ci_low": item["ci_lo"],
-            "ci_high": item["ci_hi"],
-            "p3_better_probability": item["p3_better_prob"],
-            "p3_sdr": item["p3_sdr"],
-            "p2_sdr": item["p2_sdr"],
-            "p3_recall": item["p3_recall"],
-            "p3_legitimate_retention": item["p3_retention"],
-            "claim_id": "G3",
-            "claim_status": claim_status["G3"],
-            "result_interpretation": "P3_ADVANTAGE" if item["ci_lo"] > 0 else "NO_RELIABLE_ADVANTAGE",
-        })
+
+    for fraction, item in sorted(summary["LR_budget_curve"].items(), key=lambda value: float(value[0])):
+        old = p3_profiles[f"budget_{float(fraction):.2f}"]
+        rows.append(gov_row(
+            row_type="budget", scope="All mechanisms", learner="LR",
+            budget_fraction=float(fraction), cost_unit="encoded column",
+            effect=item["paired"], ci_low=item["ci_lo"], ci_high=item["ci_hi"],
+            probability_positive=item["P3_better"], n_keys=item["n_keys"], n_tasks=20,
+            p3_recall=old["p3_recall"], p3_legitimate_retention=old["p3_retention"],
+            claim_id="C1_MULTI_LEARNER_GOVERNANCE",
+            claim_status=claim_status["C1_MULTI_LEARNER_GOVERNANCE"],
+            interpretation="P3_ADVANTAGE" if item["ci_lo"] > 0 else "NO_RELIABLE_ADVANTAGE",
+        ))
+
+    for learner, label in (("LR", "LR"), ("RF", "RF"), ("LightGBM", "LightGBM")):
+        item = summary[f"{learner}_overall"]
+        rows.append(gov_row(
+            row_type="learner_overall", scope="All mechanisms", learner=label,
+            budget_fraction=0.2, cost_unit="encoded column", effect=item["paired"],
+            ci_low=item["ci_lo"], ci_high=item["ci_hi"],
+            probability_positive=item["P3_better"], n_keys=item["n_keys"], n_tasks=20,
+            claim_id="C1_MULTI_LEARNER_GOVERNANCE",
+            claim_status=claim_status["C1_MULTI_LEARNER_GOVERNANCE"],
+            interpretation="P3_ADVANTAGE",
+        ))
+        for family in ("simple", "boundary", "structured"):
+            item = summary[f"{learner}_{family}"]
+            rows.append(gov_row(
+                row_type="family", scope=family, learner=label,
+                budget_fraction=0.2, cost_unit="encoded column", effect=item["paired"],
+                ci_low=item["ci_lo"], ci_high=item["ci_hi"],
+                probability_positive=item["P3_better"], n_tasks=20,
+                claim_id="C3_STRUCTURED_HETEROGENEITY",
+                claim_status=claim_status["C3_STRUCTURED_HETEROGENEITY"],
+                interpretation="P3_ADVANTAGE" if item["ci_lo"] > 0 else "NO_RELIABLE_ADVANTAGE",
+            ))
+        for mechanism in MECHANISMS:
+            item = summary[f"{learner}_{mechanism}"]
+            rows.append(gov_row(
+                row_type="mechanism", scope=mechanism, learner=label,
+                budget_fraction=0.2, cost_unit="encoded column", effect=item["paired"],
+                ci_low=item["ci_lo"], ci_high=item["ci_hi"],
+                probability_positive=item["P3_better"], initial_gap=item["initial_gap"],
+                n_keys=500, n_tasks=20, claim_id="C3_STRUCTURED_HETEROGENEITY",
+                claim_status=claim_status["C3_STRUCTURED_HETEROGENEITY"],
+                interpretation="P3_ADVANTAGE" if item["ci_lo"] > 0 else (
+                    "P3_DISADVANTAGE" if item["ci_hi"] < 0 else "NO_RELIABLE_ADVANTAGE"
+                ),
+            ))
+
+    for row in read_rows(REVISION_A2):
+        rows.append(gov_row(
+            row_type="gap_quartile", scope=row["quartile"], learner="LR",
+            budget_fraction=0.2, cost_unit="encoded column", effect=row["paired_effect"],
+            ci_low=row["ci_lo"], ci_high=row["ci_hi"], gap_range=row["gap_range"],
+            n_keys=row["n_keys"], n_tasks=20, claim_id="C3_STRUCTURED_HETEROGENEITY",
+            claim_status=claim_status["C3_STRUCTURED_HETEROGENEITY"],
+            interpretation="OPPORTUNITY_SENSITIVITY",
+        ))
+    for row in read_rows(REVISION_A3):
+        row_type = "leave_one_archetype_out" if row["archetype"].startswith("LOAO-") else "archetype"
+        rows.append(gov_row(
+            row_type=row_type, scope=row["archetype"], learner="LR",
+            budget_fraction=0.2, cost_unit="encoded column", effect=row["paired_effect"],
+            ci_low=row["ci_lo"], ci_high=row["ci_hi"], n_tasks=row["n_tasks"],
+            claim_id="C4_ARCHETYPE_SENSITIVITY",
+            claim_status=claim_status["C4_ARCHETYPE_SENSITIVITY"],
+            interpretation="NEGATIVE_REGIME" if float(row["ci_hi"]) < 0 else "SENSITIVITY",
+        ))
+    sparse = failure["sparse"]
+    rows.append(gov_row(
+        row_type="failure_anatomy", scope="sparse", learner="LR",
+        budget_fraction=0.2, cost_unit="encoded column",
+        effect=sparse["repair_advantage"], n_keys=sparse["n_keys"], n_tasks=sparse["n_tasks"],
+        p3_recall=sparse["p3_leak_recall"],
+        p3_legitimate_retention=sparse["p3_legitimate_retention"],
+        negative_task_count=sparse["negative_tasks"],
+        negative_mechanism_count=sparse["negative_mechanisms"],
+        mean_signal_fields_removed=sparse["mean_sparse_signal_fields_removed"],
+        signal_x000_removal_rate=sparse["sparse_signal_removal_rates"]["x_000"],
+        signal_x003_removal_rate=sparse["sparse_signal_removal_rates"]["x_003"],
+        signal_x005_removal_rate=sparse["sparse_signal_removal_rates"]["x_005"],
+        claim_id="C4_ARCHETYPE_SENSITIVITY",
+        claim_status=claim_status["C4_ARCHETYPE_SENSITIVITY"],
+        interpretation="POST_HOC_CONSTRUCTION_DIAGNOSIS",
+    ))
+    semantic_labels = {
+        "encoded_overall": ("All mechanisms", "encoded column"),
+        "semantic_recomposed_overall": ("All mechanisms", "semantic group"),
+        "encoded_M09": ("M09", "encoded column"),
+        "semantic_M09": ("M09", "semantic group"),
+        "semantic_minus_encoded_M09": ("M09 semantic - encoded", "cost contrast"),
+    }
+    for row in read_rows(REVISION_SEMANTIC):
+        scope, cost = semantic_labels[row["analysis"]]
+        rows.append(gov_row(
+            row_type="cost_sensitivity", scope=scope, learner="LR",
+            budget_fraction=0.2, cost_unit=cost, effect=row["estimate"],
+            ci_low=row["ci_lo"], ci_high=row["ci_hi"],
+            probability_positive=row["probability_positive"], n_keys=row["n_keys"],
+            n_tasks=row["clusters"], claim_id="C6_SEMANTIC_GROUP_BUDGET",
+            claim_status=claim_status["C6_SEMANTIC_GROUP_BUDGET"],
+            interpretation="COST_SENSITIVE" if float(row["ci_lo"]) <= 0 <= float(row["ci_hi"]) else "DIRECTIONAL",
+        ))
+
+    # Cross-check the paper-facing semantic values against the JSON claim input.
+    semantic_map = {row["analysis"]: row for row in read_rows(REVISION_SEMANTIC)}
+    for key in ("encoded_overall", "semantic_recomposed_overall", "encoded_M09", "semantic_M09"):
+        if abs(float(semantic_map[key]["estimate"]) - float(remaining["semantic"][key]["estimate"])) > 1e-12:
+            raise AssetError(f"semantic CSV/JSON mismatch for {key}")
     return rows
 
 
-def build_natural_cases(claims: dict[str, Any]) -> list[dict[str, Any]]:
-    summary_path = NATURAL / "natural_task_summary.csv"
-    stats_path = NATURAL / "natural_statistics.json"
-    summary = read_csv(summary_path, "task")
-    statistics = load_json(stats_path)
-    effects = statistics.get("task_effects", {})
-    if set(summary) != set(NATURAL_BOUNDARIES) or set(effects) != set(NATURAL_BOUNDARIES):
+def build_natural_cases(
+    measurement_claims: dict[str, Any],
+    revision_claims: dict[str, Any],
+    failure: dict[str, Any],
+) -> list[dict[str, Any]]:
+    summary = read_csv(NATURAL / "natural_task_summary.csv", "task")
+    statistics = load_json(NATURAL / "natural_statistics.json")
+    harm = statistics.get("task_effects", {})
+    governance = read_csv(REVISION_NATURAL, "task")
+    if set(summary) != set(NATURAL_BOUNDARIES) or set(harm) != set(NATURAL_BOUNDARIES) or set(governance) != set(NATURAL_BOUNDARIES):
         raise AssetError("natural case identity set changed")
-    if claims.get("natural", {}).get("status") != "CASE_STUDY_ONLY":
-        raise AssetError("natural claim scope changed")
+    if measurement_claims.get("natural", {}).get("status") != "CASE_STUDY_ONLY":
+        raise AssetError("natural measurement claim scope changed")
+    if revision_claims["claims"]["C5_NATURAL_GOVERNANCE"]["status"] != "MIXED":
+        raise AssetError("natural governance claim scope changed")
     rows = []
+    nyc = failure["nyc311"]
     for task in NATURAL_BOUNDARIES:
         row = summary[task]
+        gov = governance[task]
         rows.append({
             "task": task,
             "prediction_boundary": NATURAL_BOUNDARIES[task],
@@ -263,21 +440,31 @@ def build_natural_cases(claims: dict[str, Any]) -> list[dict[str, Any]]:
             "n_features": row["n_features"],
             "n_leak_features": row["n_leak"],
             "primary_detectability": row["diagnostic_normalized_ap"],
-            "mean_paired_harm": effects[task],
+            "mean_paired_harm": harm[task],
+            "governance_effect": gov["paired"],
+            "initial_gap": gov["initial_gap"],
+            "p3_leak_recall": gov["p3_leak_recall"],
+            "p3_legitimate_retention": gov["p3_legit_retention"],
+            "p3_removed_invalid_count": len(nyc["selected_invalid_fields"]) if task == "NYC311" else "",
+            "p3_removed_valid_count": len(nyc["selected_valid_fields"]) if task == "NYC311" else "",
+            "selected_invalid_features": ";".join(nyc["selected_invalid_fields"]) if task == "NYC311" else "",
+            "missed_invalid_features": ";".join(nyc["missed_invalid_fields"]) if task == "NYC311" else "",
+            "failure_diagnostic_status": nyc["status"] if task == "NYC311" else "",
             "source_sha256": row["source_sha256"],
-            "interpretation_status": "CASE_STUDY_ONLY",
+            "interpretation_status": "MIXED_FIXED_CASE_EVIDENCE",
         })
     return rows
 
 
 def build(output: Path) -> dict[str, Any]:
-    claims, canonical_manifest = validate_release()
-    main_rows = build_main_results(claims)
-    governance_rows = build_governance_results()
-    natural_rows = build_natural_cases(claims)
+    measurement_claims, canonical_manifest, revision_claims = validate_release()
+    failure = validate_failure_anatomy()
+    main_rows = build_main_results(measurement_claims)
+    governance_rows = build_governance_results(revision_claims, failure)
+    natural_rows = build_natural_cases(measurement_claims, revision_claims, failure)
 
     write_csv(output / "main_results.csv", list(main_rows[0]), main_rows)
-    write_csv(output / "governance_results.csv", list(governance_rows[0]), governance_rows)
+    write_csv(output / "governance_results.csv", GOV_FIELDS, governance_rows)
     write_csv(output / "natural_cases.csv", list(natural_rows[0]), natural_rows)
 
     source_paths = [
@@ -287,7 +474,10 @@ def build(output: Path) -> dict[str, Any]:
         STATS / "strength_dose_response.csv",
         NATURAL / "natural_task_summary.csv",
         NATURAL / "natural_statistics.json",
-        SP8_BOOTSTRAP, SP8_CLAIMS,
+        REVISION_MANIFEST, REVISION_CLAIMS, REVISION_ANALYSIS,
+        REVISION_REMAINING, REVISION_A1, REVISION_A2, REVISION_A3,
+        REVISION_NATURAL, REVISION_SEMANTIC, SP8_BOOTSTRAP,
+        FAILURE_MANIFEST, FAILURE_SUMMARY, FAILURE_SPARSE, FAILURE_NYC,
         Path(__file__).resolve(),
     ]
     output_paths = [
@@ -296,25 +486,18 @@ def build(output: Path) -> dict[str, Any]:
         output / "natural_cases.csv",
     ]
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "status": "EDBT_EAB_PAPER_ASSETS_READY",
         "paper_table_count": 3,
-        "evidence_tier": "confirmatory_plus_case_study",
+        "evidence_tier": "confirmatory_plus_declared_sensitivities_and_fixed_cases",
         "canonical_sha256": canonical_manifest["canonical_sha256"],
-        "paper_claims_sha256": sha256(CLAIMS),
+        "measurement_claims_sha256": sha256(CLAIMS),
+        "governance_claims_sha256": sha256(REVISION_CLAIMS),
         "table_policy": {
-            "main_results.csv": "MAIN_OR_APPENDIX_SINGLE_SOURCE_TABLE",
-            "governance_results.csv": "MAIN_TABLE",
-            "natural_cases.csv": "MAIN_OR_COMPACT_APPENDIX_TABLE",
-            "mechanism_model_summary.csv": "MACHINE_READABLE_ONLY_OR_FIGURE_SOURCE",
-            "diagnostic_method_by_mechanism.csv": "MACHINE_READABLE_ONLY_OR_FIGURE_SOURCE",
-            "task_manifest.csv": "ARTIFACT_ONLY",
+            "main_results.csv": "CDX_MEASUREMENT_TABLE_AND_FIGURE_SOURCE",
+            "governance_results.csv": "R_LAYER_TABLES_AND_FIGURE_SOURCE",
+            "natural_cases.csv": "FIXED_CASE_CONTRACT_TABLE",
             "claim_scope": "PROSE_PLUS_MACHINE_READABLE_CLAIMS",
-        },
-        "legacy_disposition": {
-            "artifacts/edbt_eab/claim_evidence_matrix.csv": "STALE_DO_NOT_CITE",
-            "artifacts/edbt_eab/mechanism_contract_matrix.csv": "INCOMPLETE_7_OF_11_ARTIFACT_ONLY",
-            "artifacts/edbt_eab/baseline_matrix.csv": "METHOD_DOCUMENTATION_NOT_A_RESULTS_TABLE",
         },
         "row_counts": {
             "main_results.csv": len(main_rows),
