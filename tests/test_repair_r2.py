@@ -172,8 +172,13 @@ def test_analysis_summary_n_keys():
 def test_claim_state_statuses():
     with open(ROOT / 'results/edbt_t0_r2/claim_state_r2.json') as f:
         d = json.load(f)
-    assert 'C1_LR_GOVERNANCE_R2' in d['claims']
-    assert d['claims']['C1_LR_GOVERNANCE_R2']['status'] == 'SEMANTICALLY_CORROBORATED_WITH_OVERCORRECTION_CAVEAT'
+    # R2.1: canonical 5-status gate → SCORE_RECOVERY_ONLY (overcorrection gate failed)
+    assert 'C1_LR_GOVERNANCE_R2_1' in d['claims']
+    assert d['claims']['C1_LR_GOVERNANCE_R2_1']['status'] == 'SCORE_RECOVERY_ONLY'
+    assert d['claims']['C1_RF_GOVERNANCE_R2_1']['status'] == 'SCORE_RECOVERY_ONLY'
+    assert d['claims']['C1_LightGBM_GOVERNANCE_R2_1']['status'] == 'SCORE_RECOVERY_ONLY'
+    # SHA-256 must be bound
+    assert d.get('analysis_summary_sha256'), "analysis_summary_sha256 must not be null"
 
 # ================================================================
 # Zero-opportunity handling
