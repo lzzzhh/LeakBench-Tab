@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "audit": "T0_R2_REPAIR_CONSTRUCT_VALIDITY",
+  "branch": "t0/repair-construct-validity-r2",
+  "status": "FROZEN_BEFORE_ANALYSIS",
+  "frozen_at": "2026-07-20",
+  "protocol_sha256": "4f843fce3f05406ce65141bb66f558edd1905165a59f228ef0bb0823d69c9c7f",
+  "inputs": {
+    "sp8_governance_clean": {
+      "path": "artifacts/sp8/governance_clean.csv",
+      "sha256": "6e3aa4c7edbc6f476ad3494be659892a0dd7271a109a66ff69ee8f1d6dfca9d8",
+      "rows": 55000
+    },
+    "b1_multiseed_p2": {
+      "path": "results/edbt_eab_revision/b1_multiseed_p2.csv",
+      "sha256": "22aae323c066f5b3965533cb01bd57c36663dd0be941103607d05c312e93e237",
+      "rows": 467500
+    },
+    "b2_rf": {
+      "path": "results/edbt_eab_revision/b2_rf.csv",
+      "sha256": "b2f8ecb5fcec215d2239eec959ed416aa8efc009f2b5f918e246c9ffc2f5b678",
+      "rows": 121000
+    },
+    "b2_lgbm": {
+      "path": "results/edbt_eab_revision/b2_lgbm.csv",
+      "sha256": "a51e1f53d8648d49a7689a2b16127a810ce84f4f98a2f099774a2e267addcb69",
+      "rows": 121000
+    },
+    "bundle_manifest": {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+      "keys": 5500
+    },
+    "canonical_cells": {
+      "path": "results/corrected_v2/canonical_cells.csv",
+      "sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7",
+      "rows": 27500
+    }
+  },
+  "constants": {
+    "gov_seeds": "2026071700 + i for i in range(20)",
+    "mi_seed": 42,
+    "p2_seed_formula": "(gov_seed * 100 + dataset_index * 7 + training_seed * 13) % (2**31 - 1)",
+    "primary_budget": 0.20,
+    "bootstrap_seed": 20260719,
+    "bootstrap_reps": 20000,
+    "bootstrap_unit": "dataset_index"
+  },
+  "research_questions": [
+    "RQ1: B1/SP8 baseline continuity",
+    "RQ2: Selection hash reconstruction",
+    "RQ3: What does positive SDR actually mean?",
+    "RQ4: Semantic corroboration of governance",
+    "RQ5: False-repair quantification",
+    "RQ6: Sparse archetype negativity analysis",
+    "RQ7: M09 semantic-group robustness",
+    "RQ8: Learner consistency under R2 metrics"
+  ],
+  "audits": [
+    "T0-A0: Baseline continuity (SP8 vs B1)",
+    "T0-A1: Deterministic selection reconstruction",
+    "T0-A2: R2 repair metric vector",
+    "T0-A3: Mask-grounded semantic metrics",
+    "T0-A4: Paired P3 vs mean(P2) analysis"
+  ],
+  "hard_stop_conditions": [
+    "Key coverage != 5500 for B1/SP8 match",
+    "Duplicate key in SP8 or B1",
+    "Any abs_diff > 1e-6 between SP8 and B1 strict/full AUC",
+    "Any selection hash mismatch",
+    "Bundle hash mismatch",
+    "Missing leak mask"
+  ],
+  "forbidden": [
+    "Modifying frozen CSVs",
+    "Overwriting old claim state or manifest",
+    "Training new models",
+    "Changing MI algorithm, P2 seeds, budgets, or mechanisms",
+    "Filtering low-opportunity cells",
+    "Changing metric definitions after seeing results",
+    "Changing claim gates after seeing results"
+  ],
+  "planned_outputs": {
+    "reports": [
+      "reports/edbt_t0_r2/final_report.md",
+      "reports/edbt_t0_r2/baseline_continuity_report.md",
+      "reports/edbt_t0_r2/false_repair_report.md"
+    ],
+    "results": [
+      "results/edbt_t0_r2/b1_sp8_baseline_continuity.csv",
+      "results/edbt_t0_r2/task_effects_r2.csv",
+      "results/edbt_t0_r2/mechanism_summary_r2.csv",
+      "results/edbt_t0_r2/archetype_summary_r2.csv",
+      "results/edbt_t0_r2/false_repair_summary.csv",
+      "results/edbt_t0_r2/false_repair_examples.csv",
+      "results/edbt_t0_r2/analysis_summary_r2.json",
+      "results/edbt_t0_r2/claim_state_r2.json",
+      "results/edbt_t0_r2/manifest.json"
+    ]
+  }
+}
