@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "audit": "T0_B_PARETO_CONTRACT_V2",
+  "dimensions": {
+    "maximize": ["semantic_group_recall_full", "directional_repair", "legit_retention"],
+    "minimize": ["overcorrection", "introduced_distortion", "runtime"]
+  },
+  "tolerance": 1e-12,
+  "dominance_rules": {
+    "weak_dominance": "A weakly dominates B if A is not worse than B on any dimension by more than tolerance",
+    "strict_dominance": "A strictly dominates B if A weakly dominates B AND A is better than B on at least one dimension by more than tolerance",
+    "exact_tie": "A and B differ by <= tolerance on all dimensions"
+  },
+  "frontier_construction": {
+    "per_contract": true,
+    "per_budget": true,
+    "per_learner": true,
+    "cross_contract_forbidden": true,
+    "cross_budget_forbidden": false
+  },
+  "outputs": {
+    "pareto_optimal_policies": "list of non-dominated policy IDs",
+    "dominated_policy_count": "integer count of policies strictly dominated",
+    "mechanism_specific_winners": "per-mechanism winning policy by directional_repair",
+    "no_universal_winner": true,
+    "no_universal_winner_condition": "Only reported if no single policy is Pareto-optimal across ALL mechanisms within the same contract/budget/learner"
+  },
+  "missing_metrics": "Policies with missing metrics (zero opportunity, NOT_EVALUABLE) are excluded from dominance comparison but reported separately",
+  "deterministic_ordering": true,
+  "forbidden": "Declaring a single 'best' policy by weighted sum or rank aggregation"
+}

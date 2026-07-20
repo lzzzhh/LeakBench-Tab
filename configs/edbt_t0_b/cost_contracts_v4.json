@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "audit": "T0_B_COST_CONTRACTS_V2",
+  "budgets_basis_points": [500, 1000, 2000],
+  "budgets_fraction": [0.05, 0.10, 0.20],
+  "rounding_rule": "deterministic_half_up_integer",
+  "rounding_formula": "k = max(1, floor((n_units * basis_points + 5000) / 10000))",
+  "rounding_constraint": "k <= n_units (capped); k >= 1 (floor)",
+  "rounding_tests": [
+    {"n": 13, "bp": 2000, "expected_k": 3},
+    {"n": 20, "bp": 500, "expected_k": 1},
+    {"n": 21, "bp": 1000, "expected_k": 2},
+    {"n": 8, "bp": 2000, "expected_k": 2},
+    {"n": 15, "bp": 1000, "expected_k": 2},
+    {"n": 25, "bp": 1000, "expected_k": 3}
+  ],
+  "contracts": {
+    "semantic_group": {
+      "contract_id": "semantic_group",
+      "unit": "complete_semantic_group",
+      "k_formula": "k_group = max(1, floor((n_groups * basis_points + 5000) / 10000))",
+      "atomic_removal": true,
+      "partial_group_error": "HARD_STOP",
+      "recorded_fields": ["nominal_group_budget", "realized_group_count", "realized_encoded_count", "realized_encoded_fraction"]
+    },
+    "encoded_column": {
+      "contract_id": "encoded_column",
+      "unit": "individual_encoded_column",
+      "k_formula": "k_column = max(1, floor((n_columns * basis_points + 5000) / 10000))",
+      "atomic_removal": false,
+      "recorded_fields": ["nominal_column_budget", "realized_column_count", "full_group_removals", "any_hit_groups", "partial_group_violations"]
+    }
+  },
+  "matched_random_rule": "P2 uses the same k_group or k_column as the corresponding deterministic policy at the same budget and contract",
+  "separate_namespaces": true,
+  "forbidden": "Mixing semantic-group and encoded-column results in a single pooled estimand"
+}

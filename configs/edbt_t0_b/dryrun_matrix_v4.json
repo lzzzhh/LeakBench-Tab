@@ -1,0 +1,139 @@
+{
+  "schema_version": 4,
+  "keys": [
+    {
+      "dataset_index": 0,
+      "mechanism": "M01",
+      "strength": "S3",
+      "training_seed": 42,
+      "bundle_key": "M01_S3_42",
+      "bundle_path": "results/corrected_v2/task_bundles/panel_00.npz",
+      "bundle_sha256": "1e5c5baef227115e6f4d27894865f1a2e7e042f695ff803cb8fcbc20d3167b44",
+      "n_original": 12,
+      "n_injected": 1,
+      "n_encoded_columns": 13,
+      "train_idx_hash": "4cf70e4450d2633987ace2a71532a21b00989a7d44845bf773825922577bb5fd",
+      "val_idx_hash": "5ea26aec43baccabdb08c70e7c436d84053eb492b7def1821171d2ab5368c4ae",
+      "test_idx_hash": "df9f68aa8110a0236c495afe49b9d992b4f1de2e38a4d4bdc459eef07ae2ff77"
+    },
+    {
+      "dataset_index": 0,
+      "mechanism": "M09",
+      "strength": "S3",
+      "training_seed": 42,
+      "bundle_key": "M09_S3_42",
+      "bundle_path": "results/corrected_v2/task_bundles/panel_00.npz",
+      "bundle_sha256": "1e5c5baef227115e6f4d27894865f1a2e7e042f695ff803cb8fcbc20d3167b44",
+      "n_original": 12,
+      "n_injected": 8,
+      "n_encoded_columns": 20,
+      "train_idx_hash": "4cf70e4450d2633987ace2a71532a21b00989a7d44845bf773825922577bb5fd",
+      "val_idx_hash": "5ea26aec43baccabdb08c70e7c436d84053eb492b7def1821171d2ab5368c4ae",
+      "test_idx_hash": "df9f68aa8110a0236c495afe49b9d992b4f1de2e38a4d4bdc459eef07ae2ff77"
+    },
+    {
+      "dataset_index": 3,
+      "mechanism": "M01",
+      "strength": "S3",
+      "training_seed": 42,
+      "bundle_key": "M01_S3_42",
+      "bundle_path": "results/corrected_v2/task_bundles/panel_03.npz",
+      "bundle_sha256": "d101423b77976309f516ea3ee779fc9fb80c2bc5b6adfe3c8199476da16dc180",
+      "n_original": 24,
+      "n_injected": 1,
+      "n_encoded_columns": 25,
+      "train_idx_hash": "24f4b59329f152ca23608ac05d911bf619c63d0f49d4461ed827daa3533d65ae",
+      "val_idx_hash": "302f9f53b4281b28113ab64896bdd2f2e8e4fda4aa4248cbeaa515eb4125698d",
+      "test_idx_hash": "24b793da0ddf5c4cf41048b30e4f34c29b57ad98cca88cc4ffbdb2cfc2476faf"
+    },
+    {
+      "dataset_index": 3,
+      "mechanism": "M09",
+      "strength": "S3",
+      "training_seed": 42,
+      "bundle_key": "M09_S3_42",
+      "bundle_path": "results/corrected_v2/task_bundles/panel_03.npz",
+      "bundle_sha256": "d101423b77976309f516ea3ee779fc9fb80c2bc5b6adfe3c8199476da16dc180",
+      "n_original": 24,
+      "n_injected": 8,
+      "n_encoded_columns": 32,
+      "train_idx_hash": "24f4b59329f152ca23608ac05d911bf619c63d0f49d4461ed827daa3533d65ae",
+      "val_idx_hash": "302f9f53b4281b28113ab64896bdd2f2e8e4fda4aa4248cbeaa515eb4125698d",
+      "test_idx_hash": "24b793da0ddf5c4cf41048b30e4f34c29b57ad98cca88cc4ffbdb2cfc2476faf"
+    }
+  ],
+  "learner": "lr",
+  "contracts": [
+    "semantic_group",
+    "encoded_column"
+  ],
+  "budgets_bp": [
+    500,
+    1000,
+    2000
+  ],
+  "policies": [
+    "P0",
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P6"
+  ],
+  "p2_governance_seeds": [
+    2026071700,
+    2026071701,
+    2026071702,
+    2026071703,
+    2026071704,
+    2026071705,
+    2026071706,
+    2026071707,
+    2026071708,
+    2026071709,
+    2026071710,
+    2026071711,
+    2026071712,
+    2026071713,
+    2026071714,
+    2026071715,
+    2026071716,
+    2026071717,
+    2026071718,
+    2026071719
+  ],
+  "expected_counts": {
+    "baseline_rows_per_key": 2,
+    "baseline_fits_per_key": 2,
+    "governed_rows_per_key": 144,
+    "governed_fits_per_key": 144,
+    "total_rows_per_key": 146,
+    "total_downstream_fits_per_key": 146,
+    "total_baseline_rows": 8,
+    "total_baseline_fits": 8,
+    "total_governed_rows": 576,
+    "total_governed_fits": 576,
+    "total_downstream_rows": 584,
+    "total_downstream_fits": 584,
+    "ranking_model_fits": {
+      "P5_LR": 4,
+      "P6_RF_3fold": 12,
+      "total": 16
+    }
+  },
+  "pass_conditions": [
+    "0 bundle SHA mismatch",
+    "0 split hash mismatch",
+    "0 selector oracle-access",
+    "0 duplicate run_id",
+    "0 missing expected row",
+    "semantic contract partial violation = 0",
+    "M09 semantic selection removes exactly 8 columns if group selected",
+    "selection hashes repeat-run identical",
+    "resume does not duplicate rows",
+    "P2 matched cost equal for all seeds",
+    "LR baseline parity tolerance 1e-6",
+    "any failed row -> BLOCKED"
+  ]
+}

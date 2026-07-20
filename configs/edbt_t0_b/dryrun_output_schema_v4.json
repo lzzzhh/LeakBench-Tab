@@ -1,0 +1,9 @@
+{
+  "schema_version": 4,
+  "baseline_ledger": {"fields": ["run_id","dataset_index","mechanism","strength","training_seed","learner","strict_auc","full_auc"], "run_id_formula": "SHA256(key||learner||'baseline')[:20]"},
+  "governed_ledger": {"fields": ["run_id","dataset_index","mechanism","strength","training_seed","governance_seed","learner","policy","cost_contract","budget_bp","governed_auc","selection_hash"], "run_id_formula": "SHA256(key||policy||contract||budget||seed)[:20]"},
+  "selection_ledger": {"fields": ["selection_hash","policy","contract","budget_bp","removed_encoded_indices","removed_group_ids","realized_cost"]},
+  "failure_ledger": {"fields": ["run_id","failure_reason","exception_type"]},
+  "serialization": {"format": "csv_gz", "mtime": 0, "deterministic": true},
+  "resume": {"key": "run_id", "strategy": "skip_existing"}
+}

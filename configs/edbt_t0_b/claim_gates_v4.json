@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "audit": "T0_B_CLAIM_GATES_V2",
+  "status_precedence": [
+    "NOT_EVALUABLE",
+    "SEMANTICALLY_CORROBORATED",
+    "TRADEOFF",
+    "LOCALIZATION_ONLY",
+    "SCORE_RECOVERY_ONLY",
+    "NEGATIVE"
+  ],
+  "definitions": {
+    "confirmed_positive": "mean > 0 AND interval_lower_bound > 0",
+    "confirmed_negative": "mean < 0 AND interval_upper_bound < 0",
+    "confirmed_adverse_overcorrection": "delta_overcorrection mean > 0 AND delta_overcorrection interval_lower > 0",
+    "confirmed_adverse_retention": "delta_legit_retention mean < 0 AND delta_legit_retention interval_upper < 0"
+  },
+  "statuses": {
+    "SEMANTICALLY_CORROBORATED": {
+      "conditions": [
+        "directional_repair confirmed_positive",
+        "semantic_group_recall_full confirmed_positive",
+        "delta_overcorrection mean <= 0",
+        "delta_legit_retention mean >= 0",
+        "zero_opportunity delta_introduced_distortion mean <= 0"
+      ]
+    },
+    "TRADEOFF": {
+      "conditions": [
+        "(semantic_group_recall_full confirmed_positive OR directional_repair confirmed_positive)",
+        "(confirmed_adverse_overcorrection OR confirmed_adverse_retention)"
+      ]
+    },
+    "LOCALIZATION_ONLY": {
+      "conditions": [
+        "(semantic_group_recall_full confirmed_positive OR semantic_group_recall_any confirmed_positive)",
+        "NOT qualified for SEMANTICALLY_CORROBORATED",
+        "NOT qualified for TRADEOFF"
+      ]
+    },
+    "SCORE_RECOVERY_ONLY": {
+      "conditions": [
+        "legacy_sdr confirmed_positive",
+        "NOT qualified for any higher status"
+      ]
+    },
+    "NEGATIVE": {
+      "conditions": [
+        "evidence evaluable",
+        "NOT qualified for any positive status"
+      ]
+    },
+    "NOT_EVALUABLE": {
+      "conditions": [
+        "policy-level evidence coverage incomplete",
+        "OR cost contract infeasible",
+        "OR mapping not auditable",
+        "OR baseline failure"
+      ],
+      "note": "Individual zero-opportunity keys do NOT make the entire policy NOT_EVALUABLE; they enter the zero-opportunity distortion estimand separately."
+    }
+  },
+  "forbidden_words": ["significant", "clearly", "materially"],
+  "mutual_exclusivity": true,
+  "deterministic_ordering": true
+}

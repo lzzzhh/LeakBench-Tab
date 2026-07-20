@@ -1,0 +1,18 @@
+{
+  "schema_version": 4,
+  "audit": "T0_B_V4_STATIC_VALIDATION",
+  "parent_head": "df5e26f81c63b9384e01bd14fe644a27128afb26",
+  "timestamp_utc": "2026-07-20T08:59:46Z",
+  "validation_scope": "LOCAL_VALIDATION_ONLY",
+  "github_actions_configured": false,
+  "repository_suite": {
+    "command": "PYTHONPATH=. pytest -q",
+    "passed": 353,
+    "failed": 1
+  },
+  "v4_targeted_suite": {
+    "command": "PYTHONPATH=. pytest tests/t0_b_v4 -q",
+    "passed": 12,
+    "failed": 0
+  }
+}

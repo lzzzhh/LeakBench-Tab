@@ -1,0 +1,137 @@
+{
+  "schema_version": 4,
+  "audit": "T0_B_MULTIPOLICY_SEMANTIC_COST_V4",
+  "status": "FROZEN_BEFORE_EXPERIMENT",
+  "frozen_at": "2026-07-20T08:59:46Z",
+  "branch": "t0/multipolicy-semantic-cost",
+  "parent_commit": "df5e26f81c63b9384e01bd14fe644a27128afb26",
+  "outcome_observed_before_freeze": false,
+  "lineage": {
+    "v1": {
+      "commit": "fbaa9f3...",
+      "status": "SUPERSEDED_PRE_OUTCOME",
+      "path": "results/edbt_t0_b/freeze_lineage.json",
+      "sha256": "898100be784fe90354219316b9897d944b5d54839206be6530518ee772dddcb4"
+    },
+    "v3": {
+      "commit": "df5e26f...",
+      "status": "SUPERSEDED_PRE_OUTCOME",
+      "path": "results/edbt_t0_b/freeze_lineage_v3.json",
+      "sha256": "bc0fd215096692413708cd7ca8b881a82f1865e57161073b929944dede33deb6"
+    },
+    "v4": {
+      "path": "results/edbt_t0_b/freeze_lineage_v4.json",
+      "sha256": "ead1f6644740caeae291cbc58f47d1b9e5852843a6e391ef902bbe431db8efe7"
+    }
+  },
+  "reports": {
+    "amendment_003": {
+      "path": "reports/edbt_t0_b/protocol_amendment_003.md",
+      "sha256": "6b6bb69113943bbcef8788e783e7b868584c3a1a78c1ba7f70816b77a0c8fbed"
+    },
+    "protocol_v4": {
+      "path": "reports/edbt_t0_b/protocol_v4.md",
+      "sha256": "267f4c839ba1bcedbedfaad925b5937cac6e782bd405df9516da45d3a2a87284"
+    },
+    "runtime_plan": {
+      "path": "reports/edbt_t0_b/runtime_plan_v4.md",
+      "sha256": "d1591b377a6b5775dcafb3787984ab0a1639eb2c8a6aeaa6c4fe1cc5767a3323"
+    },
+    "static_preflight": {
+      "path": "reports/edbt_t0_b/static_preflight_report_v4.md",
+      "sha256": "91fe8372b02930f8ec5fa57e4f8eba190ec6d39a0b5600a5c063e4e3d702b350"
+    }
+  },
+  "configs": {
+    "policy_registry": {
+      "path": "configs/edbt_t0_b/policy_registry_v4.yaml",
+      "sha256": "4e777ac1b7ec722964fc4051c36c78e916edd7b75ef78277343d2c74b92a8ed6"
+    },
+    "cost_contracts": {
+      "path": "configs/edbt_t0_b/cost_contracts_v4.json",
+      "sha256": "cb1e87a8901aba9fdddec3d6f53a4d0fb919da25a5ba19aa6adf090ebd20ab1b"
+    },
+    "model_factories": {
+      "path": "configs/edbt_t0_b/model_factories_v4.json",
+      "sha256": "ff60d8a2e3e461b90306f5dbb10a8ec8aac3f9769ac3a9ac5e73a526528b1e28"
+    },
+    "claim_gates": {
+      "path": "configs/edbt_t0_b/claim_gates_v4.json",
+      "sha256": "983e1dd78115b5a45b344b1363bfac5297e0172d3a441cae1b3db8b2007e1b04"
+    },
+    "pareto": {
+      "path": "configs/edbt_t0_b/pareto_contract_v4.json",
+      "sha256": "0830aceb1bf12dfd59cb0d74a4dbdeebdf1e9d4e20dd42147260a62bbefff782"
+    },
+    "execution_matrix": {
+      "path": "configs/edbt_t0_b/execution_matrix_v4.json",
+      "sha256": "ccddb6732abf0bd801b28c3094b4d1bab1c07e92dd1ff9b713c90234270b8f8b"
+    },
+    "dryrun_matrix": {
+      "path": "configs/edbt_t0_b/dryrun_matrix_v4.json",
+      "sha256": "ec65d94fb2c16a640bf202a98f8f95cbf2aaa97ce5a7989fedfeacd3efe7f991"
+    },
+    "dryrun_schema": {
+      "path": "configs/edbt_t0_b/dryrun_output_schema_v4.json",
+      "sha256": "c58b15ab5881b780766e37a2e3e9e929743822426cbe5c5f542f8dc2b0beb46e"
+    }
+  },
+  "mappings": {
+    "policy_groups": {
+      "path": "results/edbt_t0_b/policy_group_mapping_v3.jsonl.gz",
+      "sha256": "ccb0517d79838649fd6c68b51ca69802544ac90115eb80169c40939c60a41512",
+      "rows": 5500
+    },
+    "evaluation": {
+      "path": "results/edbt_t0_b/semantic_evaluation_mapping_v3.jsonl.gz",
+      "sha256": "3668b4d59bdc7f443b48cab94cda93e9ca68c11ef92ccfb600b1e3cf8d6adc56",
+      "rows": 5500
+    }
+  },
+  "sources": {
+    "generator": {
+      "path": "src/leakbench/mechanisms/__init__.py",
+      "sha256": "0f1c605ea4afeeb70cb8fa300f58f97c9e347762f6943b3cd93a21f500e9227f"
+    },
+    "models": {
+      "path": "src/leakbench/models/core_models.py",
+      "sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e"
+    },
+    "bundle_manifest": {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c"
+    }
+  },
+  "r2_closure": {
+    "manifest": {
+      "path": "results/edbt_t0_r2/manifest.json",
+      "sha256": "7f5392673771bc6eec81d21a45e6b3fad22ffd0c5ea776e8e7d589700704742b"
+    },
+    "receipt": {
+      "path": "results/edbt_t0_r2/validation_receipt_clean_integration.json",
+      "sha256": "9e6638cd5f2961556e2b91143ba5469defa485e8986f06b3039ce1c9f5a883d0"
+    }
+  },
+  "v4_code": {
+    "validator": {
+      "path": "scripts/t0_b_v4/validate_protocol_freeze_v4.py",
+      "sha256": "c183050c52b2bb8106ee018746aa61e112dcbf464ab373bbda0088a6ba762c98"
+    }
+  },
+  "v4_tests": {
+    "executable": {
+      "path": "tests/t0_b_v4/test_v4_executable.py",
+      "sha256": "520dd43aa46b30c1883f72c79e4c6b838f608ba35dc3e7b21517e0033ae7d5c4"
+    }
+  },
+  "static_receipt": {
+    "path": "results/edbt_t0_b/static_validation_receipt_v4.json",
+    "sha256": "ff33081283498c53c70acaf2ca182e23a2e1dd7b225330d0efbd99e41f0e1b26"
+  },
+  "execution_counts": {
+    "downstream_fits": 1089000,
+    "ranking_fits": 22000,
+    "dry_run_downstream": 584,
+    "dry_run_ranking": 16
+  }
+}

@@ -1,0 +1,47 @@
+# T0-B V4 Policy Registry — definitive, self-contained
+policies:
+  p0_keep_all:
+    id: P0; name: KEEP_ALL; oracle: false; deterministic: true; description: "Remove zero units. Baseline."
+  p1_oracle_remove_all:
+    id: P1; name: ORACLE_REMOVE_ALL; oracle: true; deterministic: true; description: "Remove all leak columns via oracle. Upper bound only."
+  p2_random_matched:
+    id: P2; name: RANDOM_MATCHED; oracle: false; description: "Random matched-cost. 20 governance seeds."
+    governance_seeds: [2026071700,2026071701,2026071702,2026071703,2026071704,2026071705,2026071706,2026071707,2026071708,2026071709,2026071710,2026071711,2026071712,2026071713,2026071714,2026071715,2026071716,2026071717,2026071718,2026071719]
+    seed_contract: "SHA256(t0b_random_matched_v3 || governance_seed || dataset_index || mechanism || strength || training_seed || cost_contract_id || budget_basis_points)"
+    seed_modulus: 4294967295
+    seed_byte_order: "little-endian, first 8 bytes of digest"
+  p3_mutual_information:
+    id: P3; name: MUTUAL_INFORMATION; oracle: false; deterministic: true
+    algorithm: "mutual_info_classif(X_train, y_train, random_state=42)"
+    nan_handling: "zero"
+    group_aggregation: "max"
+    tie_breaking: ["score_descending", "opaque_group_id_ascending"]
+  p4_abs_point_biserial:
+    id: P4; name: ABS_POINT_BISERIAL; oracle: false; deterministic: true
+    algorithm: "abs(pearsonr(X_col, y_train))"
+    constant_score: 0.0; nan_inf_score: 0.0
+    group_aggregation: "max"
+    tie_breaking: ["score_descending", "opaque_group_id_ascending"]
+  p5_standardized_lr_coef:
+    id: P5; name: STANDARDIZED_LR_COEF; oracle: false; deterministic: true
+    scaler: "StandardScaler fitted on training only"
+    model: "LogisticRegression(penalty='l2', C=1.0, solver='lbfgs', max_iter=2000, random_state=42)"
+    score: "abs(lr.coef_[0])"
+    group_aggregation: "max"
+    tie_breaking: ["score_descending", "opaque_group_id_ascending"]
+  p6_cross_fitted_rf_permutation:
+    id: P6; name: CROSS_FITTED_RF_PERM; oracle: false; deterministic: true
+    ranking_rf:
+      n_estimators: 100; criterion: "gini"; max_depth: null; min_samples_split: 2
+      min_samples_leaf: 1; max_features: "sqrt"; bootstrap: true; class_weight: null
+      random_state: 42; n_jobs: 1
+    cv: "StratifiedKFold(n_splits=3, shuffle=True, random_state=42)"
+    permutation: {scoring: "roc_auc", n_repeats: 5, random_state_formula: "42 + fold_id", n_jobs: 1}
+    negative_importance: "retained"; nan_handling: "zero"
+    fold_aggregation: "mean"
+    group_aggregation: "max"
+    tie_breaking: ["score_descending", "opaque_group_id_ascending"]
+
+forbidden:
+  old_p2_formula: "(gov_seed * 100 + dataset_index * 7 + training_seed * 13)"
+  old_hash_prefix: "encoded_column_indices_v1"

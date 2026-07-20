@@ -1,0 +1,21 @@
+{
+  "schema_version": 4,
+  "v1_freeze_commit": "fbaa9f3bfad9eda52b25c64bd07561aa5bd8ad33",
+  "v1_status": "SUPERSEDED_PRE_OUTCOME",
+  "v2_freeze_commit": "c5b11b12ebaa710649a41c078b0c08e84a3fd955",
+  "v2_status": "SUPERSEDED_PRE_OUTCOME",
+  "v3_freeze_commit": "df5e26f81c63b9384e01bd14fe644a27128afb26",
+  "v3_status": "SUPERSEDED_PRE_OUTCOME",
+  "outcomes_observed_before_v4": false,
+  "v3_supersession_reasons": [
+    "V3_PROTOCOL_PACKAGE_MISSING",
+    "V3_CONFIG_PACKAGE_MISSING",
+    "FREEZE_PATH_BINDING_INCOMPLETE",
+    "HASH_VALIDATOR_ONLY_CHECKED_LENGTH",
+    "DRYRUN_BUNDLES_NOT_BOUND",
+    "STATIC_RECEIPT_MISSING",
+    "STATIC_TESTS_INSUFFICIENT",
+    "EXECUTION_REPORT_WORDING_INCONSISTENT"
+  ],
+  "effective_freeze": "results/edbt_t0_b/protocol_freeze_v4.json"
+}

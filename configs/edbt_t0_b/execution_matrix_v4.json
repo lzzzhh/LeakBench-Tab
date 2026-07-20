@@ -1,0 +1,13 @@
+{
+  "schema_version": 4,
+  "audit": "T0_B_EXECUTION_MATRIX_V4",
+  "ledger_rules": {
+    "baseline": "2 rows per key (strict + full), NOT replicated by contract/budget",
+    "governed": "P2-P6 actual fits only; P0/P1 are analysis-time virtual references"
+  },
+  "b1_lr": {"baseline": 11000, "governed": 792000, "total": 803000},
+  "b2_rf_lgbm": {"baseline": 22000, "governed": 264000, "total": 286000},
+  "grand_total_downstream": 1089000,
+  "ranking_model_fits": 22000,
+  "dry_run": {"baseline": 8, "governed": 576, "total_downstream": 584, "ranking": 16}
+}
