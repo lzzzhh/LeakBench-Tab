@@ -133,10 +133,12 @@
     }
   ],
   "prior_manifest_sha256": "47dccdb7c87fbd1693163f9f3f270dac72d9ebdec13d1ef1c7972acb6a2c11ed",
-  "r2_2_commit_sha": "3c3a704",
+  "r2_2_commit_sha": "f623b92",
   "analysis_summary_sha256": "e079be9f871ec450291b013f4a6e0cc33f9b8f5b3a49a7348f2980af0b851e1b",
   "claim_state_sha256": "a4e3b370096acee4e5a119247a2654dc199967ee0d8904b08e7e3466c4f7129a",
   "false_repair_summary_sha256": "8877e619255db36a866d48f8a23e27c499d2089877b59e4204de3206effbd6a3",
   "protocol_amendment_sha256": "54028899b96b80ffbf0bdaad447a6cf1b4af995886f5c2a48bd0097ffe73b053",
-  "reconstruction_summary_sha256": "80bed238490963b147eae29f6988e790378d60ab16c719c6e30458ace42dcc70"
+  "reconstruction_summary_sha256": "80bed238490963b147eae29f6988e790378d60ab16c719c6e30458ace42dcc70",
+  "r2_1_commit_sha": "fe85ecd",
+  "superseded_r2_manifest_sha": "47dccdb7c87fbd1693163f9f3f270dac72d9ebdec13d1ef1c7972acb6a2c11ed"
 }
