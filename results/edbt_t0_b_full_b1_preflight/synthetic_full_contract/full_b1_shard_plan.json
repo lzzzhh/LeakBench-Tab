@@ -1,0 +1,37 @@
+{
+  "assignments": [
+    {
+      "canonical_key_id": "ac4fabc87d6633383571068362eb2f83dd7784cf5294dbaa7d689a11d535e0a8",
+      "shard_id": 0
+    },
+    {
+      "canonical_key_id": "e33ea98f325cb52c706b021e36e565778d0ff797fb7943c0d494ba088b315384",
+      "shard_id": 0
+    },
+    {
+      "canonical_key_id": "24754fca1ce00112f7f4b55e1ef7938ecca04428bc4188e5d4ba991322a4de98",
+      "shard_id": 0
+    },
+    {
+      "canonical_key_id": "99eed8f3c4e0f9c7dc2d9b7e62446ec4247302d38c1d8c8bc5a7a2a8ed372176",
+      "shard_id": 0
+    },
+    {
+      "canonical_key_id": "4a0d14af67f70b624b0fdc252efd1df7a8997e9a5be417678cefd55b53ea6d7e",
+      "shard_id": 1
+    },
+    {
+      "canonical_key_id": "f688c4c0b1ea4220d6c95171166b7a9dc386d12fa6c94e99ea8e60982bdeb41a",
+      "shard_id": 1
+    },
+    {
+      "canonical_key_id": "d5ddb4f5203dd22c9a4a44ea5e845b8c598770632176adcb93ce00e8b068f462",
+      "shard_id": 1
+    },
+    {
+      "canonical_key_id": "0a65ed8b6c87b9a571c9997b73d59adcae283d331d9127f23708336ff82c6ee3",
+      "shard_id": 1
+    }
+  ],
+  "shard_count": 2
+}

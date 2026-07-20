@@ -1,0 +1,10 @@
+{
+  "baseline_rows": 16,
+  "canonical_keys": 8,
+  "downstream_rows": 1168,
+  "failure_rows": 0,
+  "governed_rows": 1152,
+  "pass": true,
+  "selection_rows": 1152,
+  "shards": 2
+}

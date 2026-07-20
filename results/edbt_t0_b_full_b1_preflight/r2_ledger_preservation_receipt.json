@@ -1,0 +1,33 @@
+{
+  "artifacts": [
+    {
+      "artifact": "baseline_ledger.csv.gz",
+      "expected": "bd59c32c46d2461b9fd871b21ef5954cb68e758fb68e2ded89cc1967e451d444",
+      "actual": "bd59c32c46d2461b9fd871b21ef5954cb68e758fb68e2ded89cc1967e451d444",
+      "match": true,
+      "size_bytes": 292
+    },
+    {
+      "artifact": "governed_ledger.csv.gz",
+      "expected": "d636bc1d95fe967f981147d56010d70120d0810ad7eb466c1605ea18e78b798d",
+      "actual": "d636bc1d95fe967f981147d56010d70120d0810ad7eb466c1605ea18e78b798d",
+      "match": true,
+      "size_bytes": 39116
+    },
+    {
+      "artifact": "selection_ledger.csv.gz",
+      "expected": "8f5107c62007239c25585ae4316c581658f6667acae7231bcd32467109a01477",
+      "actual": "8f5107c62007239c25585ae4316c581658f6667acae7231bcd32467109a01477",
+      "match": true,
+      "size_bytes": 23177
+    },
+    {
+      "artifact": "failure_ledger.csv.gz",
+      "expected": "e185730c78ea8c5a7d8a88ced4e8cf93692694033b4794e5dfa65555488fdb60",
+      "actual": "e185730c78ea8c5a7d8a88ced4e8cf93692694033b4794e5dfa65555488fdb60",
+      "match": true,
+      "size_bytes": 57
+    }
+  ],
+  "all_match": true
+}

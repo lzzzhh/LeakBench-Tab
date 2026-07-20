@@ -1,0 +1,18 @@
+{
+  "baseline_rows": 16,
+  "canonical_keys": 8,
+  "downstream_rows": 1168,
+  "execution_contract_version": "v1",
+  "failure_rows": 0,
+  "governed_rows": 1152,
+  "key_plan_sha256": "b253b10cf56f891aad7556956cf9c23b82bf995e7513435c6a3ffa5f99ec127d",
+  "mode": "synthetic",
+  "policy_mapping_sha256": "28440574ca9187db12d59f54c2ea5078646833bb702ebfc463168c49e18426f7",
+  "run_plan_sha256": "3b500e39b50f9174d6746e6711d8ecfda3874ecb2369bf119391ad3b161f97df",
+  "scientific_freeze_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
+  "selection_rows": 1152,
+  "semantic_mapping_sha256": "025cc32336e31f6416fb2f2d931956b6594a32fd4447da056a69d46d65b27366",
+  "shard_count": 2,
+  "shard_plan_sha256": "2c03cf9230f29bc4625309155e5c6d048348c6113939587756e358bd3aed7da6",
+  "tool_seal_sha": "PLACEHOLDER"
+}
