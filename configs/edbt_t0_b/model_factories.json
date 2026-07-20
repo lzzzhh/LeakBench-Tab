@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "audit": "T0_B_MODEL_FACTORIES",
+  "source": "src/leakbench/models/core_models.py :: fit_predict_core_model",
+  "description": "Canonical downstream model factories. All governed evaluations use exactly these factories. No parameter variation allowed.",
+  "models": {
+    "lr": {
+      "model_id": "lr",
+      "implementation": "sklearn.StandardScaler+LogisticRegression",
+      "pipeline": "make_pipeline(StandardScaler(), LogisticRegression(...))",
+      "params": {
+        "scaler": "StandardScaler",
+        "classifier": "LogisticRegression",
+        "max_iter": 2000,
+        "C": 1.0,
+        "random_state": "training_seed",
+        "penalty": "l2"
+      },
+      "early_stopping": false,
+      "uses_validation_split": false
+    },
+    "rf": {
+      "model_id": "rf",
+      "implementation": "sklearn.RandomForestClassifier",
+      "params": {
+        "n_estimators": 250,
+        "min_samples_leaf": 2,
+        "max_features": "sqrt",
+        "random_state": "training_seed",
+        "n_jobs": 1
+      },
+      "early_stopping": false,
+      "uses_validation_split": false
+    },
+    "lightgbm": {
+      "model_id": "lightgbm",
+      "implementation": "lightgbm.LGBMClassifier",
+      "params": {
+        "objective": "binary",
+        "n_estimators": 250,
+        "learning_rate": 0.05,
+        "num_leaves": 31,
+        "max_depth": 6,
+        "min_child_samples": 20,
+        "random_state": "training_seed",
+        "n_jobs": 1,
+        "verbosity": -1
+      },
+      "early_stopping": true,
+      "early_stopping_rounds": 30,
+      "uses_validation_split": true,
+      "note": "Early stopping uses frozen validation split ONLY. Test split used ONLY for final evaluation."
+    }
+  },
+  "constraints": {
+    "reuse_canonical_baselines": false,
+    "baseline_reuse_conditions": [
+      "model_factory_hash_matches",
+      "task_key_matches",
+      "training_seed_matches",
+      "train_val_test_split_hash_matches",
+      "feature_representation_hash_matches",
+      "source_bundle_hash_matches"
+    ],
+    "strict_fit_note": "Strict baselines are re-fitted per key using the canonical factory. They are NOT loaded from SP5/SP8 CSV. Numerical identity with frozen SP8 is verified before governance runs.",
+    "no_100_estimator_rf": "The 100-estimator RF used in B2 cross-learner is a disclosed deviation and NOT the canonical factory for T0-B."
+  }
+}

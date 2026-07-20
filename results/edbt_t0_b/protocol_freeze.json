@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "audit": "T0_B_MULTIPOLICY_SEMANTIC_COST",
+  "status": "FROZEN_BEFORE_EXPERIMENT",
+  "frozen_at": "2026-07-20T07:52:37Z",
+  "branch": "t0/multipolicy-semantic-cost",
+  "parent_sha": "4725df4594832eba60e688860ec5a7af40e71f66",
+  "inputs": {
+    "bundle_manifest": {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c"
+    },
+    "canonical_cells": {
+      "path": "results/corrected_v2/canonical_cells.csv",
+      "sha256": "25c2144064c47fd2b2965fea6a609d08017f87c038f61456c54e8711eb9b49d7"
+    },
+    "t0_r2_claim_state": {
+      "path": "results/edbt_t0_r2/claim_state_r2.json",
+      "sha256": "8e8b88966da7aed2496c2d5d158ab129a01f7d7f9eead3596cdbbe1bffb8830d"
+    }
+  },
+  "configs": {
+    "policy_registry": {
+      "path": "configs/edbt_t0_b/policy_registry.yaml",
+      "sha256": "105fff6cb140ef9826c44f4796942c8408b401868a5541523eb1436827f72e7f"
+    },
+    "semantic_group_registry": {
+      "path": "configs/edbt_t0_b/semantic_group_registry.json",
+      "sha256": "cce5034708bc5cf2cb763655f5480a7c82d48536792ef8e0923f90395e7551bc"
+    },
+    "model_factories": {
+      "path": "configs/edbt_t0_b/model_factories.json",
+      "sha256": "4aeb9cf4d40ff4acf383b5c629d4acd06380d034eb49f9f67e1579cb960ef01b"
+    }
+  },
+  "protocol": {
+    "path": "reports/edbt_t0_b/protocol.md",
+    "sha256": "c7f7b013f2258384e68b6aee08a1b9db80d33ca2d0cf82b03ac3a86855ec78af"
+  },
+  "constants": {
+    "gov_seeds": "2026071700 + i for i in range(20)",
+    "mi_seed": 42,
+    "p2_seed_formula": "(gov_seed * 100 + dataset_index * 7 + training_seed * 13) % (2**31 - 1)",
+    "budgets": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "bootstrap_seed": 20260719,
+    "bootstrap_reps": 20000,
+    "bootstrap_unit": "dataset_index",
+    "models": [
+      "lr",
+      "rf",
+      "lightgbm"
+    ],
+    "policies": [
+      "P0_KEEP_ALL",
+      "P1_ORACLE_REMOVE_ALL",
+      "P2_RANDOM_MATCHED",
+      "P3_MI",
+      "P4_ABS_POINT_BISERIAL",
+      "P5_STANDARDIZED_LR_COEF",
+      "P6_CROSS_FITTED_RF_PERM"
+    ],
+    "cost_contracts": [
+      "semantic_group",
+      "encoded_column"
+    ],
+    "group_aggregation": "max"
+  }
+}

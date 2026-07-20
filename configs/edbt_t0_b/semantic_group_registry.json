@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "audit": "T0_B_SEMANTIC_GROUP_REGISTRY",
+  "description": "Maps each mechanism's encoded columns to semantic source-field groups. Policy selectors access group definitions and sizes but NOT leak_mask or contaminated status. Contamination labels are evaluation-only.",
+  "mechanisms": {
+    "M01": {
+      "category": "simple",
+      "family": "direct",
+      "n_injected": 1,
+      "n_leak": 1,
+      "column_names": ["contam_M01_0"],
+      "groups": {
+        "policy_visible": {
+          "M01_source": {
+            "group_id": "M01_source",
+            "member_encoded_indices": "dynamic: last 1 column",
+            "group_size": 1,
+            "source_role": "contamination_injection",
+            "note": "Single float column; singleton group"
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups, one per clean feature column",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 1,
+        "leak_group_count": 1,
+        "note": "The M01_source group is contaminated; original columns are clean"
+      }
+    },
+    "M02": {
+      "category": "simple",
+      "family": "direct",
+      "n_injected": 1,
+      "n_leak": 1,
+      "column_names": ["contam_M02_0"],
+      "groups": {
+        "policy_visible": {
+          "M02_source": {
+            "group_id": "M02_source",
+            "member_encoded_indices": "dynamic: last 1 column",
+            "group_size": 1,
+            "source_role": "contamination_injection",
+            "note": "Single float column; singleton group"
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 1,
+        "leak_group_count": 1
+      }
+    },
+    "M03": {
+      "category": "boundary",
+      "family": "transform",
+      "n_injected": 1,
+      "n_leak": 1,
+      "column_names": ["contam_M03_0"],
+      "groups": {
+        "policy_visible": {
+          "M03_source": {
+            "group_id": "M03_source",
+            "member_encoded_indices": "dynamic: last 1 column",
+            "group_size": 1,
+            "source_role": "contamination_injection",
+            "note": "Single float column; singleton group. Interacts with x_000."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 1,
+        "leak_group_count": 1
+      }
+    },
+    "M04": {
+      "category": "structured",
+      "family": "temporal",
+      "n_injected": 1,
+      "n_leak": 1,
+      "column_names": ["contam_M04_0"],
+      "groups": {
+        "policy_visible": {
+          "M04_source": {
+            "group_id": "M04_source",
+            "member_encoded_indices": "dynamic: last 1 column",
+            "group_size": 1,
+            "source_role": "contamination_injection",
+            "note": "Single float column; singleton group. Post-outcome future aggregation."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 1,
+        "leak_group_count": 1
+      }
+    },
+    "M05": {
+      "category": "structured",
+      "family": "temporal",
+      "n_injected": 1,
+      "n_leak": 1,
+      "column_names": ["contam_M05_0"],
+      "groups": {
+        "policy_visible": {
+          "M05_source": {
+            "group_id": "M05_source",
+            "member_encoded_indices": "dynamic: last 1 column",
+            "group_size": 1,
+            "source_role": "contamination_injection",
+            "note": "Single float column; singleton group. Temporal look-ahead."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 1,
+        "leak_group_count": 1
+      }
+    },
+    "M06": {
+      "category": "simple",
+      "family": "redundant",
+      "n_injected": "dynamic: max(1, int(redundancy))",
+      "n_leak": "dynamic: same as n_injected",
+      "column_names": ["contam_M06_r0", "contam_M06_r1", "..."],
+      "groups": {
+        "policy_visible": {
+          "M06_redundant_cluster": {
+            "group_id": "M06_redundant_cluster",
+            "member_encoded_indices": "dynamic: all injected M06 columns (last n_injected columns)",
+            "group_size": "dynamic: n_injected",
+            "source_role": "contamination_injection",
+            "note": "All M06 redundant columns form ONE semantic group. Atomic removal required."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": "n_injected",
+        "leak_group_count": 1
+      }
+    },
+    "M07": {
+      "category": "boundary",
+      "family": "subgroup",
+      "n_injected": 1,
+      "n_leak": 1,
+      "column_names": ["contam_M07_0"],
+      "groups": {
+        "policy_visible": {
+          "M07_source": {
+            "group_id": "M07_source",
+            "member_encoded_indices": "dynamic: last 1 column",
+            "group_size": 1,
+            "source_role": "contamination_injection",
+            "note": "Single float column; singleton group. Sparse subgroup coverage."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 1,
+        "leak_group_count": 1
+      }
+    },
+    "M08": {
+      "category": "structured",
+      "family": "entity",
+      "n_injected": 1,
+      "n_leak": 1,
+      "column_names": ["contam_M08_future_entity_rate"],
+      "groups": {
+        "policy_visible": {
+          "M08_source": {
+            "group_id": "M08_source",
+            "member_encoded_indices": "dynamic: last 1 column",
+            "group_size": 1,
+            "source_role": "contamination_injection",
+            "note": "Single float column; singleton group. Future within-entity aggregation."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 1,
+        "leak_group_count": 1
+      }
+    },
+    "M09": {
+      "category": "structured",
+      "family": "source",
+      "n_injected": 8,
+      "n_leak": 8,
+      "column_names": ["contam_M09_source_0", "contam_M09_source_1", "contam_M09_source_2", "contam_M09_source_3", "contam_M09_source_4", "contam_M09_source_5", "contam_M09_source_6", "contam_M09_source_7"],
+      "groups": {
+        "policy_visible": {
+          "M09_source_one_hot": {
+            "group_id": "M09_source_one_hot",
+            "member_encoded_indices": "dynamic: last 8 columns (indices n_original through n_original+7)",
+            "group_size": 8,
+            "source_role": "contamination_injection",
+            "note": "Eight one-hot indicator columns forming a single semantic source group. Must be removed atomically (all 8 or none). Policy selectors see this as ONE group."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 8,
+        "leak_group_count": 1,
+        "one_hot_encoding": true,
+        "note": "All 8 columns are leak; the group is contaminated."
+      }
+    },
+    "M10": {
+      "category": "simple",
+      "family": "redundant",
+      "n_injected": 2,
+      "n_leak": 1,
+      "column_names": ["mixed_legitimate_clean_0", "contam_M10_target_proxy"],
+      "groups": {
+        "policy_visible": {
+          "M10_legitimate_copy": {
+            "group_id": "M10_legitimate_copy",
+            "member_encoded_indices": "dynamic: n_original (first injected column)",
+            "group_size": 1,
+            "source_role": "legitimate_feature_copy",
+            "note": "Clean copy of x_000. Legitimate at prediction time. Must be separate group from contaminant."
+          },
+          "M10_contaminant": {
+            "group_id": "M10_contaminant",
+            "member_encoded_indices": "dynamic: n_original+1 (second injected column)",
+            "group_size": 1,
+            "source_role": "contamination_injection",
+            "note": "Target-proxy contaminant. Must be separate group from legitimate copy."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": 1,
+        "legitimate_injected_column_count": 1,
+        "leak_group_count": 1,
+        "legitimate_group_count": 1,
+        "note": "M10_contaminant group is the only leak group. M10_legitimate_copy is clean."
+      }
+    },
+    "M11": {
+      "category": "boundary",
+      "family": "graph",
+      "n_injected": "dynamic: max(2, int(n_components))",
+      "n_leak": "dynamic: same as n_injected",
+      "column_names": ["contam_M11_0", "contam_M11_1", "..."],
+      "groups": {
+        "policy_visible": {
+          "M11_component": {
+            "group_id": "M11_component",
+            "member_encoded_indices": "dynamic: last n_injected columns",
+            "group_size": "dynamic: n_injected",
+            "source_role": "contamination_injection",
+            "note": "All M11 graph-projection columns form ONE semantic group. Atomic removal required."
+          }
+        },
+        "original_columns": {
+          "description": "n_original singleton groups",
+          "group_size": 1,
+          "count": "n_original"
+        }
+      },
+      "contamination_labels": {
+        "evaluation_only": true,
+        "leak_column_count": "n_injected",
+        "leak_group_count": 1
+      }
+    }
+  },
+  "global_rules": {
+    "original_columns_are_singleton_groups": true,
+    "total_groups_formula": "n_original + count(policy_visible_groups)",
+    "policy_visible_only": "Policy selectors receive group_id, group_size, and member_encoded_indices. They do NOT receive contaminated status, leak_mask, or source_role.",
+    "evaluation_labels_separate": "leak_mask, contaminated status, and leak_group_count are used ONLY for evaluation after policy selection is complete.",
+    "group_atomicity": "When a group is selected for removal under the semantic-group contract, ALL of its member columns must be removed. Partial group removal is a hard error.",
+    "mapping_hash_algorithm": "sha256(semantic_group_registry_v1 || json_sorted_groups_per_key)"
+  }
+}
