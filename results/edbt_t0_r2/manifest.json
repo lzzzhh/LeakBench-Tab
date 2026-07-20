@@ -141,7 +141,7 @@
     {
       "path": "tests/test_repair_r2_2.py",
       "category": "test",
-      "sha256": "24015522a1bd6206a34bba0becf1346b945120a0fe4fff2aaae3cae618b91312"
+      "sha256": "647f1a930ada131f97d6523713e2d3cd00f2c98b7c8525fe8e25a471cd006143"
     }
   ]
 }
