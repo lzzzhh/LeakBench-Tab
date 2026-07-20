@@ -6,5 +6,6 @@
   "governed_rows": 1152,
   "pass": true,
   "selection_rows": 1152,
-  "shards": 2
+  "shards": 2,
+  "tool_seal_sha": "4e291a1bd0830dfcaa7a25ca471fcf93c30596b6"
 }
