@@ -207,7 +207,7 @@ def main():
                         selection_rows.append({"selection_hash": shash, "policy": "P2", "contract": contract, "budget_bp": bp, "removed_encoded_indices": json.dumps([int(x) for x in sorted(removed_cols)]), "removed_group_ids": json.dumps(sorted(gids)), "realized_encoded_cost": len(removed_cols)})
                         new_selections += 1; resume_sel_hashes.add(shash)
 
-                    rid = hashlib.sha256(f"t0b1r_gov|{ds}|{mech}|{st}|{ts}|{gs_idx}|lr|P2|{contract}|{bp}".encode()).hexdigest()[:20]
+                    rid = hashlib.sha256(f"t0b1r|{ds}|{mech}|{st}|{ts}|{gs_idx}|lr|P2|{contract}|{bp}".encode()).hexdigest()[:20]
                     if rid not in resume_gov_ids and not args.selection_only:
                         keep = np.ones(n_total, dtype=bool); keep[removed_cols] = False
                         gov = fit_predict_core_model("lr", X[:, keep][tr], y[tr], X[:, keep][va], y[va], X[:, keep][te], ts)
@@ -232,7 +232,7 @@ def main():
                         selection_rows.append({"selection_hash": shash, "policy": pid, "contract": contract, "budget_bp": bp, "removed_encoded_indices": json.dumps([int(x) for x in sorted(removed_cols)]), "removed_group_ids": json.dumps(sorted(gids)), "realized_encoded_cost": len(removed_cols)})
                         new_selections += 1; resume_sel_hashes.add(shash)
 
-                    rid = hashlib.sha256(f"t0b1r_gov|{ds}|{mech}|{st}|{ts}|-1|lr|{pid}|{contract}|{bp}".encode()).hexdigest()[:20]
+                    rid = hashlib.sha256(f"t0b1r|{ds}|{mech}|{st}|{ts}|-1|lr|{pid}|{contract}|{bp}".encode()).hexdigest()[:20]
                     if rid not in resume_gov_ids and not args.selection_only:
                         keep = np.ones(n_total, dtype=bool); keep[removed_cols] = False
                         gov = fit_predict_core_model("lr", X[:, keep][tr], y[tr], X[:, keep][va], y[va], X[:, keep][te], ts)
