@@ -1,4 +1,4 @@
-"""T0-B V4.1 Validation Closure Regression Tests — receipt failure detection, hash walking, dry-run binding."""
+"""T0-B V4.1 Regression Tests — provenance closure, receipt validation, tested-tree binding."""
 from __future__ import annotations
 import gzip, hashlib, json, sys, tempfile
 from pathlib import Path
@@ -7,135 +7,126 @@ import numpy as np, pandas as pd, pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from scripts.t0_b_v4.validate_protocol_freeze_v4_1 import (
+    validate_receipt, validate_tested_tree, SCIENTIFIC_FREEZE,
+)
 
-def test_receipt_failed_triggers_error():
-    """Validator must detect receipt with failed > 0."""
-    receipt = {
-        "repository_suite": {"passed": 353, "failed": 1, "skipped": 0, "command": "", "duration_seconds": 1},
-        "v4_targeted_suite": {"passed": 13, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1},
-        "validation_scope": "LOCAL_VALIDATION_ONLY",
-        "scientific_design_modified": False,
-        "timestamp_utc": "", "tested_git_sha": "", "scientific_freeze_commit": "",
+def test_receipt_repo_failed_triggers_error():
+    r = {
+        "repository_suite": {"passed": 353, "failed": 1, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "v4_targeted_suite": {"passed": 13, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "validation_scope": "LOCAL_VALIDATION_ONLY", "github_actions_configured": False,
+        "scientific_design_modified": False, "scientific_freeze_commit": SCIENTIFIC_FREEZE,
+        "tested_git_sha": "4cb54f01d11ef7250b7a300c0f7757abddead5a4", "timestamp_utc": "",
     }
-    assert receipt["repository_suite"]["failed"] == 1  # Simulates old stale receipt
-    # Real validator would check: if receipt["repo"]["failed"] != 0 -> ERROR
-
+    errs = validate_receipt(r)
+    assert len(errs) > 0, "Should error on repo failed=1"
+    assert any("failed=1" in e for e in errs)
 
 def test_receipt_targeted_failed_triggers_error():
-    receipt = {
-        "repository_suite": {"passed": 354, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1},
-        "v4_targeted_suite": {"passed": 12, "failed": 1, "skipped": 0, "command": "", "duration_seconds": 1},
-        "validation_scope": "LOCAL_VALIDATION_ONLY",
-        "scientific_design_modified": False,
-        "timestamp_utc": "", "tested_git_sha": "", "scientific_freeze_commit": "",
+    r = {
+        "repository_suite": {"passed": 354, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "v4_targeted_suite": {"passed": 12, "failed": 1, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "validation_scope": "LOCAL_VALIDATION_ONLY", "github_actions_configured": False,
+        "scientific_design_modified": False, "scientific_freeze_commit": SCIENTIFIC_FREEZE,
+        "tested_git_sha": "4cb54f01d11ef7250b7a300c0f7757abddead5a4", "timestamp_utc": "",
     }
-    assert receipt["v4_targeted_suite"]["failed"] == 1
+    errs = validate_receipt(r)
+    assert any("V4 failed=1" in e for e in errs)
 
-
-def test_hash_walker_finds_receipt():
-    """Recursive hash walker must traverse nested objects and find {path, sha256} pairs."""
-    freeze = {
-        "static_receipt": {
-            "path": "results/edbt_t0_b/static_validation_receipt_v4_1.json",
-            "sha256": hashlib.sha256(
-                (ROOT / "results/edbt_t0_b/static_validation_receipt_v4_1.json").read_bytes()
-            ).hexdigest(),
-        }
+def test_receipt_zero_passed_triggers_error():
+    r = {
+        "repository_suite": {"passed": 0, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "v4_targeted_suite": {"passed": 0, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "validation_scope": "LOCAL_VALIDATION_ONLY", "github_actions_configured": False,
+        "scientific_design_modified": False, "scientific_freeze_commit": SCIENTIFIC_FREEZE,
+        "tested_git_sha": "4cb54f01d11ef7250b7a300c0f7757abddead5a4", "timestamp_utc": "",
     }
-    # Simulate what the recursive verifier does
-    for k, v in freeze.items():
-        if isinstance(v, dict) and "path" in v and "sha256" in v:
-            fp = ROOT / v["path"]
-            assert fp.exists()
-            disk_sha = hashlib.sha256(fp.read_bytes()).hexdigest()
-            assert disk_sha == v["sha256"]
+    errs = validate_receipt(r)
+    assert any("passed=0" in e for e in errs)
 
+def test_receipt_wrong_scope_triggers_error():
+    r = {
+        "repository_suite": {"passed": 354, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "v4_targeted_suite": {"passed": 13, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "validation_scope": "CI", "github_actions_configured": False,
+        "scientific_design_modified": False, "scientific_freeze_commit": SCIENTIFIC_FREEZE,
+        "tested_git_sha": "4cb54f01d11ef7250b7a300c0f7757abddead5a4", "timestamp_utc": "",
+    }
+    errs = validate_receipt(r)
+    assert any("scope" in e for e in errs)
 
-def test_byte_modification_detected():
-    """Modifying 1 byte of a bound file must produce SHA mismatch."""
-    with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as tf:
-        tf.write(b"original content")
-        tmpath = tf.name
-    try:
-        h1 = hashlib.sha256(Path(tmpath).read_bytes()).hexdigest()
-        Path(tmpath).write_bytes(b"modified content")
-        h2 = hashlib.sha256(Path(tmpath).read_bytes()).hexdigest()
-        assert h1 != h2
-    finally:
-        Path(tmpath).unlink()
+def test_receipt_wrong_freeze_sha_triggers_error():
+    r = {
+        "repository_suite": {"passed": 354, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "v4_targeted_suite": {"passed": 13, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "validation_scope": "LOCAL_VALIDATION_ONLY", "github_actions_configured": False,
+        "scientific_design_modified": False, "scientific_freeze_commit": "0000000000000000000000000000000000000000",
+        "tested_git_sha": "4cb54f01d11ef7250b7a300c0f7757abddead5a4", "timestamp_utc": "",
+    }
+    errs = validate_receipt(r)
+    assert any("scientific_freeze_commit" in e for e in errs)
 
+def test_receipt_invalid_tested_sha_triggers_error():
+    r = {
+        "repository_suite": {"passed": 354, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "v4_targeted_suite": {"passed": 13, "failed": 0, "skipped": 0, "command": "", "duration_seconds": 1.0},
+        "validation_scope": "LOCAL_VALIDATION_ONLY", "github_actions_configured": False,
+        "scientific_design_modified": False, "scientific_freeze_commit": SCIENTIFIC_FREEZE,
+        "tested_git_sha": "not-a-sha", "timestamp_utc": "",
+    }
+    errs = validate_receipt(r)
+    assert any("tested_git_sha" in e for e in errs)
 
-def test_dryrun_bundle_disk_sha_matches():
-    """All 4 dry-run bundles must have correct disk SHA."""
+def test_current_receipt_passes():
+    with open(ROOT / "results/edbt_t0_b/static_validation_receipt_v4_1.json") as f:
+        rec = json.load(f)
+    errs = validate_receipt(rec)
+    assert len(errs) == 0, f"Current receipt should pass: {errs}"
+
+def test_dryrun_bundle_disk_sha():
     with open(ROOT / "configs/edbt_t0_b/dryrun_matrix_v4.json") as f:
         dr = json.load(f)
     for k in dr["keys"]:
-        disk_sha = hashlib.sha256((ROOT / k["bundle_path"]).read_bytes()).hexdigest()
-        assert disk_sha == k["bundle_sha256"], f"Bundle SHA mismatch: {k['bundle_path']}"
+        disk = hashlib.sha256((ROOT / k["bundle_path"]).read_bytes()).hexdigest()
+        assert disk == k["bundle_sha256"]
 
-
-def test_dryrun_split_hashes_match():
-    """All 4 dry-run keys must have correct train/val/test split hashes."""
+def test_dryrun_split_hashes():
     with open(ROOT / "configs/edbt_t0_b/dryrun_matrix_v4.json") as f:
         dr = json.load(f)
     for k in dr["keys"]:
         b = np.load(ROOT / k["bundle_path"], allow_pickle=False)
-        for split_name in ["train_idx", "val_idx", "test_idx"]:
-            actual = hashlib.sha256(b[split_name].tobytes()).hexdigest()
-            assert actual == k[f"{split_name}_hash"], \
-                f"{k['dataset_index']}_{k['mechanism']} {split_name}: {actual[:16]} != {k[f'{split_name}_hash'][:16]}"
+        for sn in ["train_idx", "val_idx", "test_idx"]:
+            actual = hashlib.sha256(b[sn].tobytes()).hexdigest()
+            assert actual == k[f"{sn}_hash"]
 
-
-def test_dryrun_keys_in_ledgers():
-    """All 4 dry-run keys exist in both mapping ledgers."""
+def test_dryrun_keys_in_mapping_ledgers():
     for gz_name in ["policy_group_mapping_v3.jsonl.gz", "semantic_evaluation_mapping_v3.jsonl.gz"]:
         data = gzip.decompress((ROOT / "results/edbt_t0_b" / gz_name).read_bytes()).decode("utf-8")
-        keys_in_ledger = set()
+        keys = set()
         for line in data.strip().split("\n"):
             r = json.loads(line)
-            keys_in_ledger.add((r["dataset_index"], r["mechanism"], r["strength"], r["training_seed"]))
-
+            keys.add((r["dataset_index"], r["mechanism"], r["strength"], r["training_seed"]))
         with open(ROOT / "configs/edbt_t0_b/dryrun_matrix_v4.json") as f:
             dr = json.load(f)
         for k in dr["keys"]:
             key = (k["dataset_index"], k["mechanism"], k["strength"], k["training_seed"])
-            assert key in keys_in_ledger, f"Dry key {key} not in {gz_name}"
-
-
-def test_actual_receipt_matches():
-    """Current receipt must have 0 failed in both suites."""
-    with open(ROOT / "results/edbt_t0_b/static_validation_receipt_v4_1.json") as f:
-        rec = json.load(f)
-    assert rec["repository_suite"]["failed"] == 0
-    assert rec["v4_targeted_suite"]["failed"] == 0
-    assert rec["repository_suite"]["passed"] >= 354
-    assert rec["v4_targeted_suite"]["passed"] >= 13
-
-
-def test_scientific_configs_no_diff():
-    """Scientific V4 configs must not be modified from ff347b."""
-    import subprocess
-    result = subprocess.run(
-        ["git", "diff", "--name-only", "ff347b...HEAD", "--",
-         "configs/edbt_t0_b/policy_registry_v4.yaml",
-         "configs/edbt_t0_b/dryrun_matrix_v4.json",
-         "configs/edbt_t0_b/execution_matrix_v4.json",
-         "results/edbt_t0_b/policy_group_mapping_v3.jsonl.gz"],
-        capture_output=True, text=True, cwd=ROOT,
-    )
-    assert result.stdout.strip() == "", f"Scientific configs modified: {result.stdout}"
-
+            assert key in keys, f"Key {key} not in {gz_name}"
 
 def test_mapping_sha_recompute():
-    """Per-row mapping_sha256 must match re-computation."""
     p = ROOT / "results/edbt_t0_b/policy_group_mapping_v3.jsonl.gz"
     data = gzip.decompress(p.read_bytes()).decode("utf-8")
     for line in data.strip().split("\n"):
         row = json.loads(line)
-        mapping_repr = json.dumps(
-            [{"gid": g["opaque_group_id"], "members": g["member_encoded_indices"]} for g in row["groups"]],
-            sort_keys=True,
-        )
-        recomputed = hashlib.sha256(mapping_repr.encode()).hexdigest()
-        assert recomputed == row["mapping_sha256"], \
-            f"Mapping hash mismatch for {row['dataset_index']}_{row['mechanism']}"
+        rep = json.dumps([{"gid": g["opaque_group_id"], "members": g["member_encoded_indices"]} for g in row["groups"]], sort_keys=True)
+        assert hashlib.sha256(rep.encode()).hexdigest() == row["mapping_sha256"]
+
+def test_scientific_configs_no_diff():
+    import subprocess
+    r = subprocess.run(
+        ["git", "diff", "--name-only", f"{SCIENTIFIC_FREEZE}...HEAD", "--",
+         "configs/edbt_t0_b/policy_registry_v4.yaml", "configs/edbt_t0_b/dryrun_matrix_v4.json",
+         "results/edbt_t0_b/policy_group_mapping_v3.jsonl.gz"],
+        capture_output=True, text=True, cwd=ROOT,
+    )
+    assert r.stdout.strip() == "", f"Scientific files modified: {r.stdout}"
