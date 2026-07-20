@@ -1,0 +1,26 @@
+{
+  "total_wall_clock_s": 6.38,
+  "ranker_times_s": {
+    "P3_MI": 0.14,
+    "P4_PBISERIAL": 0.0,
+    "P5_LR_COEF": 0.01,
+    "P6_RF_PERM": 4.79
+  },
+  "fit_times_s": {
+    "strict": {
+      "count": 4,
+      "total_s": 0.01,
+      "mean_s": 0.0023
+    },
+    "full": {
+      "count": 4,
+      "total_s": 0.0,
+      "mean_s": 0.0012
+    },
+    "governed": {
+      "count": 576,
+      "total_s": 0.99,
+      "mean_s": 0.0017
+    }
+  }
+}

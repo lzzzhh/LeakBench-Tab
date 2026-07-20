@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """T0-B1 Dry-Run Validator."""
 from __future__ import annotations
-import gzip, hashlib, json, sys, subprocess
+import gzip, hashlib, io, json, sys, subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -75,7 +75,6 @@ def main():
     if sci.stdout.strip():
         errors.append(f"Scientific files modified: {sci.stdout}")
 
-    import io
     print(f"\n=== T0-B1 DRY-RUN VALIDATOR ===")
     print(f"Errors: {len(errors)}")
     for e in errors:
