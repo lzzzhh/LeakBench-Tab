@@ -1,0 +1,13 @@
+{
+  "scientific_freeze_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
+  "canonical_keys": 5500,
+  "baseline_rows": 11000,
+  "governed_rows": 792000,
+  "downstream_rows": 803000,
+  "ranking_model_fits": 22000,
+  "non_model_scoring": 11000,
+  "selected_shard_count": 64,
+  "key_plan_sha256": "3f70ed1fc1f99915be787d6f1514aadb9b87a0e514682cbe82ad56d6e0773f6f",
+  "run_plan_sha256": "42eb31001b3aef33a540661d6df4a4efe24e1c21fdabdc1b0e975632ac498916",
+  "shard_plan_sha256": "19d8876d7ebb4411ef1ebee326d47fe3244daefa53ea4aca885dce3b5cf02ee1"
+}

@@ -1,0 +1,58 @@
+{
+  "canonical_keys": 5500,
+  "baseline_rows": 11000,
+  "governed_rows": 792000,
+  "downstream_rows": 803000,
+  "ranking_model_fits": 22000,
+  "non_model_scoring": 11000,
+  "run_ids_unique": 803000,
+  "run_ids_expected": 803000,
+  "selected_shard_count": 64,
+  "shard_evaluation": [
+    {
+      "shard_count": 32,
+      "key_min": 145,
+      "key_median": 170.5,
+      "key_max": 204,
+      "load_min": 21170,
+      "load_median": 24893.0,
+      "load_max": 29784,
+      "key_imbalance_ratio": 1.41,
+      "load_imbalance_ratio": 1.41
+    },
+    {
+      "shard_count": 64,
+      "key_min": 65,
+      "key_median": 85.0,
+      "key_max": 118,
+      "load_min": 9490,
+      "load_median": 12410.0,
+      "load_max": 17228,
+      "key_imbalance_ratio": 1.82,
+      "load_imbalance_ratio": 1.82
+    },
+    {
+      "shard_count": 128,
+      "key_min": 27,
+      "key_median": 42.5,
+      "key_max": 60,
+      "load_min": 3942,
+      "load_median": 6205.0,
+      "load_max": 8760,
+      "key_imbalance_ratio": 2.22,
+      "load_imbalance_ratio": 2.22
+    },
+    {
+      "shard_count": 256,
+      "key_min": 10,
+      "key_median": 21.0,
+      "key_max": 35,
+      "load_min": 1460,
+      "load_median": 3066.0,
+      "load_max": 5110,
+      "key_imbalance_ratio": 3.5,
+      "load_imbalance_ratio": 3.5
+    }
+  ],
+  "pass": true
+}
