@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "audit": "T0_B_V4_1_VALIDATION_RECEIPT",
+  "scientific_freeze_commit": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
+  "scientific_design_modified": false,
+  "timestamp_utc": "2026-07-20T09:10:19Z",
+  "tested_git_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
+  "validation_scope": "LOCAL_VALIDATION_ONLY",
+  "github_actions_configured": false,
+  "repository_suite": {
+    "command": "PYTHONPATH=. pytest -q",
+    "passed": 354,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 10.47
+  },
+  "v4_targeted_suite": {
+    "command": "PYTHONPATH=. pytest tests/t0_b_v4 -q",
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 2.0
+  }
+}

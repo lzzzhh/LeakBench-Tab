@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "scientific_protocol": "V4",
+  "scientific_freeze_commit": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
+  "v4_receipt_status": "REJECTED_STALE_FAILED_RECEIPT",
+  "v4_validator_status": "REJECTED_FALSE_PASS",
+  "outcomes_observed_before_v4_1": false,
+  "scientific_design_modified": false
+}
