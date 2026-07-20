@@ -2,9 +2,9 @@
   "schema_version": 1,
   "audit": "T0_B_V4_1_VALIDATION_RECEIPT",
   "scientific_freeze_commit": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
-  "tested_git_sha": "4cfec1f95e6a7acc4c3b23fe1027bdf808883707",
+  "tested_git_sha": "a7b1fa595d7e9a715fe2e51b44abc6a6597399e3",
   "scientific_design_modified": false,
-  "timestamp_utc": "2026-07-20T09:34:33Z",
+  "timestamp_utc": "2026-07-20T10:01:37Z",
   "validation_scope": "LOCAL_VALIDATION_ONLY",
   "github_actions_configured": false,
   "repository_suite": {
@@ -24,7 +24,7 @@
   "tested_artifacts": {
     "validator": {
       "path": "scripts/t0_b_v4/validate_protocol_freeze_v4_1.py",
-      "sha256": "731e137179dfda29378423f8fd20abdc14a6b7a325d5c7032517b0f01539722b"
+      "sha256": "0a6f097317ac41fc642ae2ea5811c9757bf5d25cecbb58a698392339650d33b8"
     },
     "test_v4": {
       "path": "tests/t0_b_v4/test_v4_executable.py",
