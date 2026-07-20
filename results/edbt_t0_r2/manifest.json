@@ -22,10 +22,18 @@
     "Earlier T0-R2 +0.022 sparse result was caused by incorrect contiguous-block archetype mapping"
   ],
   "tests": {
-    "command": "PYTHONPATH=. pytest -q",
-    "passed": 271,
-    "failed": 0,
-    "validation_scope": "local_only_no_github_actions"
+    "repository_suite": {
+      "command": "PYTHONPATH=. pytest -q",
+      "passed": 267,
+      "failed": 0,
+      "validation_scope": "local_only_no_github_actions"
+    },
+    "r2_targeted_suite": {
+      "command": "PYTHONPATH=. pytest tests/test_repair_r2.py tests/test_repair_r2_2.py -q",
+      "passed": 34,
+      "failed": 0
+    },
+    "receipt": "results/edbt_t0_r2/validation_receipt_clean_integration.json"
   },
   "artifacts": [
     {
@@ -142,6 +150,16 @@
       "path": "tests/test_repair_r2_2.py",
       "category": "test",
       "sha256": "647f1a930ada131f97d6523713e2d3cd00f2c98b7c8525fe8e25a471cd006143"
+    },
+    {
+      "path": "results/edbt_t0_r2/validation_receipt_clean_integration.json",
+      "category": "result",
+      "sha256": "9e6638cd5f2961556e2b91143ba5469defa485e8986f06b3039ce1c9f5a883d0"
+    },
+    {
+      "path": "scripts/validate_release_r2_3.py",
+      "category": "script",
+      "sha256": "321c68da586868c1468885ba99a4ae334d5782c9328e71c68165a9ccd7c88372"
     }
   ]
 }

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "audit": "T0_R2_CLEAN_INTEGRATION_VALIDATION",
+  "integration_merge_sha": "2ae0fa50449a84f1f4a8b27ac086b695fd9b0a73",
+  "validation_scope": "LOCAL_VALIDATION_ONLY",
+  "github_actions_configured": false,
+  "timestamp_utc": "2026-07-20T06:34:52Z",
+  "git_head_before_receipt": "2ae0fa50449a84f1f4a8b27ac086b695fd9b0a73",
+  "repository_suite": {
+    "command": "PYTHONPATH=. pytest -q",
+    "passed": 267,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 7.04
+  },
+  "r2_targeted_suite": {
+    "command": "PYTHONPATH=. pytest tests/test_repair_r2.py tests/test_repair_r2_2.py -q",
+    "passed": 34,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 1.15
+  },
+  "scientific_artifacts_modified": false
+}

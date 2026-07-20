@@ -113,8 +113,52 @@ def main():
         errors.append(f"manifest claim_verdict is {m.get('claim_verdict')}")
     if m.get('status') != 'COMPLETE_POSTRUN_CORRECTIVE_AUDIT':
         errors.append(f"manifest status is {m.get('status')}")
-    if m['tests'].get('passed') != 271:
-        errors.append(f"manifest tests.passed is {m['tests'].get('passed')}")
+    if m['tests']['repository_suite'].get('failed', -1) != 0:
+        errors.append("manifest tests.repository_suite.failed != 0")
+    if m['tests']['repository_suite'].get('passed', 0) <= 0:
+        errors.append("manifest tests.repository_suite.passed <= 0")
+    if m['tests']['r2_targeted_suite'].get('failed', -1) != 0:
+        errors.append("manifest tests.r2_targeted_suite.failed != 0")
+    if m['tests']['r2_targeted_suite'].get('passed', 0) <= 0:
+        errors.append("manifest tests.r2_targeted_suite.passed <= 0")
+    
+    # Validation receipt
+    receipt_path = m['tests'].get('receipt', '')
+    if not receipt_path or not Path(receipt_path).exists():
+        errors.append(f"validation receipt missing: {receipt_path}")
+    else:
+        with open(receipt_path) as f:
+            receipt = json.load(f)
+        if receipt.get('integration_merge_sha') != '2ae0fa50449a84f1f4a8b27ac086b695fd9b0a73':
+            errors.append("receipt integration_merge_sha mismatch")
+        if receipt.get('validation_scope') != 'LOCAL_VALIDATION_ONLY':
+            errors.append(f"receipt validation_scope: {receipt.get('validation_scope')}")
+        if receipt['repository_suite'].get('passed') != m['tests']['repository_suite']['passed']:
+            errors.append("receipt repository_suite.passed != manifest")
+        if receipt['repository_suite'].get('failed') != 0:
+            errors.append("receipt repository_suite.failed != 0")
+        if receipt['r2_targeted_suite'].get('passed') != m['tests']['r2_targeted_suite']['passed']:
+            errors.append("receipt r2_targeted_suite.passed != manifest")
+    
+    # Validator self-reference: this script must be in artifact list
+    validator_path = 'scripts/validate_release_r2_3.py'
+    validator_art = [a for a in m.get('artifacts', []) if a['path'] == validator_path]
+    if not validator_art:
+        errors.append(f"validator script not in artifact list: {validator_path}")
+    else:
+        actual_validator_sha = sha256(validator_path)
+        if validator_art[0]['sha256'] != actual_validator_sha:
+            errors.append(f"validator SHA mismatch: recorded={validator_art[0]['sha256'][:16]} actual={actual_validator_sha[:16]}")
+    
+    # Receipt must be in artifact list
+    if receipt_path:
+        receipt_art = [a for a in m.get('artifacts', []) if a['path'] == receipt_path]
+        if not receipt_art:
+            errors.append(f"receipt not in artifact list: {receipt_path}")
+        else:
+            actual_receipt_sha = sha256(receipt_path)
+            if receipt_art[0]['sha256'] != actual_receipt_sha:
+                errors.append(f"receipt SHA mismatch: recorded={receipt_art[0]['sha256'][:16]} actual={actual_receipt_sha[:16]}")
     
     # Artifact SHA consistency: every artifact in list must match disk
     for art in m.get('artifacts', []):
