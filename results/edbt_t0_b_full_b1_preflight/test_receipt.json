@@ -1,0 +1,11 @@
+{
+  "a": "01d70640dc6c186e1a89bf2a4659cc17a608a8d7",
+  "b": "4a32902aa739cdd277cda9d527d4e6689ecff396",
+  "targeted": 2,
+  "repo": 447,
+  "cli_e2e_1152_gl": "PASS",
+  "resume_0_recomputed": "PASS",
+  "diff": "ZERO",
+  "ts": "2026-07-20T14:24:31.740002+00:00",
+  "validation_scope": "LOCAL_TEST_RECEIPT_ONLY"
+}
