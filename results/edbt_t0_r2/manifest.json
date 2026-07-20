@@ -1,144 +1,147 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "audit": "T0_R2_REPAIR_CONSTRUCT_VALIDITY",
   "status": "COMPLETE_POSTRUN_CORRECTIVE_AUDIT",
-  "branch": "t0/repair-construct-validity-r2",
-  "protocol_sha256": "4f843fce3f05406ce65141bb66f558edd1905165a59f228ef0bb0823d69c9c7f",
-  "verdicts": {
-    "T0-A0_baseline_continuity": "PASS_5500_KEYS_IDENTICAL",
-    "T0-A1_selection_reconstruction": "PASS_346500_ROWS_0_MISMATCHES",
-    "T0-A2_r2_metric_vector": "COMPLETE",
-    "T0-A3_mask_grounded_metrics": "COMPLETE",
-    "T0-A4_paired_analysis": "COMPLETE",
-    "T0-R2_1_reconstruction": "PASS_709500_ROWS_0_MISMATCHES_0_SHA_MISMATCHES",
-    "T0-R2_1_claim": "SCORE_RECOVERY_ONLY",
-    "T0-R2_1_sparse": "NEGATIVE_CONFIRMED_CANONICAL_MAPPING"
-  },
-  "claim_verdict": "SEMANTICALLY_CORROBORATED_WITH_OVERCORRECTION_CAVEAT",
+  "claim_verdict": "SCORE_RECOVERY_ONLY",
+  "evidence_commit_sha": "f623b92",
+  "parent_release_head_sha": "e52d445",
+  "superseded_r2_manifest_sha": "47dccdb7c87fbd1693163f9f3f270dac72d9ebdec13d1ef1c7972acb6a2c11ed",
+  "analysis_summary_sha256": "87fbda12ce6dd0f3fd554dd06a41d9472167e8d6394d5f0925b4d1ee27f7a34d",
+  "claim_state_sha256": "8e8b88966da7aed2496c2d5d158ab129a01f7d7f9eead3596cdbbe1bffb8830d",
+  "false_repair_summary_sha256": "8877e619255db36a866d48f8a23e27c499d2089877b59e4204de3206effbd6a3",
+  "reconstruction_summary_sha256": "80bed238490963b147eae29f6988e790378d60ab16c719c6e30458ace42dcc70",
+  "protocol_amendment_sha256": "54028899b96b80ffbf0bdaad447a6cf1b4af995886f5c2a48bd0097ffe73b053",
+  "final_report_sha256": "e7c11807f21872723a01bf21362b52058bc43b7f62b8f90605db25c30f0b7011",
   "key_findings": [
-    "Full 709,500-row reconstruction: 0 mismatch, 0 SHA mismatch",
-    "Corrected archetype mapping (modulo-5 from canonical source): sparse IS negative (-0.118)",
-    "Corrected mechanism-family mapping (M03=boundary, M06=simple, M10=simple)",
-    "C1 status: SCORE_RECOVERY_ONLY (\u0394overcorrection > 0 violates SEMANTICALLY_CORROBORATED gate)",
-    "Semantic evidence (\u0394leak_recall=+0.40, \u0394directional_repair=+0.085) is positive but reported as descriptive subclaims",
-    "FR4 (overcorrection) affects 29-31% of keys with positive \u0394legacy_sdr",
-    "Learner interaction: all legacy_sdr contrasts cross zero or are small",
-    "M09 semantic-group: positive at both encoded-column and semantic-group levels"
+    "709,500-row full reconstruction: 0 hash mismatches, 0 bundle SHA mismatches",
+    "Sparse archetype reliably negative under canonical mapping: LR -0.118 [-0.160,-0.093]",
+    "FR4: 29-31% all-key prevalence, 48-51% conditional (among keys with positive SDR)",
+    "FR2 non-zero for RF/LightGBM: positive SDR can occur without removing any leak column",
+    "M09 any-hit localization positive (+0.114) but full-group repair structurally infeasible at 20% budget",
+    "Semantic full repair not corroborated; SCORE_RECOVERY_ONLY",
+    "Earlier T0-R2 +0.022 sparse result was caused by incorrect contiguous-block archetype mapping"
   ],
   "tests": {
-    "command": "PYTHONPATH=. pytest tests/test_repair_r2.py -q",
-    "passed": 20,
-    "failed": 0
+    "command": "PYTHONPATH=. pytest -q",
+    "passed": 271,
+    "failed": 0,
+    "validation_scope": "local_only_no_github_actions"
   },
   "artifacts": [
     {
       "path": "reports/edbt_t0_r2/protocol.md",
-      "category": "reports",
+      "category": "report",
       "sha256": "4f843fce3f05406ce65141bb66f558edd1905165a59f228ef0bb0823d69c9c7f"
     },
     {
+      "path": "reports/edbt_t0_r2/protocol_amendment_postrun.md",
+      "category": "report",
+      "sha256": "54028899b96b80ffbf0bdaad447a6cf1b4af995886f5c2a48bd0097ffe73b053"
+    },
+    {
       "path": "reports/edbt_t0_r2/final_report.md",
-      "category": "reports",
-      "sha256": "41c73bc9494b82d4f0c6340850bdcad980f98c09d7aac2a44957a5008f4b5506"
+      "category": "report",
+      "sha256": "e7c11807f21872723a01bf21362b52058bc43b7f62b8f90605db25c30f0b7011"
+    },
+    {
+      "path": "reports/edbt_t0_r2/baseline_continuity_report.md",
+      "category": "report",
+      "sha256": "9a692c6b64c28477ac60e806f7b51f05451dc0035b524756661a43b564da73c7"
+    },
+    {
+      "path": "reports/edbt_t0_r2/false_repair_report.md",
+      "category": "report",
+      "sha256": "51ff0582a8496526f2423e603baa964521ffd7874f32845cac8e0e3e2718d87c"
     },
     {
       "path": "results/edbt_t0_r2/protocol_freeze.json",
-      "category": "results",
+      "category": "result",
       "sha256": "defc1e06fe5f5b0bc07637932aa27ed6c0e0fb59c8ace8d20069e555df886147"
     },
     {
       "path": "results/edbt_t0_r2/b1_sp8_baseline_continuity.csv",
-      "category": "results",
-      "sha256": "66c057da499ef49a29b07a5ead7619e47d55fc5b580fbbf7120ec761f4df9133",
-      "rows": 5500
+      "category": "result",
+      "sha256": "66c057da499ef49a29b07a5ead7619e47d55fc5b580fbbf7120ec761f4df9133"
     },
     {
       "path": "results/edbt_t0_r2/analysis_summary_r2.json",
-      "category": "results",
-      "sha256": "6dc5d66f07501c4fdffc959847690dd05c9a35e70117f1bde2fbf68078c180df"
+      "category": "result",
+      "sha256": "87fbda12ce6dd0f3fd554dd06a41d9472167e8d6394d5f0925b4d1ee27f7a34d"
     },
     {
       "path": "results/edbt_t0_r2/claim_state_r2.json",
-      "category": "results",
-      "sha256": "848bdcdadadc3b49f55a010bc034b64a3038e3a34809242411747ccc60649a53"
-    },
-    {
-      "path": "results/edbt_t0_r2/task_effects_r2.csv",
-      "category": "results",
-      "sha256": "dd54c43bfcac45ab57d593230b26e0cbd54b693a5a9d9c4377e0fafbcb2ed017",
-      "rows": 60
-    },
-    {
-      "path": "results/edbt_t0_r2/mechanism_summary_r2.csv",
-      "category": "results",
-      "sha256": "d85f3d518ed00f35846050f78bde0ec97fb377db14fc6814be1fef3a4cfb1f8a",
-      "rows": 33
-    },
-    {
-      "path": "results/edbt_t0_r2/archetype_summary_r2.csv",
-      "category": "results",
-      "sha256": "cffa4539619c487563da85d6a014efcf9111032f5776c1cf83dc6a10fc304290",
-      "rows": 15
+      "category": "result",
+      "sha256": "8e8b88966da7aed2496c2d5d158ab129a01f7d7f9eead3596cdbbe1bffb8830d"
     },
     {
       "path": "results/edbt_t0_r2/false_repair_summary.csv",
-      "category": "results",
-      "sha256": "77fd15c3d5e35cf117d9b5bb61dec912ab09a557127cd05312dec3b56c210178",
-      "rows": 3
+      "category": "result",
+      "sha256": "8877e619255db36a866d48f8a23e27c499d2089877b59e4204de3206effbd6a3"
+    },
+    {
+      "path": "results/edbt_t0_r2/false_repair_examples.csv",
+      "category": "result",
+      "sha256": "ae466bb7c48504c1aadac721d8b099e29411571083afa762595735fda26d6819"
+    },
+    {
+      "path": "results/edbt_t0_r2/reconstruction_summary_r2_1.json",
+      "category": "result",
+      "sha256": "80bed238490963b147eae29f6988e790378d60ab16c719c6e30458ace42dcc70"
+    },
+    {
+      "path": "results/edbt_t0_r2/m09_semantic_group_r2_2.json",
+      "category": "result",
+      "sha256": "7d97342c3e3c3dc3d4d98ef88d115eb1c62772783e644b333d45fc850cc15584"
+    },
+    {
+      "path": "results/edbt_t0_r2/task_effects_r2.csv",
+      "category": "result",
+      "sha256": "dd54c43bfcac45ab57d593230b26e0cbd54b693a5a9d9c4377e0fafbcb2ed017"
+    },
+    {
+      "path": "results/edbt_t0_r2/mechanism_summary_r2.csv",
+      "category": "result",
+      "sha256": "d85f3d518ed00f35846050f78bde0ec97fb377db14fc6814be1fef3a4cfb1f8a"
+    },
+    {
+      "path": "results/edbt_t0_r2/archetype_summary_r2.csv",
+      "category": "result",
+      "sha256": "cffa4539619c487563da85d6a014efcf9111032f5776c1cf83dc6a10fc304290"
+    },
+    {
+      "path": "scripts/repair_evidence_chain_r2_1.py",
+      "category": "script",
+      "sha256": "f694b7ed01504b19de14c49e605eb4e8e10898271045b2b6dab92a87f5b04810"
+    },
+    {
+      "path": "scripts/repair_evidence_chain_r2_2.py",
+      "category": "script",
+      "sha256": "fb128511b4603b0f8791cf985126f5e03e071849ce271a10c9b70fdb8671f9d5"
     },
     {
       "path": "scripts/audit_repair_construct_validity.py",
-      "category": "scripts",
+      "category": "script",
       "sha256": "2679472fce6d7941882434c15b3310a9e3cf692a516ffe9b2df2386f6845f018"
     },
     {
       "path": "scripts/analyze_repair_r2.py",
-      "category": "scripts",
+      "category": "script",
       "sha256": "792181af6cce7d43ce3157ae75bdecefa40482fef74be9bbfad1337f34896b43"
     },
     {
       "path": "scripts/build_repair_r2_claim_state.py",
-      "category": "scripts",
+      "category": "script",
       "sha256": "6a70d93c9031380220fff649533196489d963c551fc7bb689b7578bef62a2d7d"
     },
     {
       "path": "tests/test_repair_r2.py",
-      "category": "tests",
-      "sha256": "58f83b476fd7b4b289045608ef6ef076e42f62ded0e2356f07171c15fb47cd3d"
+      "category": "test",
+      "sha256": "0e20f09c35342ab59dfdbcb1010b4a5c127f5122c03728c309fe11cd9eada7e6"
     },
     {
-      "path": "reports/edbt_t0_r2/protocol_amendment_postrun.md",
-      "sha256": "54028899b96b80ffbf0bdaad447a6cf1b4af995886f5c2a48bd0097ffe73b053",
-      "category": "reports"
-    },
-    {
-      "path": "reports/edbt_t0_r2/baseline_continuity_report.md",
-      "sha256": "9a692c6b64c28477ac60e806f7b51f05451dc0035b524756661a43b564da73c7",
-      "category": "reports"
-    },
-    {
-      "path": "reports/edbt_t0_r2/false_repair_report.md",
-      "sha256": "f1c400c58253f289ee586ab40b5515d9ea44e0ed590d71ccc68a552770c69a55",
-      "category": "reports"
-    },
-    {
-      "path": "scripts/repair_evidence_chain_r2_1.py",
-      "sha256": "f694b7ed01504b19de14c49e605eb4e8e10898271045b2b6dab92a87f5b04810",
-      "category": "scripts"
-    },
-    {
-      "path": "results/edbt_t0_r2/reconstruction_summary_r2_1.json",
-      "sha256": "80bed238490963b147eae29f6988e790378d60ab16c719c6e30458ace42dcc70",
-      "category": "results"
+      "path": "tests/test_repair_r2_2.py",
+      "category": "test",
+      "sha256": "24015522a1bd6206a34bba0becf1346b945120a0fe4fff2aaae3cae618b91312"
     }
-  ],
-  "prior_manifest_sha256": "47dccdb7c87fbd1693163f9f3f270dac72d9ebdec13d1ef1c7972acb6a2c11ed",
-  "r2_2_commit_sha": "f623b92",
-  "analysis_summary_sha256": "e079be9f871ec450291b013f4a6e0cc33f9b8f5b3a49a7348f2980af0b851e1b",
-  "claim_state_sha256": "a4e3b370096acee4e5a119247a2654dc199967ee0d8904b08e7e3466c4f7129a",
-  "false_repair_summary_sha256": "8877e619255db36a866d48f8a23e27c499d2089877b59e4204de3206effbd6a3",
-  "protocol_amendment_sha256": "54028899b96b80ffbf0bdaad447a6cf1b4af995886f5c2a48bd0097ffe73b053",
-  "reconstruction_summary_sha256": "80bed238490963b147eae29f6988e790378d60ab16c719c6e30458ace42dcc70",
-  "r2_1_commit_sha": "fe85ecd",
-  "superseded_r2_manifest_sha": "47dccdb7c87fbd1693163f9f3f270dac72d9ebdec13d1ef1c7972acb6a2c11ed"
+  ]
 }

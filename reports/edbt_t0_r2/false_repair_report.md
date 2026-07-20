@@ -54,9 +54,9 @@ FR4 conditional wording: "Among keys with positive Δlegacy SDR, 48–51% exhibi
 FR4 is the dominant false-repair pattern: 29–31% of all keys, and 48–51% of keys
 with positive ΔSDR.
 
-FR2 is non-zero for RF/LightGBM (7.7–8.0%): tree-based models achieve positive
-P3 SDR without removing any leak column in 7–8% of keys. This occurs when MI-guided
-removal deletes legitimate strong features, reducing overfitting without removing leaks.
+FR2 is non-zero for tree-based models: positive strict-distance reduction can
+occur without removing any oracle-labeled leakage column, showing that score
+proximity alone does not identify semantic repair.
 
 FR6: Among 500 M09 keys with positive ΔSDR, 92% show partial semantic-group removal
 (1-7 of 8 one-hot columns removed) — full removal of all 8 columns is structurally
