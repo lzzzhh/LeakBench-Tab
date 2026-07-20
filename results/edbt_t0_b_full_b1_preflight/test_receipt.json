@@ -1,11 +1,11 @@
 {
-  "a": "01d70640dc6c186e1a89bf2a4659cc17a608a8d7",
-  "b": "4a32902aa739cdd277cda9d527d4e6689ecff396",
-  "targeted": 2,
+  "a": "11cfab37b22277eed7f84872c13f10d77a0feab5",
+  "b": "735a050e84fdfadc0a253bbdcab84b543826efe5",
+  "targeted": 22,
   "repo": 447,
-  "cli_e2e_1152_gl": "PASS",
-  "resume_0_recomputed": "PASS",
+  "r2_match": true,
+  "synthetic_sealed": true,
   "diff": "ZERO",
-  "ts": "2026-07-20T14:24:31.740002+00:00",
+  "ts": "2026-07-20T14:49:17.369496+00:00",
   "validation_scope": "LOCAL_TEST_RECEIPT_ONLY"
 }
