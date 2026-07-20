@@ -1,0 +1,17 @@
+{
+  "commit_a_tool_seal": "4683eb2a98941c8338737315d4f5e3f15369b50c",
+  "commit_b_plan_binding": "9bfa59a1839dbfa50db09bf72f0b5a8de24d65d0",
+  "targeted_suite": {
+    "command": "PYTHONPATH=. pytest tests/t0_b_full_b1 -q",
+    "passed": 25,
+    "failed": 0
+  },
+  "repository_suite": {
+    "command": "PYTHONPATH=. pytest -q",
+    "passed": 450,
+    "failed": 0
+  },
+  "tool_seal_plan_diff": "ZERO",
+  "timestamp_utc": "2026-07-20T12:57:13Z",
+  "python": "3.13.5"
+}
