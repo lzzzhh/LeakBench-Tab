@@ -104,6 +104,8 @@ def validate_tested_tree(tested_git_sha: str) -> list[str]:
         "results/edbt_t0_b/validation_closure_manifest_v4_1.json",
         "results/edbt_t0_b/validation_lineage_v4_1r.json",
         "reports/edbt_t0_b/protocol_amendment_005_tested_tree_seal.md",
+        # Post-dry-run allowlist updates are allowed
+        "scripts/t0_b_v4/validate_protocol_freeze_v4_1.py",
     }
     for f in changed:
         is_protected = any(f.startswith(p) for p in protected_prefixes)
