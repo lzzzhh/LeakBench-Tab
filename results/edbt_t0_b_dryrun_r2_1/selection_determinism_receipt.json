@@ -1,0 +1,12 @@
+{
+  "downstream_lr_calls": 0,
+  "selection_count": 576,
+  "r2_selection_count": 488,
+  "payload_mismatches": 0,
+  "ranking_model_fits": 16,
+  "non_model_scoring": 8,
+  "r2_ledger_sha256": "8f5107c62007239c25585ae4316c581658f6667acae7231bcd32467109a01477",
+  "audit_ledger_sha256": "311e641dea9a68499c7a59bff9882a3cab296762c4227f4e923dac315064a168",
+  "wall_clock_s": 5.0,
+  "pass": true
+}
