@@ -23,7 +23,7 @@
     },
     "validator_v4_1": {
       "path": "scripts/t0_b_v4/validate_protocol_freeze_v4_1.py",
-      "sha256": "b6143186b5fdea238392024a567ee2fd32ca0ce4aa2c3471022e41ae18f57410"
+      "sha256": "341f97e82495a92141a93b85cd46905c806807343bbfa1f778134bd2903a36c1"
     },
     "test_v4": {
       "path": "tests/t0_b_v4/test_v4_executable.py",
