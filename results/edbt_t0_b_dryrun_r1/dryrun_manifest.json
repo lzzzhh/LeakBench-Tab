@@ -1,0 +1,24 @@
+{
+  "runner_seal_sha": "521d6eda",
+  "baseline_rows": 8,
+  "governed_rows": 576,
+  "failure_rows": 0,
+  "outputs": {
+    "baseline": {
+      "path": "results/edbt_t0_b_dryrun_r1/baseline_ledger.csv.gz",
+      "sha256": "42fc103538146c4bb265f1defa9613e02a24110d57d5e7653ad27bfd1edc8f21"
+    },
+    "governed": {
+      "path": "results/edbt_t0_b_dryrun_r1/governed_ledger.csv.gz",
+      "sha256": "a81b962a4d198d818393a6390f71c27428cb6652542ebc7b4e945bcd175b8102"
+    },
+    "selection": {
+      "path": "results/edbt_t0_b_dryrun_r1/selection_ledger.csv.gz",
+      "sha256": "8f5107c62007239c25585ae4316c581658f6667acae7231bcd32467109a01477"
+    },
+    "failure": {
+      "path": "results/edbt_t0_b_dryrun_r1/failure_ledger.csv.gz",
+      "sha256": "e185730c78ea8c5a7d8a88ced4e8cf93692694033b4794e5dfa65555488fdb60"
+    }
+  }
+}
