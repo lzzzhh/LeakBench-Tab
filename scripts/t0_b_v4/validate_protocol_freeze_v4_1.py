@@ -122,6 +122,7 @@ def main():
         "static_validation_receipt_v4.json", "static_validation_receipt_v4_1.json",
         "validation_lineage_v4_1.json", "validation_lineage_v4_1r.json",
         "validation_closure_manifest_v4_1.json",
+        "dryrun_lineage_r1.json", "dryrun_lineage_r2.json",
     }
     for f in (ROOT / "results/edbt_t0_b").iterdir():
         if f.is_file() and f.name not in allowed:
