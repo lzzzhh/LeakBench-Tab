@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "audit": "T0_R2_REPAIR_CONSTRUCT_VALIDITY",
-  "status": "COMPLETE",
+  "status": "INCOMPLETE_PENDING_R2_1_REPAIR",
   "branch": "t0/repair-construct-validity-r2",
   "protocol_sha256": "4f843fce3f05406ce65141bb66f558edd1905165a59f228ef0bb0823d69c9c7f",
   "verdicts": {
@@ -9,17 +9,21 @@
     "T0-A1_selection_reconstruction": "PASS_346500_ROWS_0_MISMATCHES",
     "T0-A2_r2_metric_vector": "COMPLETE",
     "T0-A3_mask_grounded_metrics": "COMPLETE",
-    "T0-A4_paired_analysis": "COMPLETE"
+    "T0-A4_paired_analysis": "COMPLETE",
+    "T0-R2_1_reconstruction": "PASS_709500_ROWS_0_MISMATCHES_0_SHA_MISMATCHES",
+    "T0-R2_1_claim": "SCORE_RECOVERY_ONLY",
+    "T0-R2_1_sparse": "NEGATIVE_CONFIRMED_CANONICAL_MAPPING"
   },
   "claim_verdict": "SEMANTICALLY_CORROBORATED_WITH_OVERCORRECTION_CAVEAT",
   "key_findings": [
-    "B1 baselines numerically identical to SP8 (max abs diff 0.0)",
-    "All 346,500 selection hashes reconstructed (0 mismatches)",
-    "Legacy SDR conflates directional repair (+0.085) with overcorrection (+0.041)",
-    "MI leak recall: 60.1% (3x random P2 at 19.8%)",
-    "MI overcorrection: +0.041 over P2, affecting ~30% of keys",
-    "Sparse archetype: NOT reliably negative under multi-seed P2 (+0.022, CI crosses zero)",
-    "All three learners (LR/RF/LGBM) show consistent directional pattern"
+    "Full 709,500-row reconstruction: 0 mismatch, 0 SHA mismatch",
+    "Corrected archetype mapping (modulo-5 from canonical source): sparse IS negative (-0.118)",
+    "Corrected mechanism-family mapping (M03=boundary, M06=simple, M10=simple)",
+    "C1 status: SCORE_RECOVERY_ONLY (\u0394overcorrection > 0 violates SEMANTICALLY_CORROBORATED gate)",
+    "Semantic evidence (\u0394leak_recall=+0.40, \u0394directional_repair=+0.085) is positive but reported as descriptive subclaims",
+    "FR4 (overcorrection) affects 29-31% of keys with positive \u0394legacy_sdr",
+    "Learner interaction: all legacy_sdr contrasts cross zero or are small",
+    "M09 semantic-group: positive at both encoded-column and semantic-group levels"
   ],
   "tests": {
     "command": "PYTHONPATH=. pytest tests/test_repair_r2.py -q",
@@ -51,35 +55,35 @@
     {
       "path": "results/edbt_t0_r2/analysis_summary_r2.json",
       "category": "results",
-      "sha256": "5f6fee4626458c6d781b33ec2e6e71ca5a030dcebee67454fff95ff193d26ddc"
+      "sha256": "6dc5d66f07501c4fdffc959847690dd05c9a35e70117f1bde2fbf68078c180df"
     },
     {
       "path": "results/edbt_t0_r2/claim_state_r2.json",
       "category": "results",
-      "sha256": "5210fea6f71ed42d16cec17c32f0332a5ea5c58975986b2ad3e4f2c890f1b671"
+      "sha256": "848bdcdadadc3b49f55a010bc034b64a3038e3a34809242411747ccc60649a53"
     },
     {
       "path": "results/edbt_t0_r2/task_effects_r2.csv",
       "category": "results",
-      "sha256": "5e79ded4b24c1ad65819b3755a18e6f63adbc8304a6c6ca8367ddfef57ef14cd",
+      "sha256": "dd54c43bfcac45ab57d593230b26e0cbd54b693a5a9d9c4377e0fafbcb2ed017",
       "rows": 60
     },
     {
       "path": "results/edbt_t0_r2/mechanism_summary_r2.csv",
       "category": "results",
-      "sha256": "c60541338578520354dbef3bb416c4aa056778ce7047db80d268e779791622bc",
+      "sha256": "d85f3d518ed00f35846050f78bde0ec97fb377db14fc6814be1fef3a4cfb1f8a",
       "rows": 33
     },
     {
       "path": "results/edbt_t0_r2/archetype_summary_r2.csv",
       "category": "results",
-      "sha256": "a588bfe64b502e70a1a3e0085f5cda9c3ea7d934ea4f1c79be2d4d087baf5e38",
+      "sha256": "cffa4539619c487563da85d6a014efcf9111032f5776c1cf83dc6a10fc304290",
       "rows": 15
     },
     {
       "path": "results/edbt_t0_r2/false_repair_summary.csv",
       "category": "results",
-      "sha256": "1bde08f29b497cf13ef0b87c327bc259012d18a998b7032b99ab9352f3996063",
+      "sha256": "77fd15c3d5e35cf117d9b5bb61dec912ab09a557127cd05312dec3b56c210178",
       "rows": 3
     },
     {
@@ -100,7 +104,33 @@
     {
       "path": "tests/test_repair_r2.py",
       "category": "tests",
-      "sha256": "36e0f9f5f3a2c386dd82507a7103692acf63227358ae541c53a0f6bcaa8a4f07"
+      "sha256": "58f83b476fd7b4b289045608ef6ef076e42f62ded0e2356f07171c15fb47cd3d"
+    },
+    {
+      "path": "reports/edbt_t0_r2/protocol_amendment_postrun.md",
+      "sha256": "54028899b96b80ffbf0bdaad447a6cf1b4af995886f5c2a48bd0097ffe73b053",
+      "category": "reports"
+    },
+    {
+      "path": "reports/edbt_t0_r2/baseline_continuity_report.md",
+      "sha256": "9a692c6b64c28477ac60e806f7b51f05451dc0035b524756661a43b564da73c7",
+      "category": "reports"
+    },
+    {
+      "path": "reports/edbt_t0_r2/false_repair_report.md",
+      "sha256": "f1c400c58253f289ee586ab40b5515d9ea44e0ed590d71ccc68a552770c69a55",
+      "category": "reports"
+    },
+    {
+      "path": "scripts/repair_evidence_chain_r2_1.py",
+      "sha256": "f694b7ed01504b19de14c49e605eb4e8e10898271045b2b6dab92a87f5b04810",
+      "category": "scripts"
+    },
+    {
+      "path": "results/edbt_t0_r2/reconstruction_summary_r2_1.json",
+      "sha256": "80bed238490963b147eae29f6988e790378d60ab16c719c6e30458ace42dcc70",
+      "category": "results"
     }
-  ]
+  ],
+  "prior_manifest_sha256": "47dccdb7c87fbd1693163f9f3f270dac72d9ebdec13d1ef1c7972acb6a2c11ed"
 }
