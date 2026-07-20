@@ -20,20 +20,47 @@
 
 ## 2. Overall Prevalence (5,500 keys per learner)
 
-| Category | LR | RF | LightGBM |
-|----------|-----|-----|----------|
-| FR1 (SDR↑ but recall not better) | 9.4% | 8.8% | 8.9% |
-| FR2 (SDR > 0 with zero leak removal) | 0.0% | 0.0% | 0.0% |
-| FR3 (SDR↑ but residual not better) | 2.0% | 2.4% | 1.5% |
-| **FR4 (SDR↑ with overcorrection)** | **29.2%** | **29.7%** | **31.4%** |
-| FR5 (SDR↑ but retention worse) | 9.0% | 8.7% | 8.7% |
-| FR6 (semantic group partial) | N/A | N/A | N/A |
+### 2.1 All-Key Prevalence
 
-FR4 is the most prevalent category: nearly 30% of all keys show positive legacy SDR
-that is partially attributable to overcorrection beyond the strict reference.
+| Category | LR | RF | LightGBM | Meaning |
+|----------|----|----|----------|---------|
+| FR1 | 9.4% | 8.8% | 8.9% | SDR↑ but recall not better |
+| FR2 | 1.4% | 7.7% | 8.0% | P3 SDR > 0 with zero leak removal |
+| FR3 | 2.0% | 2.4% | 1.5% | SDR↑ but residual not better |
+| **FR4** | **29.2%** | **29.7%** | **31.4%** | **Overcorrection (all keys)** |
+| FR5 | 9.0% | 8.7% | 8.7% | SDR↑ but retention worse |
+| FR6 | 7.7% | 7.7% | 7.7% | M09 partial semantic removal |
 
-FR2 is zero: MI-guided removal never achieves positive SDR without removing at least
-one leak column. This confirms MI's leak-finding capability is genuine.
+FR4 wording: "29–31% of all controlled keys satisfy the FR4 condition."
+
+### 2.2 Conditional Prevalence (among eligible keys)
+
+Eligibility: FR1/FR3/FR4/FR5 require Δlegacy_sdr > 0; FR2 requires P3 legacy_sdr > 0;
+FR6 requires M09 AND Δlegacy_sdr > 0.
+
+| Category | LR cond. | RF cond. | LightGBM cond. | Eligible definition |
+|----------|---------|---------|---------------|---------------------|
+| FR1 | 15.3% | 14.3% | 14.4% | Δlegacy_sdr > 0 |
+| FR2 | 2.6% | 12.3% | 12.8% | P3 legacy_sdr > 0 |
+| FR3 | 3.3% | 3.8% | 2.5% | Δlegacy_sdr > 0 |
+| **FR4** | **47.6%** | **48.3%** | **51.0%** | Δlegacy_sdr > 0 |
+| FR5 | 14.7% | 14.1% | 14.2% | Δlegacy_sdr > 0 |
+| **FR6** | **92.4%** | **92.8%** | **93.1%** | M09 AND Δlegacy_sdr > 0 |
+
+FR4 conditional wording: "Among keys with positive Δlegacy SDR, 48–51% exhibit overcorrection."
+
+### 2.3 Key Observations
+
+FR4 is the dominant false-repair pattern: 29–31% of all keys, and 48–51% of keys
+with positive ΔSDR.
+
+FR2 is non-zero for RF/LightGBM (7.7–8.0%): tree-based models achieve positive
+P3 SDR without removing any leak column in 7–8% of keys. This occurs when MI-guided
+removal deletes legitimate strong features, reducing overfitting without removing leaks.
+
+FR6: Among 500 M09 keys with positive ΔSDR, 92% show partial semantic-group removal
+(1-7 of 8 one-hot columns removed) — full removal of all 8 columns is structurally
+impossible at 20% budget (k≈4 < 8).
 
 ## 3. By Mechanism (LR)
 
@@ -76,13 +103,15 @@ one leak column. This confirms MI's leak-finding capability is genuine.
 
 ## 6. Verdict
 
-The false-repair audit reveals that approximately **30% of keys** with positive legacy
-SDR exhibit overcorrection (FR4). This is the dominant false-repair pattern and is
-systematic across all learners and most mechanisms.
+The false-repair audit reveals that approximately **30% of all keys** (48–51% of keys
+with positive ΔSDR) exhibit overcorrection (FR4). This is the dominant false-repair
+pattern and is systematic across all learners and most mechanisms.
 
-The overcorrection is not an artifact of poor MI performance — MI consistently
-identifies leak columns (FR2=0%, meaning it never misses all leaks). Rather, it
-reflects that removing high-MI features can push the model past the strict reference.
+FR6 (M09 partial removal) is at 92–93% among eligible M09 keys: MI consistently hits
+at least one M09 column, but never removes all 8 at 20% budget (k≈4 columns, need
+k≥8 for full group removal). The semantic-group any-hit improvement is real
+(Δ=+0.114 CI[+0.100,+0.128]), but full-group recall is structurally zero for both
+P3 and P2 at this budget.
 
 The paper's claim C1 should acknowledge that the governance advantage is partially
 attributable to overcorrection and should not be presented as pure semantic repair.

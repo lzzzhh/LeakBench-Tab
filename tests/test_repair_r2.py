@@ -159,24 +159,26 @@ def test_claim_state_exists():
 def test_analysis_summary_has_all_learners():
     with open(ROOT / 'results/edbt_t0_r2/analysis_summary_r2.json') as f:
         d = json.load(f)
+    assert d.get('schema_version') == 2
+    assert 'm09_semantic_group' in d
     for learner in ['LR', 'RF', 'LightGBM']:
-        assert f'{learner}_overall' in d['results']
+        assert learner in d['m09_semantic_group']
 
 def test_analysis_summary_n_keys():
     with open(ROOT / 'results/edbt_t0_r2/analysis_summary_r2.json') as f:
         d = json.load(f)
     for learner in ['LR', 'RF', 'LightGBM']:
-        r = d['results'][f'{learner}_overall']
-        assert r.get('n_keys') == 5500
+        r = d['m09_semantic_group'].get(learner, {})
+        assert r.get('n_m09_keys') == 500
 
 def test_claim_state_statuses():
     with open(ROOT / 'results/edbt_t0_r2/claim_state_r2.json') as f:
         d = json.load(f)
-    # R2.1: canonical 5-status gate → SCORE_RECOVERY_ONLY (overcorrection gate failed)
-    assert 'C1_LR_GOVERNANCE_R2_1' in d['claims']
-    assert d['claims']['C1_LR_GOVERNANCE_R2_1']['status'] == 'SCORE_RECOVERY_ONLY'
-    assert d['claims']['C1_RF_GOVERNANCE_R2_1']['status'] == 'SCORE_RECOVERY_ONLY'
-    assert d['claims']['C1_LightGBM_GOVERNANCE_R2_1']['status'] == 'SCORE_RECOVERY_ONLY'
+    # R2.2: SCORE_RECOVERY_ONLY for all C1 claims
+    assert 'C1_LR_GOVERNANCE' in d['claims']
+    assert d['claims']['C1_LR_GOVERNANCE']['status'] == 'SCORE_RECOVERY_ONLY'
+    assert d['claims']['C1_RF_GOVERNANCE']['status'] == 'SCORE_RECOVERY_ONLY'
+    assert d['claims']['C1_LightGBM_GOVERNANCE']['status'] == 'SCORE_RECOVERY_ONLY'
     # SHA-256 must be bound
     assert d.get('analysis_summary_sha256'), "analysis_summary_sha256 must not be null"
 
