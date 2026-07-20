@@ -3,31 +3,34 @@
   "derivation": "scripts/repair_evidence_chain_r2_2.py",
   "audit": "T0_R2_2_DENOMINATOR_CLOSURE",
   "primary_budget": 0.2,
-  "analysis_summary_sha256": "e079be9f871ec450291b013f4a6e0cc33f9b8f5b3a49a7348f2980af0b851e1b",
+  "analysis_summary_sha256": "87fbda12ce6dd0f3fd554dd06a41d9472167e8d6394d5f0925b4d1ee27f7a34d",
   "claims": {
     "C1_LR_GOVERNANCE": {
       "status": "SCORE_RECOVERY_ONLY",
-      "evidence_tier": "confirmatory_r2_2",
-      "note": "\u0394overcorrection > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence reported as subclaims."
+      "evidence_tier": "confirmatory_r2",
+      "note": "Overcorrection gate (overcorrection exact mean 0) failed: P3 overcorrects more than mean P2."
     },
     "C1_RF_GOVERNANCE": {
       "status": "SCORE_RECOVERY_ONLY",
-      "evidence_tier": "confirmatory_r2_2",
-      "note": "\u0394overcorrection > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence reported as subclaims."
+      "evidence_tier": "confirmatory_r2",
+      "note": "Overcorrection gate failed."
     },
     "C1_LightGBM_GOVERNANCE": {
       "status": "SCORE_RECOVERY_ONLY",
-      "evidence_tier": "confirmatory_r2_2",
-      "note": "\u0394overcorrection > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence reported as subclaims."
+      "evidence_tier": "confirmatory_r2",
+      "note": "Overcorrection gate failed."
     },
     "C1_DESCRIPTIVE_SEMANTIC_SUBCLAIM": {
       "status": "DESCRIPTIVE_SUPPORTING_EVIDENCE",
+      "evidence_tier": "descriptive",
       "allowed_wording": "MI removal improves leak-column recall and directional gap reduction over matched random removal, but these improvements do not satisfy the joint semantic-repair gate because overcorrection increases.",
-      "forbidden_wording": "MI removal is a pure semantic repair operation."
+      "forbidden_wording": "MI removal is a pure unambiguously semantic repair operation."
     },
     "C7_M09_SEMANTIC_GROUP": {
-      "status": "CORROBORATED_AT_SEMANTIC_GROUP_LEVEL",
-      "allowed_wording": "M09 semantic-group advantage not detected.",
+      "status": "NOT_EVALUABLE_FOR_FULL_GROUP_REPAIR",
+      "evidence_tier": "descriptive",
+      "allowed_wording": "At the 20% encoded-column budget, MI improves M09 semantic-group any-hit localization, but neither MI nor random deletion can remove the complete eight-column source group; full-group repair is not corroborated.",
+      "forbidden_wording": "M09 is repaired at the semantic-group level.",
       "m09_metrics": {
         "p3_full_group_removed_rate": 0.0,
         "p3_any_hit_rate": 0.994,
@@ -57,14 +60,19 @@
         "partial_removal_zero": false
       }
     },
-    "C2_LEARNER_INTERACTION": {
-      "status": "SUPPORTED",
-      "note": "All learner interaction CIs cross zero or are near-zero."
+    "C2_LEGACY_SDR_LEARNER_INTERACTION": {
+      "status": "NO_RELIABLE_INTERACTION_DETECTED",
+      "evidence_tier": "confirmatory_r2",
+      "allowed_wording": "No reliable learner interaction was detected for the legacy-SDR P3-minus-random contrast.",
+      "forbidden_wording": "The governance effect is learner-invariant or equivalent across all learners for all metrics.",
+      "note": "This claim is scoped to legacy SDR; directional_repair shows a small LR disadvantage."
     }
   },
   "global_limitations": [
-    "C1 is SCORE_RECOVERY_ONLY \u2014 overcorrection gate failed.",
-    "Semantic evidence (\u0394leak_recall, \u0394directional_repair, M09 group recall) is descriptively positive.",
-    "FR4 conditional prevalence: ~X% of keys with positive \u0394SDR exhibit overcorrection (not X% of all keys)."
+    "C1 is SCORE_RECOVERY_ONLY: the overcorrection gate (exact mean 0) failed for all three learners.",
+    "Semantic evidence (leak recall, directional repair, M09 any-hit localization) is descriptively positive but is reported as independent subclaims, not as confirmatory repair corroboration.",
+    "FR4 conditional prevalence among keys with positive SDR: LR 47.6%, RF 48.3%, LightGBM 51.0%.",
+    "FR2 non-zero for RF/LightGBM: positive SDR can occur without removing any oracle-labeled leak column.",
+    "M09 full semantic-group repair is not corroborated at the 20% encoded-column budget."
   ]
 }

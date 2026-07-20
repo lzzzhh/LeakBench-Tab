@@ -115,12 +115,12 @@ def test_claim_analysis_sha_not_null():
     assert len(sha) == 64, f"SHA256 should be 64 hex chars, got {len(sha)}"
 
 def test_claim_analysis_sha_matches():
-    """Claim analysis_sha256 must match the actual analysis_summary_r2.json hash."""
+    """Claim analysis_sha256 must match the raw file hash of analysis_summary_r2.json."""
     with open(ROOT / 'results/edbt_t0_r2/claim_state_r2.json') as f:
         cs = json.load(f)
-    with open(ROOT / 'results/edbt_t0_r2/analysis_summary_r2.json') as f:
-        analysis = json.load(f)
-    actual_sha = hashlib.sha256(json.dumps(analysis, sort_keys=True).encode()).hexdigest()
+    actual_sha = hashlib.sha256(
+        (ROOT / 'results/edbt_t0_r2/analysis_summary_r2.json').read_bytes()
+    ).hexdigest()
     assert cs['analysis_summary_sha256'] == actual_sha, \
         f"Claim SHA {cs['analysis_summary_sha256'][:16]} != actual {actual_sha[:16]}"
 

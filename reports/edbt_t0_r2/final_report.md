@@ -1,92 +1,64 @@
-# T0 R2 — Repair Construct Validity Audit: Final Report
+# T0 R2 — Repair Construct-Validity Audit: Final Report
 
-**Status:** COMPLETE
+**Status:** COMPLETE_POSTRUN_CORRECTIVE_AUDIT
 **Date:** 2026-07-20
 **Branch:** t0/repair-construct-validity-r2
+**Evidence commit:** f623b92
+**Parent head:** e52d445
 **Protocol:** reports/edbt_t0_r2/protocol.md (frozen)
 
 ---
 
-## 1. Baseline Continuity Verdict (T0-A0)
+## 1. Baseline Continuity (T0-A0)
 
 **VERDICT: PASS — ALL 5,500 KEYS NUMERICALLY IDENTICAL**
 
-B1 multi-seed LR re-fitted strict/full baselines from the frozen SP6 bundles rather than
-loading them from the frozen SP8 governance CSV. However, the resulting values are
-**bitwise identical** (all differences exactly 0.0) across all 5,500 keys.
+B1 multi-seed LR re-fitted strict/full baselines from frozen SP6 bundles.
+Values are bitwise identical to frozen SP8: max abs diff = 0.0 for both
+strict_auc and full_auc. 5,500/5,500 keys matched, 0 duplicates, 0 missing.
 
-This means:
-- The B1 "reused baseline" phrase is technically misleading about the *mechanism*
-  (re-fit rather than load) but numerically correct about the *result*.
-- The same LR hyperparameters (max_iter=2000 vs 1000 in SP8) yielded identical AUROCs
-  on these datasets, indicating convergence is not sensitive to max_iter.
-- No key coverage issues: 5,500/5,500 matched, 0 duplicates, 0 missing.
-
-**Recommendation:** Revise the manuscript to state "baselines were re-fitted from frozen
-bundles and numerically match the SP8 ledger (max abs diff 0.0)" rather than "reused."
+The B1 protocol stated "same strict/full references as frozen SP8" — the
+mechanism was re-fit, not load, but the result is numerically identical.
 
 ---
 
-## 2. Selection Reconstruction Verdict (T0-A1)
+## 2. Selection Reconstruction (T0-A1)
 
-**VERDICT: PASS — ALL 346,500 ROWS RECONSTRUCTED CORRECTLY**
+**VERDICT: PASS — ALL 709,500 ROWS (ALL BUDGETS)**
 
-All selection hashes at 20% budget were deterministically reconstructed:
-- P3 (blind MI): mutual_info_classif with random_state=42, argsort descending.
-- P2 (random): seed = (gov_seed × 100 + ds × 7 + ts × 13) % (2³¹−1).
-- 346,500 rows checked (5,500 keys × 21 fits × 3 models).
-- **0 mismatches**.
-
-Cross-model hash consistency: confirmed identical P3 hashes and P2 hashes across
-LR/RF/LightGBM (as expected — selections depend only on data and seeds, not learner).
+Full reconstruction across all B1 budgets (0.0, 1%, 5%, 10%, 20%) and all
+three learners (LR, RF, LightGBM): 709,500 rows, **0 selection hash mismatches,
+0 bundle SHA-256 mismatches**. Every bundle load verified `bundle_sha256`
+against the manifest.
 
 ---
 
-## 3. R2 Metric Vector Findings (T0-A2/A3)
+## 3. R2 Metric Vector (T0-A2/A3)
 
-### 3.1 Legacy SDR Decomposition
+### 3.1 Directional Decomposition (LR, representative)
 
-The legacy SDR formula `|full−strict| − |governed−strict|` hides two distinct effects:
+| Component | P3 (MI) | P2 mean | Δ(P3−P2) |
+|-----------|---------|---------|-----------|
+| Legacy SDR | +0.059 | +0.004 | **+0.043** [0.004,0.077] |
+| Directional repair | +0.116 | +0.031 | **+0.085** [0.070,0.098] |
+| Same-side residual | +0.016 | +0.101 | −0.085 |
+| Overcorrection | +0.055 | +0.014 | **+0.041** [0.018,0.068] |
 
-| Effect | P3 (MI) | P2 mean (Random) | Δ(P3−P2) |
-|--------|---------|------------------|-----------|
-| Legacy SDR | +0.059 | +0.004 | **+0.043** |
-| Directional repair | +0.116 | +0.031 | **+0.085** |
-| Same-side residual | +0.016 | +0.101 | **−0.085** |
-| Overcorrection | +0.055 | +0.014 | **+0.041** |
-
-(Values shown for LR; RF and LightGBM follow the same pattern.)
-
-**Key insight:** MI-guided removal does 2.7× more directional repair (reducing residual
-leakage) than random removal (+0.085). This is partially offset by 2.9× more
-overcorrection (governed score overshooting the strict reference, +0.041). The net
-legacy SDR gain (+0.043) is the difference between these two larger opposing effects.
+MI-guided removal reduces residual leakage (directional repair +0.085) more
+than random, but also produces more overcorrection (+0.041). The legacy SDR
+(+0.043) is the net difference.
 
 ### 3.2 Mask-Grounded Metrics
 
-| Metric | P3 (MI) | P2 mean (Random) |
-|--------|---------|------------------|
+| Metric | P3 | P2 mean |
+|--------|-----|---------|
 | Leak recall | 60.1% | 19.8% |
 | Deletion precision | 31.0% | 10.4% |
 | Legit retention | 85.1% | 79.9% |
-| Residual leak columns | 39.9% of leak | 80.2% of leak |
 
-P3 achieves **3× the leak recall** and **3× the deletion precision** of random removal
-while retaining **5% more legitimate columns**. However:
-- P3 still misses ~40% of leak columns.
-- P3 deletes mostly legitimate features (69% of removed columns are legitimate).
-- The absolute deletion precision (31%) is low — most removed columns are not leaks.
-
-### 3.3 Overcorrection Prevalence
-
-| Learner | Overcorrected rows | Mean overcorrection |
-|---------|--------------------|---------------------|
-| LR | 16.9% | +0.023 |
-| RF | 20.3% | +0.043 |
-| LightGBM | 21.2% | +0.046 |
-
-Overcorrection is **systematic across all three learners**: tree-based models show
-more overcorrection than linear models.
+P3 achieves 3× the leak recall and 3× the deletion precision, with 5% better
+legitimate retention. However, P3 still misses ~40% of leak columns and 69%
+of removed columns are legitimate features.
 
 ---
 
@@ -94,182 +66,158 @@ more overcorrection than linear models.
 
 ### 4.1 Overall
 
-| Metric (Δ = P3−P2) | LR | RF | LightGBM |
-|---------------------|-----|-----|----------|
-| Δlegacy_sdr | +0.043 [0.004,0.077] | +0.055 [0.024,0.082] | +0.056 [0.027,0.081] |
-| Δdirectional_repair | +0.085 [0.070,0.098] | +0.096 [0.086,0.107] | +0.101 [0.090,0.111] |
-| Δleak_recall | +0.403 [0.375,0.430] | +0.403 [0.375,0.430] | +0.403 [0.375,0.430] |
-| Δovercorrection | +0.041 [0.018,0.068] | +0.042 [0.021,0.066] | +0.045 [0.023,0.070] |
-| Δlegit_retention | +0.052 [0.048,0.055] | +0.052 [0.048,0.055] | +0.052 [0.048,0.055] |
+| Δ metric | LR | RF | LightGBM |
+|----------|-----|-----|----------|
+| Δlegacy_sdr | +0.043 | +0.055 | +0.056 |
+| Δdirectional_repair | +0.085 | +0.096 | +0.101 |
+| Δleak_recall | +0.403 | +0.403 | +0.403 |
+| Δovercorrection | +0.041 | +0.042 | +0.045 |
+| Δlegit_retention | +0.052 | +0.052 | +0.052 |
 
-All task-reweighting intervals for directional repair, leak recall, and legit retention
-are strictly positive. Overcorrection is also strictly positive for all learners.
+All mask-grounded metrics (leak_recall, precision, retention) are identical
+across learners — they depend on data and selections, not the model.
 
-Mask-grounded metrics (leak_recall, deletion_precision, legit_retention) are identical
-across learners by construction — they depend only on data and selections, not on the
-model.
+### 4.2 Archetype-Level (LR, canonical modulo-5 mapping)
 
-### 4.2 Mechanism-Level
+| Archetype | ΔSDR | CI | N tasks |
+|-----------|------|-----|---------|
+| drifting | +0.084 | [+0.065,+0.104] | 4 |
+| interaction | +0.107 | [+0.093,+0.125] | 4 |
+| linear | +0.074 | [+0.068,+0.080] | 4 |
+| nonlinear | +0.070 | [+0.045,+0.086] | 4 |
+| **sparse** | **−0.118** | **[−0.160,−0.093]** | 4 |
 
-**Mechanisms with positive ΔSDR AND positive Δleak_recall:**
-- M01 (+0.069, +0.694 leak recall)
-- M02 (+0.087, +0.766)
-- M06 (+0.110, +0.679)
-- M07 (+0.018, +0.650) — CI crosses zero
-- M09 (+0.149, +0.261)
-- M10 (+0.110, +0.786)
-- M11 (+0.155, +0.554)
+**Sparse is reliably negative** for all three learners:
+- LR: −0.118 [−0.160,−0.093]
+- RF: −0.068 [−0.083,−0.044]
+- LightGBM: −0.054 [−0.083,−0.009]
 
-**Mechanisms with negative ΔSDR:**
-- M03 (−0.057, −0.111 leak recall)
-- M04 (−0.057, −0.093)
-- M05 (−0.056, −0.093)
-- M08 (−0.052, +0.338 leak recall) — leak recall positive but SDR negative
+**Note on earlier T0-R2 result:** The initial T0-R2 analysis reported a near-zero
+sparse ΔSDR due to an incorrect contiguous-block archetype mapping (datasets
+0-3 all labeled "linear" instead of the canonical modulo-5 rotation). Under the
+canonical mapping (0→linear, 1→interaction, 2→nonlinear, 3→sparse, ...),
+the sparse archetype is unequivocally negative.
 
-M08 is a unique case: MI correctly identifies leak columns (Δleak_recall=+0.34) but
-ΔSDR is negative. This suggests that M08's leak columns overlap with features that are
-important for model performance — removing them hurts more than the leakage helps,
-even though they are correctly identified as leaks.
+### 4.3 Mechanism-Family (LR, canonical mapping)
 
-### 4.3 Archetype-Level
+| Family | ΔSDR | Mechanisms |
+|--------|------|------------|
+| simple | +0.094 | M01, M02, M06, M10 |
+| boundary | +0.039 | M03, M07, M11 |
+| structured | −0.004 | M04, M05, M08, M09 |
 
-| Archetype | ΔSDR (LR) | CI |
-|-----------|-----------|-----|
-| drifting | +0.039 | [−0.058,+0.092] |
-| interaction | +0.081 | [+0.063,+0.101] |
-| linear | +0.022 | [−0.113,+0.094] |
-| nonlinear | +0.053 | [−0.046,+0.123] |
-| sparse | +0.022 | [−0.049,+0.072] |
-
-**Critical finding:** The sparse archetype is NOT reliably negative. The previously
-reported −0.118 (SP8 single-seed P2) was an artifact of relying on a single frozen
-P2 governance seed. Under properly integrated multi-seed P2 averaging, the sparse
-archetype CI crosses zero.
+The structured family mean near zero mixes low-gap negatives (M04/M05/M08)
+with the strong positive M09 (+0.149).
 
 ---
 
-## 5. False-Repair Audit
+## 5. False-Repair Audit (FR1–FR6)
 
-### 5.1 Summary Counts (5,500 keys per model)
+### 5.1 All-Key Prevalence (5,500 keys)
 
-| Category | LR | RF | LightGBM | Description |
-|----------|-----|-----|----------|-------------|
-| FR1: SDR↑ but recall not better | 516 (9.4%) | 485 (8.8%) | 488 (8.9%) | Positive ΔSDR with no leak recall gain |
-| FR3: SDR↑ but residual not better | 111 (2.0%) | 130 (2.4%) | 84 (1.5%) | Same residual with positive SDR |
-| **FR4: SDR↑ with overcorrection** | **1,606 (29.2%)** | **1,634 (29.7%)** | **1,726 (31.4%)** | **Overshoots strict reference** |
-| FR5: SDR↑ but retention worse | 496 (9.0%) | 476 (8.7%) | 481 (8.7%) | Trade-off: SDR gain vs legit data loss |
+| Category | LR | RF | LightGBM |
+|----------|----|----|----------|
+| FR1 (SDR↑, recall not better) | 9.4% | 8.8% | 8.9% |
+| FR2 (P3 SDR>0, zero leak removal) | 1.4% | 7.7% | 8.0% |
+| FR3 (SDR↑, residual not better) | 2.0% | 2.4% | 1.5% |
+| FR4 (overcorrection) | 29.2% | 29.7% | 31.4% |
+| FR5 (SDR↑, retention worse) | 9.0% | 8.7% | 8.7% |
+| FR6 (M09 partial, ΔSDR>0) | 7.7% | 7.7% | 7.7% |
 
-FR4 is the most prevalent false-repair category: nearly 30% of all keys show positive
-legacy SDR that is partially attributable to overcorrection.
+### 5.2 Conditional Prevalence (among eligible)
 
-### 5.2 Mechanism-Level FR4
+| Category | LR cond. | RF cond. | LGBM cond. | Eligible |
+|----------|---------|---------|-----------|----------|
+| FR1 | 15.3% | 14.3% | 14.4% | ΔSDR > 0 |
+| FR2 | 2.6% | 12.3% | 12.8% | P3 SDR > 0 |
+| FR3 | 3.3% | 3.8% | 2.5% | ΔSDR > 0 |
+| FR4 | 47.6% | 48.3% | 51.0% | ΔSDR > 0 |
+| FR5 | 14.7% | 14.1% | 14.2% | ΔSDR > 0 |
+| FR6 | 92.4% | 92.8% | 93.1% | M09 ∧ ΔSDR>0 |
 
-FR4 is concentrated in mechanisms with large initial gaps:
-- M01, M02: high initial gap → MI removes strong features → overcorrection
-- M06, M10, M11: similar pattern
-- M03, M04, M05, M08: low initial gap → SDR is negative, so FR4 doesn't apply
+FR4 conditional: among keys with positive ΔSDR, 48–51% exhibit overcorrection.
+
+FR2 is non-zero for tree-based models: positive strict-distance reduction can
+occur without removing any oracle-labeled leakage column, showing that score
+proximity alone does not identify semantic repair.
 
 ---
 
-## 6. Answers to Research Questions
+## 6. M09 Semantic-Group Analysis
+
+| Metric | P3 | P2 mean | Δ | CI |
+|--------|-----|---------|---|-----|
+| Full-group removed rate | 0.0% | 0.0% | 0.000 | [0,0] |
+| Any-hit rate | 99.4% | 88.1% | +0.114 | [+0.100,+0.128] |
+| Partial removal rate | 99.4% | 88.1% | +0.114 | [+0.100,+0.128] |
+
+At 20% budget (k≈4 columns removed from ~20 total), removing all 8 M09
+one-hot columns is structurally impossible (requires k ≥ 8). Full-group
+repair is infeasible at this budget. MI improves any-hit localization
+(Δ=+0.114) but does not achieve full semantic-group repair.
+
+---
+
+## 7. Answers to Research Questions
 
 ### RQ1: Baseline Continuity
-**YES.** All 5,500 B1 baselines numerically identical to SP8 (max abs diff = 0.0).
-The mechanism was re-fit, not load, but the result is bitwise identical.
+PASS. All 5,500 keys numerically identical to SP8.
 
 ### RQ2: Selection Reconstruction
-**YES.** All 346,500 selection hashes reconstructed with 0 mismatches.
+PASS. All 709,500 rows across all budgets reconstructed, 0 hash mismatches,
+0 bundle SHA mismatches.
 
-### RQ3: What Does Positive SDR Actually Mean?
-Positive legacy ΔSDR (+0.043) is the net of:
-- **Strong positive**: directional repair (+0.085) — MI genuinely reduces residual leakage.
-- **Partial offset**: overcorrection (+0.041) — MI also drives governed score past strict.
-Legacy SDR understates the repair magnitude while hiding the overcorrection cost.
+### RQ3: What Does ΔSDR Mean?
+Positive ΔSDR (+0.043) = directional repair (+0.085) minus overcorrection (+0.041).
 
 ### RQ4: Semantic Corroboration
-**PARTIALLY CORROBORATED.** Leak recall (+0.40), directional repair (+0.085), and
-legit retention (+0.052) all point in the same direction. But overcorrection (+0.041)
-is a countervailing force. The evidence tier is
-SEMANTICALLY_CORROBORATED_WITH_OVERCORRECTION_CAVEAT.
+**C1 status: SCORE_RECOVERY_ONLY.** Overcorrection gate (Δovercorrection ≤ 0)
+failed for all learners. Semantic evidence (Δleak_recall=+0.40, Δdirectional_repair=+0.085)
+is reported as descriptive subclaims.
 
 ### RQ5: How Much Repair Is Spurious?
-- FR4 (overcorrection): 29–31% of keys with positive SDR
-- FR1 (no recall gain): 9%
-- FR5 (retention trade-off): 9%
-- FR3 (no residual improvement): 1.5–2.4%
-Most "repair" is not spurious, but a substantial minority mixes genuine repair with
-overcorrection.
+- FR4: 29–31% of all keys, 48–51% of keys with positive ΔSDR
+- FR2: 1.4% (LR) – 8.0% (LGBM) all-key; tree-based learners achieve P3 SDR>0 without removing leaks
+- FR6: 92–93% among eligible M09 keys (partial removal, full removal zero)
 
-### RQ6: Sparse Archetype Negativity
-The sparse archetype is NOT reliably negative under multi-seed P2 (ΔSDR=+0.022,
-CI[−0.049,+0.072]). The previously reported −0.118 was a single-seed artifact.
+### RQ6: Sparse Archetype
+**Sparse is reliably negative** under correct canonical mapping:
+LR −0.118 [−0.160,−0.093]; RF −0.068 [−0.083,−0.044]; LGBM −0.054 [−0.083,−0.009].
+The earlier T0-R2 +0.022 result was caused by an incorrect contiguous-block archetype mapping.
 
-### RQ7: M09 Semantic-Group Robustness
-**PARTIALLY CORROBORATED at any-hit level; NOT at full-group level.**
+### RQ7: M09 Semantic-Group
+Any-hit localization improved (Δ=+0.114), but full-group repair not corroborated
+(both P3 and P2 full-group removal = 0.0 at 20% budget).
 
-At 20% encoded-column budget, k ≈ 4 columns are removed. The M09 semantic group has
-8 one-hot columns. Full group removal (all 8 columns) requires k ≥ 8, which is
-structurally impossible at 20% budget. Neither P3 nor P2 ever achieves full-group
-removal (both rates = 0.0).
-
-However, any-hit (at least one M09 column removed) is significantly better for P3:
-- P3 any-hit rate: 99.4%
-- P2 mean any-hit rate: 88.1%
-- Δany_hit = +0.114 CI[+0.100,+0.128]
-
-The M09 "semantic-group corroboration" claim must be qualified: the encoded-column
-advantage extends to improved any-hit detection, but full semantic-group removal
-is budget-limited at 20%.
-
-### RQ8: Learner Consistency Under R2 Metrics
-**CONSISTENT.** All three learners (LR, RF, LightGBM) show the same directional pattern:
-positive directional repair, positive leak recall, positive overcorrection, positive
-legit retention. Tree-based models show slightly larger overcorrection (20–21% vs 17%).
+### RQ8: Learner Consistency
+Consistent direction across all three learners. No reliable learner interaction
+detected for legacy SDR contrast.
 
 ---
 
-## 7. Paper Claim Recommendations
+## 8. Claim Recommendations
 
-### C1 (MULTI-LEARNER GOVERNANCE)
-**Revise to:** SEMANTICALLY_CORROBORATED_WITH_OVERCORRECTION_CAVEAT
-- Positive directional repair and leak recall are genuine.
-- Overcorrection is a systematic side effect (~30% of keys).
-- The legacy SDR understates the repair while hiding the cost.
-
-### C2 (NO LEARNER INTERACTION)
-**Keep as SUPPORTED.** Consistent across learners.
-
-### C3 (STRUCTURED HETEROGENEITY)
-**Keep as NARROWED.** Mechanism-level patterns confirmed.
-
-### C4 (ARCHETYPE SENSITIVITY — SPARSE)
-**REVISE.** Sparse is not reliably negative. The single-seed P2 finding does not
-replicate. LOAO-sparse previously appeared positive (+0.084) because sparse was thought
-to be strongly negative — it was near zero all along.
-
-### C5 (NATURAL GOVERNANCE)
-Unchanged by this audit.
-
-### C6 (SEMANTIC GROUP BUDGET)
-Unchanged by this audit.
+| Claim | Status | Rationale |
+|-------|--------|-----------|
+| C1 | **SCORE_RECOVERY_ONLY** | Δovercorrection > 0 for all learners |
+| C1 descriptive | Descriptive subclaims | Δleak_recall, Δdirectional_repair are positive but do not satisfy the joint semantic gate |
+| C2 (learner interaction) | No reliable interaction detected | Legacy SDR CIs cross zero |
+| Sparse archetype | Negative | Confirmed with canonical mapping |
+| M09 | Any-hit only | Full-group repair not corroborated |
 
 ---
 
-## 8. Summary Verdict
+## 9. Summary
 
-The existing governance evidence (B1/B2) is **numerically correct** (baselines continuous,
-selections reconstructable) and the **legacy SDR direction is reproducible** under R2
-metrics. However, the legacy SDR metric **conflates directional repair with
-overcorrection**, leading to a systematically incomplete picture.
+The governance evidence is numerically intact: baselines continuous, selections
+reconstructable, all 709,500 rows verified. Under R2 directional metrics:
 
-MI-guided removal genuinely reduces residual leakage (directional repair +0.085) and
-correctly identifies leak columns (leak recall 3× random), but it also consistently
-produces more overcorrection (+0.041) than random removal. Approximately 30% of keys
-with positive legacy SDR show overcorrection.
-
-The paper's core claim (C1) should be revised from SUPPORTED to
-SEMANTICALLY_CORROBORATED_WITH_OVERCORRECTION_CAVEAT, and the sparse archetype
-assessment (C4) needs correction.
-
-**The CDXR experiment on the separate branch is irrelevant to these findings — this
-audit is complete and self-contained within frozen SP8/B1/B2 evidence.**
+- The legacy SDR advantage (+0.043–0.056) is real but overstates repair quality
+  by hiding overcorrection (+0.041–0.045).
+- MI leak recall (60%) substantially exceeds random (20%), but 69% of columns
+  removed by MI are legitimate features.
+- 29–31% of all keys satisfy the FR4 overcorrection condition; among keys with
+  positive ΔSDR, 48–51% show overcorrection.
+- Sparse archetype is reliably negative (LR −0.118).
+- M09 any-hit localization is improved, but full semantic-group repair is
+  structurally infeasible at 20% budget.
