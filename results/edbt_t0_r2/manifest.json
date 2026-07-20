@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "audit": "T0_R2_REPAIR_CONSTRUCT_VALIDITY",
+  "status": "COMPLETE",
+  "branch": "t0/repair-construct-validity-r2",
+  "protocol_sha256": "4f843fce3f05406ce65141bb66f558edd1905165a59f228ef0bb0823d69c9c7f",
+  "verdicts": {
+    "T0-A0_baseline_continuity": "PASS_5500_KEYS_IDENTICAL",
+    "T0-A1_selection_reconstruction": "PASS_346500_ROWS_0_MISMATCHES",
+    "T0-A2_r2_metric_vector": "COMPLETE",
+    "T0-A3_mask_grounded_metrics": "COMPLETE",
+    "T0-A4_paired_analysis": "COMPLETE"
+  },
+  "claim_verdict": "SEMANTICALLY_CORROBORATED_WITH_OVERCORRECTION_CAVEAT",
+  "key_findings": [
+    "B1 baselines numerically identical to SP8 (max abs diff 0.0)",
+    "All 346,500 selection hashes reconstructed (0 mismatches)",
+    "Legacy SDR conflates directional repair (+0.085) with overcorrection (+0.041)",
+    "MI leak recall: 60.1% (3x random P2 at 19.8%)",
+    "MI overcorrection: +0.041 over P2, affecting ~30% of keys",
+    "Sparse archetype: NOT reliably negative under multi-seed P2 (+0.022, CI crosses zero)",
+    "All three learners (LR/RF/LGBM) show consistent directional pattern"
+  ],
+  "tests": {
+    "command": "PYTHONPATH=. pytest tests/test_repair_r2.py -q",
+    "passed": 20,
+    "failed": 0
+  },
+  "artifacts": [
+    {
+      "path": "reports/edbt_t0_r2/protocol.md",
+      "category": "reports",
+      "sha256": "4f843fce3f05406ce65141bb66f558edd1905165a59f228ef0bb0823d69c9c7f"
+    },
+    {
+      "path": "reports/edbt_t0_r2/final_report.md",
+      "category": "reports",
+      "sha256": "41c73bc9494b82d4f0c6340850bdcad980f98c09d7aac2a44957a5008f4b5506"
+    },
+    {
+      "path": "results/edbt_t0_r2/protocol_freeze.json",
+      "category": "results",
+      "sha256": "defc1e06fe5f5b0bc07637932aa27ed6c0e0fb59c8ace8d20069e555df886147"
+    },
+    {
+      "path": "results/edbt_t0_r2/b1_sp8_baseline_continuity.csv",
+      "category": "results",
+      "sha256": "66c057da499ef49a29b07a5ead7619e47d55fc5b580fbbf7120ec761f4df9133",
+      "rows": 5500
+    },
+    {
+      "path": "results/edbt_t0_r2/analysis_summary_r2.json",
+      "category": "results",
+      "sha256": "5f6fee4626458c6d781b33ec2e6e71ca5a030dcebee67454fff95ff193d26ddc"
+    },
+    {
+      "path": "results/edbt_t0_r2/claim_state_r2.json",
+      "category": "results",
+      "sha256": "5210fea6f71ed42d16cec17c32f0332a5ea5c58975986b2ad3e4f2c890f1b671"
+    },
+    {
+      "path": "results/edbt_t0_r2/task_effects_r2.csv",
+      "category": "results",
+      "sha256": "5e79ded4b24c1ad65819b3755a18e6f63adbc8304a6c6ca8367ddfef57ef14cd",
+      "rows": 60
+    },
+    {
+      "path": "results/edbt_t0_r2/mechanism_summary_r2.csv",
+      "category": "results",
+      "sha256": "c60541338578520354dbef3bb416c4aa056778ce7047db80d268e779791622bc",
+      "rows": 33
+    },
+    {
+      "path": "results/edbt_t0_r2/archetype_summary_r2.csv",
+      "category": "results",
+      "sha256": "a588bfe64b502e70a1a3e0085f5cda9c3ea7d934ea4f1c79be2d4d087baf5e38",
+      "rows": 15
+    },
+    {
+      "path": "results/edbt_t0_r2/false_repair_summary.csv",
+      "category": "results",
+      "sha256": "1bde08f29b497cf13ef0b87c327bc259012d18a998b7032b99ab9352f3996063",
+      "rows": 3
+    },
+    {
+      "path": "scripts/audit_repair_construct_validity.py",
+      "category": "scripts",
+      "sha256": "2679472fce6d7941882434c15b3310a9e3cf692a516ffe9b2df2386f6845f018"
+    },
+    {
+      "path": "scripts/analyze_repair_r2.py",
+      "category": "scripts",
+      "sha256": "792181af6cce7d43ce3157ae75bdecefa40482fef74be9bbfad1337f34896b43"
+    },
+    {
+      "path": "scripts/build_repair_r2_claim_state.py",
+      "category": "scripts",
+      "sha256": "6a70d93c9031380220fff649533196489d963c551fc7bb689b7578bef62a2d7d"
+    },
+    {
+      "path": "tests/test_repair_r2.py",
+      "category": "tests",
+      "sha256": "36e0f9f5f3a2c386dd82507a7103692acf63227358ae541c53a0f6bcaa8a4f07"
+    }
+  ]
+}
