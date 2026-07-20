@@ -1,0 +1,19 @@
+event_count,all_key_n,eligible_n,eligible_label,learner,category,all_key_prevalence,conditional_prevalence,all_key_wording,conditional_wording
+516,5500,3372,Δlegacy_sdr > 0,LR,FR1,9.4,15.3,,
+76,5500,2928,P3 legacy_sdr > 0,LR,FR2,1.4,2.6,,
+111,5500,3372,Δlegacy_sdr > 0,LR,FR3,2.0,3.3,,
+1606,5500,3372,Δlegacy_sdr > 0,LR,FR4,29.2,47.6,3372 of all 5500 keys satisfy the FR4 condition (61.3%),1606 of 3372 keys with positive ΔSDR exhibit overcorrection (29.2% of eligible)
+496,5500,3372,Δlegacy_sdr > 0,LR,FR5,9.0,14.7,,
+425,5500,460,M09 AND Δlegacy_sdr > 0,LR,FR6,7.7,92.4,,
+485,5500,3385,Δlegacy_sdr > 0,RF,FR1,8.8,14.3,,
+425,5500,3446,P3 legacy_sdr > 0,RF,FR2,7.7,12.3,,
+130,5500,3385,Δlegacy_sdr > 0,RF,FR3,2.4,3.8,,
+1634,5500,3385,Δlegacy_sdr > 0,RF,FR4,29.7,48.3,3385 of all 5500 keys satisfy the FR4 condition (61.5%),1634 of 3385 keys with positive ΔSDR exhibit overcorrection (29.7% of eligible)
+476,5500,3385,Δlegacy_sdr > 0,RF,FR5,8.7,14.1,,
+426,5500,459,M09 AND Δlegacy_sdr > 0,RF,FR6,7.7,92.8,,
+488,5500,3382,Δlegacy_sdr > 0,LightGBM,FR1,8.9,14.4,,
+439,5500,3426,P3 legacy_sdr > 0,LightGBM,FR2,8.0,12.8,,
+84,5500,3382,Δlegacy_sdr > 0,LightGBM,FR3,1.5,2.5,,
+1726,5500,3382,Δlegacy_sdr > 0,LightGBM,FR4,31.4,51.0,3382 of all 5500 keys satisfy the FR4 condition (61.5%),1726 of 3382 keys with positive ΔSDR exhibit overcorrection (31.4% of eligible)
+481,5500,3382,Δlegacy_sdr > 0,LightGBM,FR5,8.7,14.2,,
+421,5500,452,M09 AND Δlegacy_sdr > 0,LightGBM,FR6,7.7,93.1,,

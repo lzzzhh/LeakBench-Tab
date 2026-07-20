@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "derivation": "scripts/repair_evidence_chain_r2_2.py",
+  "audit": "T0_R2_2_DENOMINATOR_CLOSURE",
+  "primary_budget": 0.2,
+  "analysis_summary_sha256": "87fbda12ce6dd0f3fd554dd06a41d9472167e8d6394d5f0925b4d1ee27f7a34d",
+  "claims": {
+    "C1_LR_GOVERNANCE": {
+      "status": "SCORE_RECOVERY_ONLY",
+      "evidence_tier": "confirmatory_r2",
+      "note": "Overcorrection gate (overcorrection exact mean 0) failed: P3 overcorrects more than mean P2."
+    },
+    "C1_RF_GOVERNANCE": {
+      "status": "SCORE_RECOVERY_ONLY",
+      "evidence_tier": "confirmatory_r2",
+      "note": "Overcorrection gate failed."
+    },
+    "C1_LightGBM_GOVERNANCE": {
+      "status": "SCORE_RECOVERY_ONLY",
+      "evidence_tier": "confirmatory_r2",
+      "note": "Overcorrection gate failed."
+    },
+    "C1_DESCRIPTIVE_SEMANTIC_SUBCLAIM": {
+      "status": "DESCRIPTIVE_SUPPORTING_EVIDENCE",
+      "evidence_tier": "descriptive",
+      "allowed_wording": "MI removal improves leak-column recall and directional gap reduction over matched random removal, but these improvements do not satisfy the joint semantic-repair gate because overcorrection increases.",
+      "forbidden_wording": "MI removal is a pure unambiguously semantic repair operation."
+    },
+    "C7_M09_SEMANTIC_GROUP": {
+      "status": "NOT_EVALUABLE_FOR_FULL_GROUP_REPAIR",
+      "evidence_tier": "descriptive",
+      "allowed_wording": "At the 20% encoded-column budget, MI improves M09 semantic-group any-hit localization, but neither MI nor random deletion can remove the complete eight-column source group; full-group repair is not corroborated.",
+      "forbidden_wording": "M09 is repaired at the semantic-group level.",
+      "m09_metrics": {
+        "p3_full_group_removed_rate": 0.0,
+        "p3_any_hit_rate": 0.994,
+        "p3_partial_removal_rate": 0.994,
+        "p2_mean_full_group_removed_rate": 0.0,
+        "p2_mean_any_hit_rate": 0.8805,
+        "p2_mean_partial_removal_rate": 0.8805,
+        "delta_full_group_removed": 0.0,
+        "delta_full_group_removed_ci_lo": 0.0,
+        "delta_full_group_removed_ci_hi": 0.0,
+        "delta_full_group_removed_p3_better": 0.0,
+        "delta_full_group_removed_n_tasks": 20,
+        "delta_full_group_removed_event_count": 0,
+        "delta_any_hit": 0.1135,
+        "delta_any_hit_ci_lo": 0.1,
+        "delta_any_hit_ci_hi": 0.1275,
+        "delta_any_hit_p3_better": 1.0,
+        "delta_any_hit_n_tasks": 20,
+        "delta_any_hit_event_count": 462,
+        "delta_partial_removed": 0.1135,
+        "delta_partial_removed_ci_lo": 0.1,
+        "delta_partial_removed_ci_hi": 0.1275,
+        "delta_partial_removed_p3_better": 1.0,
+        "delta_partial_removed_n_tasks": 20,
+        "delta_partial_removed_event_count": 462,
+        "n_m09_keys": 500,
+        "partial_removal_zero": false
+      }
+    },
+    "C2_LEGACY_SDR_LEARNER_INTERACTION": {
+      "status": "NO_RELIABLE_INTERACTION_DETECTED",
+      "evidence_tier": "confirmatory_r2",
+      "allowed_wording": "No reliable learner interaction was detected for the legacy-SDR P3-minus-random contrast.",
+      "forbidden_wording": "The governance effect is learner-invariant or equivalent across all learners for all metrics.",
+      "note": "This claim is scoped to legacy SDR; directional_repair shows a small LR disadvantage."
+    }
+  },
+  "global_limitations": [
+    "C1 is SCORE_RECOVERY_ONLY: the overcorrection gate (exact mean 0) failed for all three learners.",
+    "Semantic evidence (leak recall, directional repair, M09 any-hit localization) is descriptively positive but is reported as independent subclaims, not as confirmatory repair corroboration.",
+    "FR4 conditional prevalence among keys with positive SDR: LR 47.6%, RF 48.3%, LightGBM 51.0%.",
+    "FR2 non-zero for RF/LightGBM: positive SDR can occur without removing any oracle-labeled leak column.",
+    "M09 full semantic-group repair is not corroborated at the 20% encoded-column budget."
+  ]
+}
