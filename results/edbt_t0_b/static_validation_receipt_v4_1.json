@@ -24,7 +24,7 @@
   "tested_artifacts": {
     "validator": {
       "path": "scripts/t0_b_v4/validate_protocol_freeze_v4_1.py",
-      "sha256": "0a6f097317ac41fc642ae2ea5811c9757bf5d25cecbb58a698392339650d33b8"
+      "sha256": "341f97e82495a92141a93b85cd46905c806807343bbfa1f778134bd2903a36c1"
     },
     "test_v4": {
       "path": "tests/t0_b_v4/test_v4_executable.py",
