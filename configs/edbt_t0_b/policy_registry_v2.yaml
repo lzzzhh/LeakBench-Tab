@@ -1,0 +1,164 @@
+# T0-B Policy Registry v1
+# FROZEN — do not add, remove, or reorder policies after protocol freeze.
+#
+# Each policy defines how k units (encoded columns or semantic groups)
+# are selected for removal within a single frozen key.
+#
+# Oracle policies (oracle_policy=true) can access leak_mask but are
+# excluded from deployable-policy rankings.
+
+policies:
+
+  # ----------------------------------------------------------------
+  # P0 — KEEP_ALL baseline
+  # ----------------------------------------------------------------
+  p0_keep_all:
+    id: P0
+    name: KEEP_ALL
+    oracle_policy: false
+    deployment_eligible: false
+    description: "Remove zero units. Baseline reference."
+    selection:
+      access_leak_mask: false
+      access_test_labels: false
+      deterministic: true
+      remove_count: 0
+    group_aggregation: none
+
+  # ----------------------------------------------------------------
+  # P1 — ORACLE upper bound (NOT deployable)
+  # ----------------------------------------------------------------
+  p1_oracle_remove_all:
+    id: P1
+    name: ORACLE_REMOVE_ALL
+    oracle_policy: true
+    deployment_eligible: false
+    description: "Remove all leak columns via oracle mask. Upper bound only."
+    selection:
+      access_leak_mask: true
+      access_test_labels: false
+      deterministic: true
+      remove_count: all_leak
+    group_aggregation: none
+
+  # ----------------------------------------------------------------
+  # P2 — RANDOM_MATCHED negative control
+  # ----------------------------------------------------------------
+  p2_random_matched:
+    id: P2
+    name: RANDOM_MATCHED
+    oracle_policy: false
+    deployment_eligible: false
+    description: "Random matched-cost removal. 20 governance seeds per key."
+    selection:
+      access_leak_mask: false
+      access_test_labels: false
+      deterministic: true   # per (gov_seed, ds, ts, budget, contract)
+      governance_seeds: [2026071700, 2026071701, 2026071702, 2026071703, 2026071704, 2026071705, 2026071706, 2026071707, 2026071708, 2026071709, 2026071710, 2026071711, 2026071712, 2026071713, 2026071714, 2026071715, 2026071716, 2026071717, 2026071718, 2026071719]
+      seed_formula: "(gov_seed * 100 + dataset_index * 7 + training_seed * 13) % (2**31 - 1)"
+    group_aggregation: random_unit
+
+  # ----------------------------------------------------------------
+  # P3 — MUTUAL_INFORMATION
+  # ----------------------------------------------------------------
+  p3_mutual_information:
+    id: P3
+    name: MUTUAL_INFORMATION
+    oracle_policy: false
+    deployment_eligible: true
+    description: "Top-k by train-side mutual information."
+    selection:
+      access_leak_mask: false
+      access_test_labels: false
+      deterministic: true
+      mi_random_state: 42
+      nan_handling: "zero"
+    encoded_score_formula: "mutual_info_classif(X_train, y_train, random_state=42)"
+    group_aggregation: "max"   # group_score = max(member column MI)
+    tie_breaking:
+      primary: score_descending
+      secondary: unit_index_ascending
+
+  # ----------------------------------------------------------------
+  # P4 — ABS_POINT_BISERIAL_CORRELATION
+  # ----------------------------------------------------------------
+  p4_abs_point_biserial:
+    id: P4
+    name: ABS_POINT_BISERIAL_CORRELATION
+    oracle_policy: false
+    deployment_eligible: true
+    description: "Top-k by absolute point-biserial correlation with binary y."
+    selection:
+      access_leak_mask: false
+      access_test_labels: false
+      deterministic: true
+      constant_col_score: 0.0
+      nan_inf_score: 0.0
+    encoded_score_formula: "abs(pearsonr(X_train_col, y_train))"
+    group_aggregation: "max"
+    tie_breaking:
+      primary: score_descending
+      secondary: unit_index_ascending
+
+  # ----------------------------------------------------------------
+  # P5 — STANDARDIZED_LR_COEFFICIENT
+  # ----------------------------------------------------------------
+  p5_standardized_lr_coef:
+    id: P5
+    name: STANDARDIZED_LR_COEFFICIENT
+    oracle_policy: false
+    deployment_eligible: true
+    description: "Top-k by absolute standardized LR coefficient."
+    selection:
+      access_leak_mask: false
+      access_test_labels: false
+      deterministic: true
+    encoded_score_formula: "abs(coef_[col]) after StandardScaler+LogisticRegression"
+    ranker_params:
+      scaler: "StandardScaler fitted on training only"
+      model: "LogisticRegression(penalty='l2', C=1.0, solver='lbfgs', max_iter=2000, random_state=42)"
+      nan_handling: "constant columns score=0"
+    group_aggregation: "max"
+    tie_breaking:
+      primary: score_descending
+      secondary: unit_index_ascending
+
+  # ----------------------------------------------------------------
+  # P6 — CROSS_FITTED_RF_PERMUTATION
+  # ----------------------------------------------------------------
+  p6_cross_fitted_rf_permutation:
+    id: P6
+    name: CROSS_FITTED_RF_PERMUTATION
+    oracle_policy: false
+    deployment_eligible: true
+    description: "Top-k by cross-fitted RF permutation importance."
+    selection:
+      access_leak_mask: false
+      access_test_labels: false
+      deterministic: true
+    encoded_score_formula: "3-fold stratified cross-fitted permutation importance"
+    ranker_params:
+      model: "RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=1)"
+      cv: "StratifiedKFold(n_splits=3, shuffle=True, random_state=42)"
+      scoring: "roc_auc"
+      n_repeats: 5
+      fold_random_state_offset: true
+      neg_importance_kept: true
+      nan_handling: "zero"
+    group_aggregation: "max"
+    tie_breaking:
+      primary: score_descending
+      secondary: unit_index_ascending
+
+# ----------------------------------------------------------------
+# Global constraints
+# ----------------------------------------------------------------
+constraints:
+  non_oracle_selector_cannot_read:
+    - leak_mask
+    - test_labels
+    - strict_feature_set
+    - oracle_contamination_role
+  all_policies_use_training_rows_only: true
+  deterministic_sort_kind: "stable"
+  metadata_policy_status: "DEFERRED_NO_POLICY_VISIBLE_METADATA"

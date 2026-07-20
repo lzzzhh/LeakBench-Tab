@@ -1,0 +1,165 @@
+{
+  "schema_version": 2,
+  "audit": "T0_B_POLICY_GROUP_REGISTRY_V2",
+  "description": "Oracle-isolated group definitions for non-oracle policy selectors. Contains NO leak_mask, contamination labels, mechanism categories, or source roles. Opaque group IDs only.",
+  "mapping_source": "src/leakbench/mechanisms/__init__.py",
+  "mapping_source_sha256": "0f1c605ea4afeeb70cb8fa300f58f97c9e347762f6943b3cd93a21f500e9227f",
+  "bundle_manifest_sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c",
+  "global_rules": {
+    "original_columns": {
+      "description": "Each original clean column (indices 0 through n_original-1) is an independent singleton group",
+      "group_id_pattern": "g_orig_{:03d}",
+      "group_size": 1,
+      "member_count": "1 per group, n_original groups total"
+    },
+    "selector_api": {
+      "receives": ["opaque_group_id", "member_encoded_indices", "group_size"],
+      "does_not_receive": ["leak_mask", "contaminated_status", "mechanism_category", "source_role", "oracle_label"]
+    }
+  },
+  "mechanisms": {
+    "M01": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 1,
+          "construction_rule": "indices [n_original] (single column)"
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + 1"
+    },
+    "M02": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 1,
+          "construction_rule": "indices [n_original] (single column)"
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + 1"
+    },
+    "M03": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 1,
+          "construction_rule": "indices [n_original] (single column)"
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + 1"
+    },
+    "M04": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 1,
+          "construction_rule": "indices [n_original] (single column)"
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + 1"
+    },
+    "M05": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 1,
+          "construction_rule": "indices [n_original] (single column)"
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + 1"
+    },
+    "M06": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": "dynamic: n_injected (redundancy count)",
+          "construction_rule": "indices [n_original .. n_original + n_injected - 1] (all injected columns form one atomic group)",
+          "atomic_removal_required": true
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + n_injected",
+      "lineage_audit": "All M06 columns are redundant copies of the same target-proxy signal with escalating noise. Source generator constructs them in a loop from a single logical source. SHA: 0f1c605e."
+    },
+    "M07": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 1,
+          "construction_rule": "indices [n_original] (single column)"
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + 1"
+    },
+    "M08": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 1,
+          "construction_rule": "indices [n_original] (single column)"
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + 1"
+    },
+    "M09": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 8,
+          "construction_rule": "indices [n_original .. n_original+7] (8 one-hot columns form one atomic group)",
+          "atomic_removal_required": true
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + 8",
+      "lineage_audit": "All 8 columns are one-hot indicators of the same source category. Source generator constructs them as a single outcome-dependent categorical assignment. SHA: 0f1c605e."
+    },
+    "M10": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": 1,
+          "construction_rule": "index [n_original] (first injected column)",
+          "note": "Separate singleton from g_inj_002. Does not share source lineage."
+        },
+        {
+          "opaque_group_id": "g_inj_002",
+          "member_count": 1,
+          "construction_rule": "index [n_original+1] (second injected column)",
+          "note": "Separate singleton from g_inj_001. Does not share source lineage."
+        }
+      ],
+      "total_groups": "n_original + 2",
+      "total_encoded_columns": "n_original + 2",
+      "lineage_note": "M10 injects two columns with different origins: one is a copy of clean feature x_000, the other is a target-proxy contaminant. They share no source-field lineage and must be separate groups."
+    },
+    "M11": {
+      "injected_groups": [
+        {
+          "opaque_group_id": "g_inj_001",
+          "member_count": "dynamic: n_injected (component count)",
+          "construction_rule": "indices [n_original .. n_original + n_injected - 1] (all graph-projection columns form one atomic group)",
+          "atomic_removal_required": true
+        }
+      ],
+      "total_groups": "n_original + 1",
+      "total_encoded_columns": "n_original + n_injected",
+      "lineage_audit": "All M11 columns are projections of the same signal through different random directions forming a complete graph. Source generator constructs them from a single underlying block. SHA: 0f1c605e."
+    }
+  },
+  "forbidden_words_in_registry": [
+    "leak", "contam", "contaminant", "legitimate", "oracle",
+    "target_proxy", "future", "post_outcome", "source_role",
+    "strict", "leak_mask", "mechanism_family", "category",
+    "n_leak", "contaminated_status"
+  ],
+  "policy_group_view_dataclass": "PolicyGroupView",
+  "policy_group_view_fields": ["opaque_group_id", "member_encoded_indices", "group_size"]
+}

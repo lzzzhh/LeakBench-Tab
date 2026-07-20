@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "audit": "T0_B_SEMANTIC_EVALUATION_LABELS_V2",
+  "description": "Evaluation-only contamination labels. Must NEVER be passed to P2-P6 policy selectors. Used only after selection hash has been produced, for computing leak_recall, semantic_group_recall, etc.",
+  "dataclass": "SemanticEvaluationLabels",
+  "fields": ["leak_mask", "contaminated_group_ids", "legitimate_group_ids", "full_group_evaluation_ids"],
+  "access_rule": "Policy selectors receive PolicyGroupView. SemanticEvaluationLabels is a separate type and is NOT importable by selector modules.",
+  "mechanisms": {
+    "M01": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"},
+    "M02": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"},
+    "M03": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"},
+    "M04": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"},
+    "M05": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"},
+    "M06": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"},
+    "M07": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"},
+    "M08": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"},
+    "M09": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups", "note": "One group of 8 one-hot columns, all contaminated"},
+    "M10": {"contaminated_group_ids": ["g_inj_002"], "legitimate_group_ids": "all g_orig_* groups AND g_inj_001", "note": "g_inj_001 is a legitimate copy of x_000; g_inj_002 is the contaminant"},
+    "M11": {"contaminated_group_ids": ["g_inj_001"], "legitimate_group_ids": "all g_orig_* groups"}
+  },
+  "forbidden_usage": "P2-P6 selector code must not import or reference this file or SemanticEvaluationLabels"
+}

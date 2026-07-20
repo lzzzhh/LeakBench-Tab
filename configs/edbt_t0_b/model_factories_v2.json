@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "audit": "T0_B_MODEL_FACTORIES_V2",
+  "source": "src/leakbench/models/core_models.py",
+  "source_sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e",
+  "callable": "fit_predict_core_model",
+  "models": {
+    "lr": {
+      "model_id": "lr",
+      "implementation": "sklearn.StandardScaler+LogisticRegression",
+      "params": {
+        "scaler": "StandardScaler()",
+        "classifier": "LogisticRegression(max_iter=2000, C=1.0, random_state=training_seed)"
+      },
+      "baseline_parity_target": "SP8 LR strict/full ledger (artifacts/sp8/governance_clean.csv)",
+      "parity_tolerance": 1e-6,
+      "parity_metric": "max_abs_diff(strict_auc, full_auc)"
+    },
+    "rf": {
+      "model_id": "rf",
+      "implementation": "sklearn.RandomForestClassifier",
+      "params": {
+        "n_estimators": 250,
+        "min_samples_leaf": 2,
+        "max_features": "sqrt",
+        "random_state": "training_seed",
+        "n_jobs": 1
+      },
+      "baseline_parity_target": "Self-consistent only: same key + factory + seed must produce identical results across repeated fits",
+      "parity_tolerance": 1e-12,
+      "parity_metric": "max_abs_diff(self_repeat_fit)",
+      "no_sp8_comparison": true
+    },
+    "lightgbm": {
+      "model_id": "lightgbm",
+      "implementation": "lightgbm.LGBMClassifier",
+      "params": {
+        "objective": "binary",
+        "n_estimators": 250,
+        "learning_rate": 0.05,
+        "num_leaves": 31,
+        "max_depth": 6,
+        "min_child_samples": 20,
+        "random_state": "training_seed",
+        "n_jobs": 1,
+        "verbosity": -1
+      },
+      "early_stopping": {"rounds": 30, "metric": "auc", "split": "validation_only"},
+      "final_evaluation": "test_split_only",
+      "baseline_parity_target": "Self-consistent only",
+      "parity_tolerance": 1e-12,
+      "no_sp8_comparison": true
+    }
+  },
+  "baseline_rules": {
+    "reuse_frozen_sp8_lr": false,
+    "strict_fit_per_key": true,
+    "full_fit_per_key": true,
+    "numerical_parity_with_sp8_lr_verified_before_governance": true,
+    "rf_lgbm_no_sp8_comparison": "SP8 used only LR; RF/LGBM baselines are newly fitted and verified self-consistent"
+  }
+}

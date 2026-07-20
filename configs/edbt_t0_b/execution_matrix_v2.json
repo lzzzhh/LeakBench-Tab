@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "audit": "T0_B_EXECUTION_MATRIX_V2",
+  "reuse_rules": {
+    "ranker_scores_per_key": "P3-P6 column/group scores computed ONCE per key, reused across all 3 budgets × 2 contracts",
+    "selections_per_learner": "All policy selections are identical across downstream learners (LR/RF/LGBM); verified by cross-learner selection hash equality",
+    "p2_selections_not_reused": "P2 selections are newly generated under V2 seed contract; no reuse from B1/B2"
+  },
+  "stages": {
+    "B1_LR": {
+      "description": "LR full-registry, both contracts, all budgets",
+      "keys": 5500,
+      "per_key": {
+        "baseline_fits": {"strict": 1, "full": 1},
+        "ranking_model_fits": {"P5_LR": 1, "P6_RF_3fold": 3},
+        "governed_fits": {
+          "contracts": 2,
+          "budgets_per_contract": 3,
+          "p2_seeds": 20,
+          "deterministic_policies": 4,
+          "fits_per_contract_per_budget": "20 + 4 = 24",
+          "fits_per_contract": "24 × 3 = 72",
+          "fits_per_key": "72 × 2 = 144"
+        },
+        "downstream_fits_per_key": "2 baseline + 144 governed = 146"
+      },
+      "totals": {
+        "baseline_fits": 11000,
+        "ranking_model_fits": {"P5_LR": 5500, "P6_RF": 16500, "total": 22000},
+        "governed_fits": 792000,
+        "downstream_fits": 803000
+      }
+    },
+    "B2_RF_LGBM": {
+      "description": "RF + LightGBM, semantic-group 20% only",
+      "keys": 5500,
+      "learners": 2,
+      "per_key_per_learner": {
+        "baseline_fits": 2,
+        "governed_fits": {"p2_seeds": 20, "deterministic": 4, "total": 24},
+        "downstream_fits": 26
+      },
+      "totals": {
+        "downstream_fits": 286000
+      }
+    }
+  },
+  "grand_totals": {
+    "downstream_fits": 1089000,
+    "ranking_model_fits": 22000,
+    "selection_operations": "5500 keys × P3-P6 deterministic scores = 22000 score computations",
+    "p2_selections": "5500 keys × 2 contracts × 3 budgets × 20 seeds = 660000 P2 selection operations"
+  },
+  "result_rows": {
+    "B1_LR": "5500 keys × (2 baseline + 2 contracts × 3 budgets × 24 governed) = 5500 × 146 = 803000 rows",
+    "B2_RF_LGBM": "5500 keys × 2 learners × (2 baseline + 1 contract × 1 budget × 24 governed) = 5500 × 2 × 26 = 286000 rows",
+    "total": 1089000
+  },
+  "p0_p1_handling": {
+    "P0": "Maps to full baseline AUROC. No separate fit. Result row recorded with governed_auc=full_auc.",
+    "P1": "Maps to strict baseline AUROC. Uses oracle leak_mask. Result row recorded with governed_auc=strict_auc.",
+    "reference_row_replication": "P0/P1 rows replicated per contract/budget for ledger completeness, but reuse same baseline fit values."
+  }
+}

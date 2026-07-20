@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "v1_freeze_commit": "fbaa9f3bfad9eda52b25c64bd07561aa5bd8ad33",
+  "v1_status": "SUPERSEDED_PRE_OUTCOME",
+  "outcomes_observed_before_supersession": false,
+  "superseded_at": "2026-07-20",
+  "reason_codes": [
+    "INCOMPLETE_STATIC_PREFLIGHT",
+    "POLICY_VISIBLE_ORACLE_LABELS",
+    "P2_NAMESPACE_INCOMPLETE",
+    "SEMANTIC_LINEAGE_UNBOUND",
+    "BUDGET_ROUNDING_AMBIGUOUS",
+    "EXECUTION_COUNT_INCORRECT",
+    "CLAIM_GATE_OVERLAP",
+    "FREEZE_HASH_CLOSURE_INCOMPLETE"
+  ],
+  "effective_freeze": "results/edbt_t0_b/protocol_freeze_v2.json",
+  "v1_artifacts_preserved": [
+    "reports/edbt_t0_b/protocol.md",
+    "configs/edbt_t0_b/policy_registry.yaml",
+    "configs/edbt_t0_b/semantic_group_registry.json",
+    "configs/edbt_t0_b/model_factories.json",
+    "results/edbt_t0_b/protocol_freeze.json"
+  ],
+  "v2_replacement_artifacts": [
+    "reports/edbt_t0_b/protocol_v2.md",
+    "reports/edbt_t0_b/protocol_amendment_001.md",
+    "configs/edbt_t0_b/policy_registry_v2.yaml",
+    "configs/edbt_t0_b/policy_group_registry_v2.json",
+    "configs/edbt_t0_b/semantic_evaluation_labels_v2.json",
+    "configs/edbt_t0_b/cost_contracts_v2.json",
+    "configs/edbt_t0_b/model_factories_v2.json",
+    "configs/edbt_t0_b/claim_gates_v2.json",
+    "configs/edbt_t0_b/execution_matrix_v2.json",
+    "configs/edbt_t0_b/pareto_contract_v2.json"
+  ]
+}

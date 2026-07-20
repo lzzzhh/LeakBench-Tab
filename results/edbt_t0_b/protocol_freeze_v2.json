@@ -1,0 +1,165 @@
+{
+  "schema_version": 2,
+  "audit": "T0_B_MULTIPOLICY_SEMANTIC_COST_V2",
+  "status": "FROZEN_BEFORE_EXPERIMENT",
+  "frozen_at": "2026-07-20T08:25:37Z",
+  "branch": "t0/multipolicy-semantic-cost",
+  "v1_freeze_commit": "fbaa9f3bfad9eda52b25c64bd07561aa5bd8ad33",
+  "v1_status": "SUPERSEDED_PRE_OUTCOME",
+  "outcome_observed_before_freeze": false,
+  "inputs": {
+    "bundle_manifest": {
+      "path": "artifacts/sp6/sp6_bundle_manifest.csv",
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c"
+    },
+    "generator_source": {
+      "path": "src/leakbench/mechanisms/__init__.py",
+      "sha256": "0f1c605ea4afeeb70cb8fa300f58f97c9e347762f6943b3cd93a21f500e9227f"
+    },
+    "canonical_models": {
+      "path": "src/leakbench/models/core_models.py",
+      "sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e"
+    },
+    "r2_manifest": {
+      "path": "results/edbt_t0_r2/manifest.json",
+      "sha256": "7f5392673771bc6eec81d21a45e6b3fad22ffd0c5ea776e8e7d589700704742b"
+    },
+    "r2_validation_receipt": {
+      "path": "results/edbt_t0_r2/validation_receipt_clean_integration.json",
+      "sha256": "9e6638cd5f2961556e2b91143ba5469defa485e8986f06b3039ce1c9f5a883d0"
+    }
+  },
+  "v2_configs": {
+    "policy_registry_v2": {
+      "path": "configs/edbt_t0_b/policy_registry_v2.yaml",
+      "sha256": "105fff6cb140ef9826c44f4796942c8408b401868a5541523eb1436827f72e7f"
+    },
+    "policy_group_registry_v2": {
+      "path": "configs/edbt_t0_b/policy_group_registry_v2.json",
+      "sha256": "a206890da9c8c6706cab89fc31bd0eb0ab935680c64f94b175fdaf0ddab2f2f3"
+    },
+    "semantic_evaluation_labels_v2": {
+      "path": "configs/edbt_t0_b/semantic_evaluation_labels_v2.json",
+      "sha256": "8ccd09f662ffedcf79898f702609c66b781bca201be23eee6fecedbb349ae827"
+    },
+    "cost_contracts_v2": {
+      "path": "configs/edbt_t0_b/cost_contracts_v2.json",
+      "sha256": "cb1e87a8901aba9fdddec3d6f53a4d0fb919da25a5ba19aa6adf090ebd20ab1b"
+    },
+    "model_factories_v2": {
+      "path": "configs/edbt_t0_b/model_factories_v2.json",
+      "sha256": "ff60d8a2e3e461b90306f5dbb10a8ec8aac3f9769ac3a9ac5e73a526528b1e28"
+    },
+    "claim_gates_v2": {
+      "path": "configs/edbt_t0_b/claim_gates_v2.json",
+      "sha256": "983e1dd78115b5a45b344b1363bfac5297e0172d3a441cae1b3db8b2007e1b04"
+    },
+    "execution_matrix_v2": {
+      "path": "configs/edbt_t0_b/execution_matrix_v2.json",
+      "sha256": "591cd5dcfadc4c7a5676b85c51114b43714617bc764ec71ee3e0fd849e0131d6"
+    },
+    "pareto_contract_v2": {
+      "path": "configs/edbt_t0_b/pareto_contract_v2.json",
+      "sha256": "0830aceb1bf12dfd59cb0d74a4dbdeebdf1e9d4e20dd42147260a62bbefff782"
+    }
+  },
+  "v2_reports": {
+    "protocol_v2": {
+      "path": "reports/edbt_t0_b/protocol_v2.md",
+      "sha256": "895f4c03255a076539604f0386fe883c018b9f5a17c407073b088678ae76d47e"
+    },
+    "amendment_001": {
+      "path": "reports/edbt_t0_b/protocol_amendment_001.md",
+      "sha256": "4237f39d1087a4670f3c9be03c6a731fdb57af6cba15cd93fc390a5ebb7c0c40"
+    },
+    "lineage_audit": {
+      "path": "reports/edbt_t0_b/semantic_lineage_audit_v2.md",
+      "sha256": "fc8eb763b26ccee82b043efcb1704db4ff36b424dd4d2cf7223bd24936154479"
+    },
+    "runtime_plan": {
+      "path": "reports/edbt_t0_b/runtime_plan_v2.md",
+      "sha256": "d1591b377a6b5775dcafb3787984ab0a1639eb2c8a6aeaa6c4fe1cc5767a3323"
+    },
+    "static_preflight": {
+      "path": "reports/edbt_t0_b/static_preflight_report_v2.md",
+      "sha256": "e44f708345001c763d1fb86736abd667efa5154d7fecd1e250d0c20a97a74945"
+    }
+  },
+  "v2_code": {
+    "budget_contract": {
+      "path": "scripts/t0_b/budget_contract.py",
+      "sha256": "c7a9258eda9f7ff9df6f4b1e08e69e8224c6c1e0e0a66a1776d7f0ad5fb76d5e"
+    },
+    "seed_contract": {
+      "path": "scripts/t0_b/seed_contract.py",
+      "sha256": "f8440d5b35487b6ed61f67ddcc65fa4354f43adbf18156315528c1409e840cd7"
+    },
+    "policy_views": {
+      "path": "scripts/t0_b/policy_views.py",
+      "sha256": "25ca0ce9c95f86ac96a63854aacdfc509b7b4dd17b12009fa1758aea5ac854cf"
+    },
+    "semantic_registry": {
+      "path": "scripts/t0_b/semantic_registry.py",
+      "sha256": "cf9a4c7db608ac934ff6d4c94b7431810c797f36a057c925735b4185f26e80da"
+    },
+    "claim_gates": {
+      "path": "scripts/t0_b/claim_gates.py",
+      "sha256": "6121523732349d3e7f428345129def66ea87ee3e3aa48442abbdd4d12fe7901b"
+    },
+    "pareto": {
+      "path": "scripts/t0_b/pareto.py",
+      "sha256": "59fa8cf4a1759a69208c2ac6aacdd7ee61b65a86e52985172571d4d91a70fef1"
+    },
+    "static_validator": {
+      "path": "scripts/t0_b/validate_protocol_freeze_v2.py",
+      "sha256": "d310758d374e727c6fbfb9fb7289b7108a8f3dae2e0f9f857fa54add3e26393e"
+    }
+  },
+  "v2_tests": {
+    "static_tests": {
+      "path": "tests/t0_b/test_static_v2.py",
+      "sha256": "ff693a9743fad394fc9a59d12b3c687d567ebf48eb1b3e42fcd58bf8ab1c0baa"
+    }
+  },
+  "execution_counts": {
+    "downstream_fits": 1089000,
+    "ranking_model_fits": 22000
+  },
+  "frozen_constants": {
+    "gov_seeds": "2026071700 + i for i in range(20)",
+    "mi_seed": 42,
+    "budgets_bp": [
+      500,
+      1000,
+      2000
+    ],
+    "bootstrap_seed": 20260719,
+    "bootstrap_reps": 20000,
+    "models": [
+      "lr",
+      "rf",
+      "lightgbm"
+    ],
+    "policies": [
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+    ],
+    "contracts": [
+      "semantic_group",
+      "encoded_column"
+    ]
+  },
+  "forbidden": [
+    "Post-outcome protocol modification",
+    "Adding custom claim statuses",
+    "Filtering sparse/low-opportunity/negative keys",
+    "Choosing group aggregation based on outcomes",
+    "Labeling task-reweighting interval as population CI",
+    "Presenting oracle policy as deployable"
+  ]
+}
