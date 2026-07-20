@@ -19,11 +19,11 @@
     },
     "receipt_v4_1": {
       "path": "results/edbt_t0_b/static_validation_receipt_v4_1.json",
-      "sha256": "187bcd5b459e5f2aa314806b1792e9f36e94fd7ed99d8839167b48693f409829"
+      "sha256": "1577cb82dd57e864ef72cc2b1b3ede7760ee5fc2e60c0e6298187cf6c618ecc9"
     },
     "validator_v4_1": {
       "path": "scripts/t0_b_v4/validate_protocol_freeze_v4_1.py",
-      "sha256": "7d51a7e6a514d236078296fc57b6d06a31e7783772fa7378fe98a82fe6222a0c"
+      "sha256": "731e137179dfda29378423f8fd20abdc14a6b7a325d5c7032517b0f01539722b"
     },
     "test_v4": {
       "path": "tests/t0_b_v4/test_v4_executable.py",
@@ -31,7 +31,7 @@
     },
     "test_v4_1": {
       "path": "tests/t0_b_v4/test_v4_1_validation_closure.py",
-      "sha256": "9191219a1dfdbc38ae57affcd8d0153d8891617af60aaf19fd49bb96e37a6ca1"
+      "sha256": "2067d89652fdbd549ba69be386a97d42631c6a66e6ad1e41611d8edb1b881a7f"
     },
     "dryrun_matrix": {
       "path": "configs/edbt_t0_b/dryrun_matrix_v4.json",
@@ -64,6 +64,15 @@
     "results_corrected_v2_task_bundles_panel_03_npz": {
       "path": "results/corrected_v2/task_bundles/panel_03.npz",
       "sha256": "d101423b77976309f516ea3ee779fc9fb80c2bc5b6adfe3c8199476da16dc180"
+    },
+    "amendment_005": {
+      "path": "reports/edbt_t0_b/protocol_amendment_005_tested_tree_seal.md",
+      "sha256": "61e00915af66225d083a83d30d78ae69857900cb158a58ccf82353f48f6c52f0"
+    },
+    "lineage_v4_1r": {
+      "path": "results/edbt_t0_b/validation_lineage_v4_1r.json",
+      "sha256": "a92ecdb207b3413f09c8df58a26e154ae8b939e0ef3b1d2cd82ea485bb875a38"
     }
-  }
+  },
+  "implementation_seal_sha": "4cfec1f95e6a7acc4c3b23fe1027bdf808883707"
 }
