@@ -1,0 +1,17 @@
+{
+  "python": "3.13.5 | packaged by Anaconda, Inc. | (main, Jun 12 2025, 11:23:37) [Clang 14.0.6 ]",
+  "platform": "macOS-15.6-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "numpy": "2.1.3",
+  "pandas": "2.2.3",
+  "sklearn": "1.6.1",
+  "scipy": "1.15.3",
+  "cpu_count_logical": 10,
+  "OMP_NUM_THREADS": "unset",
+  "MKL_NUM_THREADS": "unset",
+  "OPENBLAS_NUM_THREADS": "unset",
+  "git_sha": "e2d3c8f20bc63b1d302b451382989005011a305e",
+  "scientific_freeze_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
+  "r2_runner_seal_sha": "b1fb0041a2e6ebdef817b5be489b9c85993002de",
+  "validation_scope": "LOCAL_VALIDATION_ONLY"
+}

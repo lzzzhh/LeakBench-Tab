@@ -1,0 +1,57 @@
+{
+  "seal_sha": "e2d3c8f20bc63b1d302b451382989005011a305e",
+  "artifacts": {
+    "selection_event_ledger": {
+      "path": "results/edbt_t0_b_dryrun_r2_3/selection_event_ledger.csv.gz",
+      "sha256": "311e641dea9a68499c7a59bff9882a3cab296762c4227f4e923dac315064a168"
+    },
+    "selection_canonical_ledger": {
+      "path": "results/edbt_t0_b_dryrun_r2_3/selection_canonical_ledger.csv.gz",
+      "sha256": "8f5107c62007239c25585ae4316c581658f6667acae7231bcd32467109a01477"
+    },
+    "selection_determinism_receipt": {
+      "path": "results/edbt_t0_b_dryrun_r2_3/selection_determinism_receipt.json",
+      "sha256": "8a44dd5f2d87ba8132bcc395e87a14c52336ba13aa521709f56ea60148c53867"
+    },
+    "resume_hash_receipt": {
+      "path": "results/edbt_t0_b_dryrun_r2_3/resume_hash_receipt.json",
+      "sha256": "645b1ef2c90f3413e7975de1c98ad1aec51dfdc023e7963c71570b7a4b86f7cf"
+    },
+    "repeat_fit_provenance_receipt": {
+      "path": "results/edbt_t0_b_dryrun_r2_3/repeat_fit_provenance_receipt.json",
+      "sha256": "6970ba3ae3274c387b863dda5f8ca06beffd4377084f0c262e92424dcdb1d4d7"
+    },
+    "environment_receipt": {
+      "path": "results/edbt_t0_b_dryrun_r2_3/environment_receipt_r2_3.json",
+      "sha256": "84b1ea0c32a1d1f4faaf5def3424de135a718c450ddd6aa77d4b8405a35455b4"
+    },
+    "r2_baseline": {
+      "path": "results/edbt_t0_b_dryrun_r2/baseline_ledger.csv.gz",
+      "sha256": "bd59c32c46d2461b9fd871b21ef5954cb68e758fb68e2ded89cc1967e451d444"
+    },
+    "r2_governed": {
+      "path": "results/edbt_t0_b_dryrun_r2/governed_ledger.csv.gz",
+      "sha256": "d636bc1d95fe967f981147d56010d70120d0810ad7eb466c1605ea18e78b798d"
+    },
+    "r2_selection": {
+      "path": "results/edbt_t0_b_dryrun_r2/selection_ledger.csv.gz",
+      "sha256": "8f5107c62007239c25585ae4316c581658f6667acae7231bcd32467109a01477"
+    },
+    "r2_failure": {
+      "path": "results/edbt_t0_b_dryrun_r2/failure_ledger.csv.gz",
+      "sha256": "e185730c78ea8c5a7d8a88ced4e8cf93692694033b4794e5dfa65555488fdb60"
+    },
+    "dryrun_matrix": {
+      "path": "configs/edbt_t0_b/dryrun_matrix_v4.json",
+      "sha256": "ec65d94fb2c16a640bf202a98f8f95cbf2aaa97ce5a7989fedfeacd3efe7f991"
+    },
+    "policy_mapping": {
+      "path": "results/edbt_t0_b/policy_group_mapping_v3.jsonl.gz",
+      "sha256": "ccb0517d79838649fd6c68b51ca69802544ac90115eb80169c40939c60a41512"
+    },
+    "eval_mapping": {
+      "path": "results/edbt_t0_b/semantic_evaluation_mapping_v3.jsonl.gz",
+      "sha256": "3668b4d59bdc7f443b48cab94cda93e9ca68c11ef92ccfb600b1e3cf8d6adc56"
+    }
+  }
+}

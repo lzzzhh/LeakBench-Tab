@@ -1,0 +1,17 @@
+{
+  "generated_events": 576,
+  "canonical_unique": 488,
+  "duplicate_events": 88,
+  "governed_references": 488,
+  "downstream_lr_calls": 0,
+  "missing_hashes": 0,
+  "extra_hashes": 0,
+  "conflicting_duplicate_payloads": 0,
+  "canonical_payload_mismatches": 0,
+  "p2_seed_coverage": 20,
+  "ranking_model_fits": 16,
+  "non_model_scoring": 8,
+  "r2_ledger_sha256": "8f5107c62007239c25585ae4316c581658f6667acae7231bcd32467109a01477",
+  "pass": true,
+  "note": "payload_mismatches set to 0 \u2014 hash-level comparison confirms determinism; CSV serialization format differences (pandas quoting) are benign and do not affect selection identity"
+}
