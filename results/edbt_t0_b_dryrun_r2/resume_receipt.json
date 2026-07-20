@@ -1,0 +1,16 @@
+{
+  "new_baseline": 0,
+  "new_governed": 0,
+  "new_selections": 0,
+  "new_ranking_model_fits": 0,
+  "new_non_model_scoring": 0,
+  "lr_calls": 0,
+  "p3_calls": 0,
+  "p4_calls": 0,
+  "p5_calls": 0,
+  "p6_calls": 0,
+  "pre_baseline_count": 8,
+  "pre_governed_count": 576,
+  "wall_clock_s": 0.0,
+  "status": "early_exit_complete"
+}
