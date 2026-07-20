@@ -10,8 +10,10 @@
   "OMP_NUM_THREADS": "unset",
   "MKL_NUM_THREADS": "unset",
   "OPENBLAS_NUM_THREADS": "unset",
-  "git_sha": "e2d3c8f20bc63b1d302b451382989005011a305e",
+  "git_sha": "405c2f2ce54b03205f6fd3d6571b482fd1d26516",
   "scientific_freeze_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
   "r2_runner_seal_sha": "b1fb0041a2e6ebdef817b5be489b9c85993002de",
-  "validation_scope": "LOCAL_VALIDATION_ONLY"
+  "validation_scope": "LOCAL_VALIDATION_ONLY",
+  "timezone": "AEST",
+  "cpu_count_physical": null
 }

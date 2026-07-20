@@ -1,4 +1,5 @@
 {
+  "subprocess_returncode": 0,
   "pre_resume": {
     "baseline_ledger.csv.gz": {
       "sha256": "bd59c32c46d2461b9fd871b21ef5954cb68e758fb68e2ded89cc1967e451d444",
@@ -38,7 +39,13 @@
   "sha_match": true,
   "rows_match": true,
   "duplicate_run_ids": 0,
-  "resume_wall_clock_s": 1.18,
-  "resume_stdout_first_100": "Resume: already complete (8 baseline, 576 governed). No work needed.\n",
+  "resume_wall_clock_s": 1.15,
+  "r2_resume_receipt_sha256": "5cf4d2a426b49959e687d5e1f8c154677978fd3097844a12d4becedc20df5288",
+  "r2_resume_new_baseline": 0,
+  "r2_resume_new_governed": 0,
+  "r2_resume_new_selections": 0,
+  "r2_resume_lr_calls": 0,
+  "r2_resume_p3_calls": 0,
+  "r2_resume_stdout_first_100": "Resume: already complete (8 baseline, 576 governed). No work needed.\n",
   "pass": true
 }
