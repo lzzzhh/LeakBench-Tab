@@ -19,7 +19,7 @@
     },
     "receipt_v4_1": {
       "path": "results/edbt_t0_b/static_validation_receipt_v4_1.json",
-      "sha256": "04ee4d699d0f93a47c9ba98d330633b91e926c459b1ea1ea76bc685c0c27d7c5"
+      "sha256": "57098c98456eff0d26ced4dd3a100a25204125961ffb88e01356841355ff6007"
     },
     "validator_v4_1": {
       "path": "scripts/t0_b_v4/validate_protocol_freeze_v4_1.py",
