@@ -4,14 +4,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import gzip, hashlib, io, json, os, sys, time
 from pathlib import Path; import numpy as np, pandas as pd
-from sklearn.metrics import roc_auc_score
 
 ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
 
 from scripts.t0_b_v3.budget_contract import compute_k
 from scripts.t0_b_v3.seed_contract import derive_p2_seed
 from scripts.t0_b_v3.selection_hash import hash_encoded_selection, hash_semantic_selection
-from scripts.t0_b_v3.policy_selectors import score_mi, score_point_biserial, score_lr_coef, score_rf_permutation, group_max_score, top_k_groups, top_k_columns
+# Lazy imports for selectors (only in production mode)
+# from scripts.t0_b_v3.policy_selectors import ...
 from scripts.t0_b_full_b1.run_key_contract import baseline_lookup_key, governed_lookup_key, build_run_id_lookup
 
 # ======================================================================
@@ -47,19 +47,28 @@ class ExecutionDependencies:
 
     def mi_scorer(self, Xtr, ytr):
         self.counter.p3 += 1
-        return np.random.RandomState(42).rand(Xtr.shape[1]) if self.mode == "synthetic" else score_mi(Xtr, ytr)
+        if self.mode == "synthetic": return np.random.RandomState(42).rand(Xtr.shape[1])
+        from scripts.t0_b_v3.policy_selectors import score_mi; return score_mi(Xtr, ytr)
     def pb_scorer(self, Xtr, ytr):
         self.counter.p4 += 1
-        return np.abs(np.random.RandomState(43).randn(Xtr.shape[1])) if self.mode == "synthetic" else score_point_biserial(Xtr, ytr)
+        if self.mode == "synthetic": return np.abs(np.random.RandomState(43).randn(Xtr.shape[1]))
+        from scripts.t0_b_v3.policy_selectors import score_point_biserial; return score_point_biserial(Xtr, ytr)
     def lr_scorer(self, Xtr, ytr):
         self.counter.p5 += 1
-        return np.abs(np.random.RandomState(44).randn(Xtr.shape[1])) if self.mode == "synthetic" else score_lr_coef(Xtr, ytr)
+        if self.mode == "synthetic": return np.abs(np.random.RandomState(44).randn(Xtr.shape[1]))
+        from scripts.t0_b_v3.policy_selectors import score_lr_coef; return score_lr_coef(Xtr, ytr)
     def rf_scorer(self, Xtr, ytr):
         self.counter.p6 += 1
-        return np.abs(np.random.RandomState(45).randn(Xtr.shape[1])) if self.mode == "synthetic" else score_rf_permutation(Xtr, ytr)
+        if self.mode == "synthetic": return np.abs(np.random.RandomState(45).randn(Xtr.shape[1]))
+        from scripts.t0_b_v3.policy_selectors import score_rf_permutation; return score_rf_permutation(Xtr, ytr)
 
     def mapping_loader(self, gz_name, key_tuple):
-        data = gzip.decompress((ROOT / "results/edbt_t0_b" / gz_name).read_bytes()).decode("utf-8")
+        if self.mode == "synthetic":
+            synth_name = "synthetic_policy_group_mapping.jsonl.gz" if "policy" in gz_name else "synthetic_semantic_evaluation_mapping.jsonl.gz"
+            path = ROOT / "results/edbt_t0_b_full_b1_preflight/synthetic_full_contract" / synth_name
+        else:
+            path = ROOT / "results/edbt_t0_b" / gz_name
+        data = gzip.decompress(path.read_bytes()).decode("utf-8")
         for line in data.strip().split("\n"):
             r = json.loads(line)
             if (r["dataset_index"], r["mechanism"], r["strength"], r["training_seed"]) == key_tuple:
@@ -69,6 +78,7 @@ class ExecutionDependencies:
 
 def execute_key(kp, deps, run_ids):
     """Unified kernel."""
+    from sklearn.metrics import roc_auc_score
     ds, mech, st, ts = kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]
     eval_info = deps.mapping_loader("semantic_evaluation_mapping_v3.jsonl.gz", (ds, mech, st, ts))
     pol_info = deps.mapping_loader("policy_group_mapping_v3.jsonl.gz", (ds, mech, st, ts))
@@ -95,6 +105,7 @@ def execute_key(kp, deps, run_ids):
 
     Xtr, ytr = X[tr], y[tr]
     scores = {p: f(Xtr, ytr) for p, f in [("P3", deps.mi_scorer), ("P4", deps.pb_scorer), ("P5", deps.lr_scorer), ("P6", deps.rf_scorer)]}
+    from scripts.t0_b_v3.policy_selectors import group_max_score, top_k_groups, top_k_columns
     gscores = {p: group_max_score(scores[p], groups) for p in scores}
 
     CT = ["semantic_group", "encoded_column"]; BP = [500, 1000, 2000]; G = list(range(2026071700, 2026071720))
