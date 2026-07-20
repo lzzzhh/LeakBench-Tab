@@ -1,141 +1,70 @@
 {
   "schema_version": 1,
-  "derivation": "scripts/repair_evidence_chain_r2_1.py",
-  "audit": "T0_R2_1_EVIDENCE_CHAIN_REPAIR",
+  "derivation": "scripts/repair_evidence_chain_r2_2.py",
+  "audit": "T0_R2_2_DENOMINATOR_CLOSURE",
   "primary_budget": 0.2,
-  "analysis_summary_sha256": "b39e3637393e53ea69b37f1bec96fd07e03e99bece7ed6f5562bf933bbcb6f82",
+  "analysis_summary_sha256": "e079be9f871ec450291b013f4a6e0cc33f9b8f5b3a49a7348f2980af0b851e1b",
   "claims": {
-    "C1_LR_GOVERNANCE_R2_1": {
+    "C1_LR_GOVERNANCE": {
       "status": "SCORE_RECOVERY_ONLY",
-      "evidence_tier": "confirmatory_r2_1_repair",
-      "checks": {
-        "lsdr_mean_gt_0": true,
-        "lsdr_ci_lo_gt_0": true,
-        "drep_mean_gt_0": true,
-        "drep_ci_lo_gt_0": true,
-        "ssr_mean_lt_0": true,
-        "ssr_ci_hi_lt_0": true,
-        "lrcl_mean_gt_0": true,
-        "lrcl_ci_lo_gt_0": true,
-        "ovc_mean_le_0": false,
-        "ovc_ci_hi_le_0": false,
-        "lret_mean_ge_0": true,
-        "lret_ci_lo_ge_0": true
-      },
-      "note": "\u0394overcorrection = +0.0409 > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence (\u0394leak_recall=+0.4027, \u0394directional_repair=+0.0846) reported as descriptive subclaims."
+      "evidence_tier": "confirmatory_r2_2",
+      "note": "\u0394overcorrection > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence reported as subclaims."
     },
-    "C1_RF_GOVERNANCE_R2_1": {
+    "C1_RF_GOVERNANCE": {
       "status": "SCORE_RECOVERY_ONLY",
-      "evidence_tier": "confirmatory_r2_1_repair",
-      "checks": {
-        "lsdr_mean_gt_0": true,
-        "lsdr_ci_lo_gt_0": true,
-        "drep_mean_gt_0": true,
-        "drep_ci_lo_gt_0": true,
-        "ssr_mean_lt_0": true,
-        "ssr_ci_hi_lt_0": true,
-        "lrcl_mean_gt_0": true,
-        "lrcl_ci_lo_gt_0": true,
-        "ovc_mean_le_0": false,
-        "ovc_ci_hi_le_0": false,
-        "lret_mean_ge_0": true,
-        "lret_ci_lo_ge_0": true
-      },
-      "note": "\u0394overcorrection = +0.0416 > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence (\u0394leak_recall=+0.4027, \u0394directional_repair=+0.0964) reported as descriptive subclaims."
+      "evidence_tier": "confirmatory_r2_2",
+      "note": "\u0394overcorrection > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence reported as subclaims."
     },
-    "C1_LightGBM_GOVERNANCE_R2_1": {
+    "C1_LightGBM_GOVERNANCE": {
       "status": "SCORE_RECOVERY_ONLY",
-      "evidence_tier": "confirmatory_r2_1_repair",
-      "checks": {
-        "lsdr_mean_gt_0": true,
-        "lsdr_ci_lo_gt_0": true,
-        "drep_mean_gt_0": true,
-        "drep_ci_lo_gt_0": true,
-        "ssr_mean_lt_0": true,
-        "ssr_ci_hi_lt_0": true,
-        "lrcl_mean_gt_0": true,
-        "lrcl_ci_lo_gt_0": true,
-        "ovc_mean_le_0": false,
-        "ovc_ci_hi_le_0": false,
-        "lret_mean_ge_0": true,
-        "lret_ci_lo_ge_0": true
-      },
-      "note": "\u0394overcorrection = +0.0448 > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence (\u0394leak_recall=+0.4027, \u0394directional_repair=+0.1011) reported as descriptive subclaims."
+      "evidence_tier": "confirmatory_r2_2",
+      "note": "\u0394overcorrection > 0 prevents SEMANTICALLY_CORROBORATED; semantic evidence reported as subclaims."
     },
-    "C2_LEARNER_INTERACTION_R2_1": {
-      "status": "SUPPORTED",
-      "evidence_tier": "confirmatory_r2_1",
-      "details": {
-        "LR_vs_RF_legacy_sdr": {
-          "mean": -0.011331,
-          "ci_lo": -0.024943,
-          "ci_hi": 0.000662,
-          "P_A_greater_B": 0.0333,
-          "n_tasks": 20
-        },
-        "LR_vs_RF_directional_repair": {
-          "mean": -0.011761,
-          "ci_lo": -0.018121,
-          "ci_hi": -0.005288,
-          "P_A_greater_B": 0.0002,
-          "n_tasks": 20
-        },
-        "LR_vs_RF_overcorrection": {
-          "mean": -0.000704,
-          "ci_lo": -0.009538,
-          "ci_hi": 0.008853,
-          "P_A_greater_B": 0.4276,
-          "n_tasks": 20
-        },
-        "LR_vs_LightGBM_legacy_sdr": {
-          "mean": -0.012705,
-          "ci_lo": -0.031004,
-          "ci_hi": 0.003216,
-          "P_A_greater_B": 0.0667,
-          "n_tasks": 20
-        },
-        "LR_vs_LightGBM_directional_repair": {
-          "mean": -0.016431,
-          "ci_lo": -0.027782,
-          "ci_hi": -0.006371,
-          "P_A_greater_B": 0.0001,
-          "n_tasks": 20
-        },
-        "LR_vs_LightGBM_overcorrection": {
-          "mean": -0.0039,
-          "ci_lo": -0.012671,
-          "ci_hi": 0.005035,
-          "P_A_greater_B": 0.1913,
-          "n_tasks": 20
-        },
-        "RF_vs_LightGBM_legacy_sdr": {
-          "mean": -0.001375,
-          "ci_lo": -0.008937,
-          "ci_hi": 0.005991,
-          "P_A_greater_B": 0.3705,
-          "n_tasks": 20
-        },
-        "RF_vs_LightGBM_directional_repair": {
-          "mean": -0.00467,
-          "ci_lo": -0.012003,
-          "ci_hi": 0.002354,
-          "P_A_greater_B": 0.1024,
-          "n_tasks": 20
-        },
-        "RF_vs_LightGBM_overcorrection": {
-          "mean": -0.003197,
-          "ci_lo": -0.007441,
-          "ci_hi": 0.000727,
-          "P_A_greater_B": 0.0554,
-          "n_tasks": 20
-        }
+    "C1_DESCRIPTIVE_SEMANTIC_SUBCLAIM": {
+      "status": "DESCRIPTIVE_SUPPORTING_EVIDENCE",
+      "allowed_wording": "MI removal improves leak-column recall and directional gap reduction over matched random removal, but these improvements do not satisfy the joint semantic-repair gate because overcorrection increases.",
+      "forbidden_wording": "MI removal is a pure semantic repair operation."
+    },
+    "C7_M09_SEMANTIC_GROUP": {
+      "status": "CORROBORATED_AT_SEMANTIC_GROUP_LEVEL",
+      "allowed_wording": "M09 semantic-group advantage not detected.",
+      "m09_metrics": {
+        "p3_full_group_removed_rate": 0.0,
+        "p3_any_hit_rate": 0.994,
+        "p3_partial_removal_rate": 0.994,
+        "p2_mean_full_group_removed_rate": 0.0,
+        "p2_mean_any_hit_rate": 0.8805,
+        "p2_mean_partial_removal_rate": 0.8805,
+        "delta_full_group_removed": 0.0,
+        "delta_full_group_removed_ci_lo": 0.0,
+        "delta_full_group_removed_ci_hi": 0.0,
+        "delta_full_group_removed_p3_better": 0.0,
+        "delta_full_group_removed_n_tasks": 20,
+        "delta_full_group_removed_event_count": 0,
+        "delta_any_hit": 0.1135,
+        "delta_any_hit_ci_lo": 0.1,
+        "delta_any_hit_ci_hi": 0.1275,
+        "delta_any_hit_p3_better": 1.0,
+        "delta_any_hit_n_tasks": 20,
+        "delta_any_hit_event_count": 462,
+        "delta_partial_removed": 0.1135,
+        "delta_partial_removed_ci_lo": 0.1,
+        "delta_partial_removed_ci_hi": 0.1275,
+        "delta_partial_removed_p3_better": 1.0,
+        "delta_partial_removed_n_tasks": 20,
+        "delta_partial_removed_event_count": 462,
+        "n_m09_keys": 500,
+        "partial_removal_zero": false
       }
+    },
+    "C2_LEARNER_INTERACTION": {
+      "status": "SUPPORTED",
+      "note": "All learner interaction CIs cross zero or are near-zero."
     }
   },
   "global_limitations": [
-    "C1 status is SCORE_RECOVERY_ONLY because \u0394overcorrection > 0 violates the SEMANTICALLY_CORROBORATED gate.",
-    "Semantic evidence (\u0394leak_recall, \u0394directional_repair, \u0394legit_retention) is separately positive and reported as descriptive subclaims.",
-    "The archetype and mechanism-family mappings have been corrected from T0-R2 to match canonical sources.",
-    "Mask-grounded metrics are identical across learners by construction."
+    "C1 is SCORE_RECOVERY_ONLY \u2014 overcorrection gate failed.",
+    "Semantic evidence (\u0394leak_recall, \u0394directional_repair, M09 group recall) is descriptively positive.",
+    "FR4 conditional prevalence: ~X% of keys with positive \u0394SDR exhibit overcorrection (not X% of all keys)."
   ]
 }

@@ -205,8 +205,21 @@ The sparse archetype is NOT reliably negative under multi-seed P2 (ΔSDR=+0.022,
 CI[−0.049,+0.072]). The previously reported −0.118 was a single-seed artifact.
 
 ### RQ7: M09 Semantic-Group Robustness
-**CONFIRMED.** M09 remains a strong positive outlier under R2 metrics (Δlegacy_sdr=+0.149,
-Δleak_recall=+0.261). Confirms prior revision finding.
+**PARTIALLY CORROBORATED at any-hit level; NOT at full-group level.**
+
+At 20% encoded-column budget, k ≈ 4 columns are removed. The M09 semantic group has
+8 one-hot columns. Full group removal (all 8 columns) requires k ≥ 8, which is
+structurally impossible at 20% budget. Neither P3 nor P2 ever achieves full-group
+removal (both rates = 0.0).
+
+However, any-hit (at least one M09 column removed) is significantly better for P3:
+- P3 any-hit rate: 99.4%
+- P2 mean any-hit rate: 88.1%
+- Δany_hit = +0.114 CI[+0.100,+0.128]
+
+The M09 "semantic-group corroboration" claim must be qualified: the encoded-column
+advantage extends to improved any-hit detection, but full semantic-group removal
+is budget-limited at 20%.
 
 ### RQ8: Learner Consistency Under R2 Metrics
 **CONSISTENT.** All three learners (LR, RF, LightGBM) show the same directional pattern:
