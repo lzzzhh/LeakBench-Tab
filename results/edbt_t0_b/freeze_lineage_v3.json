@@ -1,0 +1,19 @@
+{
+  "schema_version": 3,
+  "v1_freeze_commit": "fbaa9f3bfad9eda52b25c64bd07561aa5bd8ad33",
+  "v1_status": "SUPERSEDED_PRE_OUTCOME",
+  "v2_freeze_commit": "c5b11b12ebaa710649a41c078b0c08e84a3fd955",
+  "v2_status": "SUPERSEDED_PRE_OUTCOME",
+  "outcomes_observed_before_v3": false,
+  "v2_rejection_reasons": [
+    "POLICY_REGISTRY_NOT_UPDATED",
+    "POLICY_VISIBLE_PROVENANCE_LEAK",
+    "PER_KEY_MAPPING_NOT_FROZEN",
+    "SELECTION_HASH_CONTRACT_MISSING",
+    "STATIC_TEST_FALSE_POSITIVES",
+    "VALIDATOR_HASH_CLOSURE_MISSING",
+    "RESULT_ROW_ACCOUNTING_CONFLICT",
+    "DRYRUN_MATRIX_NOT_FROZEN"
+  ],
+  "effective_freeze": "results/edbt_t0_b/protocol_freeze_v3.json"
+}

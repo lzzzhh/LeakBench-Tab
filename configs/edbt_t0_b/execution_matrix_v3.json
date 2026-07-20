@@ -1,0 +1,19 @@
+{
+  "schema_version": 3,
+  "baseline_ledger": "per-learner, per-key, strict+full = 2 rows per key, not replicated by contract/budget",
+  "governed_ledger": "P2-P6 actual governed evaluations only; P0/P1 are analysis-time virtual references",
+  "b1_lr": {
+    "baseline_fits": 11000,
+    "governed_fits": 792000,
+    "total_downstream": 803000
+  },
+  "b2_rf_lgbm": {
+    "baseline_fits": 22000,
+    "governed_fits": 264000,
+    "total_downstream": 286000
+  },
+  "grand_total_downstream": 1089000,
+  "ranking_model_fits": 22000,
+  "p6_ranking_rf_fits": "5500 keys \u00d7 3 folds = 16500",
+  "p6_permutation_passes": "5500 \u00d7 3 folds \u00d7 5 repeats = 82500 score evaluations (not model fits)"
+}

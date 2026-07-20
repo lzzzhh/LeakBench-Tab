@@ -1,0 +1,87 @@
+{
+  "schema_version": 3,
+  "audit": "T0_B_MULTIPOLICY_SEMANTIC_COST_V3",
+  "status": "FROZEN_BEFORE_EXPERIMENT",
+  "frozen_at": "2026-07-20T08:44:06Z",
+  "branch": "t0/multipolicy-semantic-cost",
+  "parent_commit": "c5b11b12ebaa710649a41c078b0c08e84a3fd955",
+  "v1_status": "SUPERSEDED_PRE_OUTCOME",
+  "v2_status": "SUPERSEDED_PRE_OUTCOME",
+  "outcome_observed_before_freeze": false,
+  "inputs": {
+    "policy_mapping_gz": {
+      "sha256": "ccb0517d79838649fd6c68b51ca69802544ac90115eb80169c40939c60a41512"
+    },
+    "eval_mapping_gz": {
+      "sha256": "3668b4d59bdc7f443b48cab94cda93e9ca68c11ef92ccfb600b1e3cf8d6adc56"
+    },
+    "selection_hash_py": {
+      "sha256": "3c590c32fde9b681337e15512612c88823c0672b642cd2da6c88f5a1dee3115a"
+    },
+    "budget_py": {
+      "sha256": "3febefb52ef571c9c91fd6f1663d33cd368983b70853599ab567cf01ba62a57a"
+    },
+    "seed_py": {
+      "sha256": "dabeaa9e750dcda2f38ff2d8f4fc410e89c2eb1afb1e4b9ceeadcc8052b64789"
+    },
+    "generate_mapping_py": {
+      "sha256": "f03e19719ed9ecb5c8ed3b35b545ae8c9e38ed6efe9857932badf2a392cc17bf"
+    },
+    "test_v3_py": {
+      "sha256": "3312aa41cdeecb736790ffe225f91778067713fff8e5ab65ae73fbf0689e01ea"
+    },
+    "bundle_manifest": {
+      "sha256": "304c96aeb035ef73ac77703c152a4fe05b00bad97222c4b7cdc080767734221c"
+    },
+    "generator_source": {
+      "sha256": "0f1c605ea4afeeb70cb8fa300f58f97c9e347762f6943b3cd93a21f500e9227f"
+    },
+    "canonical_models": {
+      "sha256": "a1a795d8c0fd8d6b7da5023a1b64e295d154902f8adbaa85715b0f36d511444e"
+    },
+    "r2_manifest": {
+      "sha256": "7f5392673771bc6eec81d21a45e6b3fad22ffd0c5ea776e8e7d589700704742b"
+    },
+    "r2_receipt": {
+      "sha256": "9e6638cd5f2961556e2b91143ba5469defa485e8986f06b3039ce1c9f5a883d0"
+    },
+    "policy_selectors_py": {
+      "sha256": "dbdf4e435a6a1680fb0764bf30675355245e763a0c14596669da202ea27b081d"
+    }
+  },
+  "execution_counts": {
+    "downstream_fits": 1089000,
+    "ranking_model_fits": 22000
+  },
+  "dry_run_keys": 4,
+  "contracts": [
+    "semantic_group",
+    "encoded_column"
+  ],
+  "budgets_bp": [
+    500,
+    1000,
+    2000
+  ],
+  "policies": [
+    "P0",
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P6"
+  ],
+  "models": [
+    "lr",
+    "rf",
+    "lightgbm"
+  ],
+  "forbidden": [
+    "Post-outcome protocol modification",
+    "Old P2 formula: (gov_seed * 100 + dataset_index * 7 + training_seed * 13)",
+    "encoded_column_indices_v1 hash prefix",
+    "Oracle words in policy-visible artifacts",
+    "Custom claim statuses after outcomes"
+  ]
+}

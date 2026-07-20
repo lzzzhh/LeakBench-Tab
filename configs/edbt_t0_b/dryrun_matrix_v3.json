@@ -1,0 +1,46 @@
+{
+  "dataset_indices": [
+    0,
+    3
+  ],
+  "mechanisms": [
+    "M01",
+    "M09"
+  ],
+  "strength": "S3",
+  "training_seed": 42,
+  "learner": "lr",
+  "contracts": [
+    "semantic_group",
+    "encoded_column"
+  ],
+  "budgets_bp": [
+    500,
+    1000,
+    2000
+  ],
+  "policies": [
+    "P0",
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P6"
+  ],
+  "p2_governance_seeds": "2026071700..2026071719 (20 seeds)",
+  "expected_keys": 4,
+  "pass_conditions": [
+    "0 bundle/split hash mismatch",
+    "0 selector oracle-access",
+    "0 duplicate run_id",
+    "0 missing expected row",
+    "semantic contract partial violation = 0",
+    "M09 semantic selection removes exactly 8 columns if group selected",
+    "selection hashes repeat-run identical",
+    "resume does not duplicate rows",
+    "P2 matched cost equal",
+    "LR baseline parity tolerance 1e-6",
+    "any failed row \u2192 BLOCKED"
+  ]
+}
