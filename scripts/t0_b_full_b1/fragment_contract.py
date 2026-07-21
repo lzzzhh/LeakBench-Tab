@@ -100,6 +100,9 @@ class CompletedKeyValidation:
     selection_payload_valid: bool = False
     realized_cost_valid: bool = False
     semantic_atomicity_valid: bool = False
+    mapping_valid: bool = False
+    m09_atomicity_valid: bool = False
+    manifest_selection_digest_valid: bool = False
     planned_run_ids_sha256: str | None = None
     produced_run_ids_sha256: str | None = None
 
@@ -139,8 +142,10 @@ def build_fragment_manifest(
 ) -> dict:
     """Build deterministic fragment manifest."""
     baseline_rows = len(pd.read_csv(pd.io.common.BytesIO(gzip.decompress(baseline_path.read_bytes()))))
-    governed_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(governed_path.read_bytes())))
-    selection_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(selection_path.read_bytes())))
+    governed_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(governed_path.read_bytes())),
+                              dtype={"selection_hash": str})
+    selection_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(selection_path.read_bytes())),
+                               dtype={"selection_hash": str, "removed_encoded_indices": str, "removed_group_ids": str})
     failure_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(failure_path.read_bytes())))
 
     governed_rows = len(governed_df)
@@ -189,50 +194,46 @@ class SelectionContractError(ValueError):
 # ====================================================================
 
 def parse_int_array_json(value) -> list[int]:
-    """Parse a JSON-encoded integer array. Accepts both str (JSON) and list (pre-parsed by pandas)."""
-    if isinstance(value, list):
-        arr = value
-    elif isinstance(value, str):
-        try:
-            arr = json.loads(value)
-        except json.JSONDecodeError as e:
-            raise SelectionContractError(f"JSON parse error: {e}")
-    else:
-        raise SelectionContractError(f"expected str or list, got {type(value).__name__}")
+    """Parse a JSON-encoded integer array. Raw CSV input: MUST be a JSON string."""
+    if not isinstance(value, str):
+        raise SelectionContractError(f"removed_encoded_indices: expected JSON string, got {type(value).__name__}")
+    try:
+        arr = json.loads(value)
+    except json.JSONDecodeError as e:
+        raise SelectionContractError(f"JSON parse error: {e}")
     if not isinstance(arr, list):
-        raise SelectionContractError(f"expected list, got {type(arr).__name__}")
+        raise SelectionContractError(f"expected JSON list, got {type(arr).__name__}")
     result = []
     for i, item in enumerate(arr):
-        if isinstance(item, bool) or not isinstance(item, int):
-            raise SelectionContractError(f"index {i}: expected int, got {type(item).__name__} (value={item})")
-        if item < 0:
-            raise SelectionContractError(f"index {i}: negative encoded index {item}")
-        result.append(item)
+        if isinstance(item, (bool, np.bool_)):
+            raise SelectionContractError(f"index {i}: bool not allowed")
+        if not isinstance(item, Integral):
+            raise SelectionContractError(f"index {i}: expected int, got {type(item).__name__}")
+        v = int(item)
+        if v < 0: raise SelectionContractError(f"index {i}: negative index {v}")
+        result.append(v)
     if len(result) != len(set(result)):
-        raise SelectionContractError(f"duplicate encoded indices found")
+        raise SelectionContractError(f"duplicate encoded indices")
     return sorted(result)
 
 
 def parse_group_id_array_json(value) -> list[str]:
-    """Parse a JSON-encoded string array for group IDs. Accepts both str and list."""
-    if isinstance(value, list):
-        arr = value
-    elif isinstance(value, str):
-        try:
-            arr = json.loads(value)
-        except json.JSONDecodeError as e:
-            raise SelectionContractError(f"JSON parse error: {e}")
-    else:
-        raise SelectionContractError(f"expected str or list, got {type(value).__name__}")
+    """Parse a JSON-encoded string array for group IDs. Raw CSV input: MUST be a JSON string."""
+    if not isinstance(value, str):
+        raise SelectionContractError(f"removed_group_ids: expected JSON string, got {type(value).__name__}")
+    try:
+        arr = json.loads(value)
+    except json.JSONDecodeError as e:
+        raise SelectionContractError(f"JSON parse error: {e}")
     if not isinstance(arr, list):
-        raise SelectionContractError(f"expected list, got {type(arr).__name__}")
+        raise SelectionContractError(f"expected JSON list, got {type(arr).__name__}")
     result = []
     for i, item in enumerate(arr):
-        if not isinstance(item, str) or item == "":
+        if not isinstance(item, str) or item.strip() == "":
             raise SelectionContractError(f"index {i}: expected non-empty str, got {type(item).__name__}")
-        result.append(item)
+        result.append(item.strip())
     if len(result) != len(set(result)):
-        raise SelectionContractError(f"duplicate group IDs found")
+        raise SelectionContractError(f"duplicate group IDs")
     return sorted(result)
 
 
@@ -241,30 +242,29 @@ def parse_group_id_array_json(value) -> list[str]:
 # ====================================================================
 
 def _canonical_selection_json(row: dict) -> str:
-    """Canonical JSON for a selection row (shared by builder and validator)."""
+    """Canonical JSON for a selection row (shared by builder and validator).
+    Uses strict parsing via normalize_selection_payload, then canonical serialization."""
+    payload = normalize_selection_payload(row)
+    return canonical_selection_payload_json(payload)
+
+
+def canonical_selection_payload_json(payload: dict) -> str:
+    """Canonical JSON for an already-normalized selection payload."""
     return json.dumps({
-        "selection_hash": row["selection_hash"],
-        "policy": row["policy"],
-        "contract": row["contract"],
-        "budget_bp": int(row["budget_bp"]),
-        "removed_encoded_indices": sorted(parse_int_array_json(row["removed_encoded_indices"])),
-        "removed_group_ids": sorted(parse_group_id_array_json(row["removed_group_ids"])),
-        "realized_encoded_cost": int(row["realized_encoded_cost"]),
+        "selection_hash": payload["selection_hash"],
+        "policy": payload["policy"],
+        "contract": payload["contract"],
+        "budget_bp": payload["budget_bp"],
+        "removed_encoded_indices": payload["removed_encoded_indices"],
+        "removed_group_ids": payload["removed_group_ids"],
+        "realized_encoded_cost": payload["realized_encoded_cost"],
     }, sort_keys=True, separators=(",", ":"))
 
 
 def normalize_selection_payload(row: dict) -> dict:
     """Parse and normalize a selection row into a validated dict."""
-    # Handle array fields: if pandas pre-parsed as list, re-serialize to JSON string
-    removed_raw = row["removed_encoded_indices"]
-    if isinstance(removed_raw, list):
-        removed_raw = json.dumps(removed_raw)
-    removed = parse_int_array_json(removed_raw)
-
-    groups_raw = row["removed_group_ids"]
-    if isinstance(groups_raw, list):
-        groups_raw = json.dumps(groups_raw)
-    groups = parse_group_id_array_json(groups_raw)
+    removed = parse_int_array_json(row["removed_encoded_indices"])
+    groups = parse_group_id_array_json(row["removed_group_ids"])
 
     h = require_nonempty_str(row["selection_hash"], "selection_hash")
     policy = require_nonempty_str(row["policy"], "policy")
@@ -335,10 +335,12 @@ def validate_governed_realized_cost(governed_df, payload_by_hash: dict) -> list[
     """Governed realized_cost must match selection payload cost."""
     errors = []
     for gi, row in governed_df.iterrows():
-        h = str(row["selection_hash"])
-        gcost = int(row["realized_cost"])
-        if isinstance(row["realized_cost"], bool):
-            gcost = -1
+        try:
+            h = require_nonempty_str(row["selection_hash"], f"governed row {gi} selection_hash")
+            gcost = require_positive_integral(row["realized_cost"], f"governed row {gi} realized_cost")
+        except SelectionContractError as e:
+            errors.append(str(e))
+            continue
         if h in payload_by_hash:
             expected = payload_by_hash[h]["realized_encoded_cost"]
             if gcost != expected:
@@ -383,7 +385,7 @@ def validate_manifest_selection_digest(manifest: dict, sel_hashes: list[str], se
     actual_multiset = _sorted_counts_sha256(sorted(sel_hashes))
     if actual_multiset != manifest.get("selection_hash_multiset_sha256", ""):
         errors.append("manifest selection_hash_multiset_sha256 mismatch")
-    canonical = [_canonical_selection_json(p) for p in sel_payloads]
+    canonical = [canonical_selection_payload_json(p) for p in sel_payloads]
     actual_digest = _sorted_counts_sha256(sorted(canonical))
     if actual_digest != manifest.get("selection_payload_digest_sha256", ""):
         errors.append("manifest selection_payload_digest_sha256 mismatch")
@@ -564,8 +566,10 @@ def validate_completed_key(
     sl_path = fragment_dir / "selection.csv.gz"
     fl_path = fragment_dir / "failure.csv.gz"
     bl_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(bl_path.read_bytes())))
-    gl_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(gl_path.read_bytes())))
-    sl_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(sl_path.read_bytes())))
+    gl_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(gl_path.read_bytes())),
+                         dtype={"selection_hash": str})
+    sl_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(sl_path.read_bytes())),
+                         dtype={"selection_hash": str, "removed_encoded_indices": str, "removed_group_ids": str})
     fl_df = pd.read_csv(pd.io.common.BytesIO(gzip.decompress(fl_path.read_bytes())))
 
     result.baseline_rows = len(bl_df)
@@ -650,7 +654,8 @@ def validate_completed_key(
         validated_map = validate_policy_mapping(policy_mapping, key_plan_row)
     except SelectionContractError as e:
         errors.append(f"policy mapping invalid: {e}")
-        return result
+        result.is_complete = False; return result
+    result.mapping_valid = True
 
     # Encoded-column contract validation
     for p in normalized_payloads:
@@ -658,7 +663,7 @@ def validate_completed_key(
         if ec_errors:
             errors.extend(ec_errors)
     if errors:
-        return result
+        result.is_complete = False; return result
 
     # Semantic-group atomicity
     for p in normalized_payloads:
@@ -666,22 +671,36 @@ def validate_completed_key(
         if sem_errors:
             errors.extend(sem_errors)
     if errors:
-        return result
+        result.is_complete = False; return result
 
     # M09 validation (uses explicit semantic_mapping)
     for p in normalized_payloads:
-        m09_errors = validate_m09_eight_columns(p, validated_map, semantic_mapping, key_plan_row)
+        try:
+            m09_errors = validate_m09_eight_columns(p, validated_map, semantic_mapping, key_plan_row)
+        except SelectionContractError as e:
+            errors.append(f"semantic mapping invalid: {e}")
+            result.is_complete = False; return result
         if m09_errors:
             errors.extend(m09_errors)
     if errors:
-        return result
+        result.is_complete = False; return result
+    # Set semantic flags — M09 passes for non-M09 keys, validated for M09 keys
     result.semantic_atomicity_valid = True
+    result.m09_atomicity_valid = True
 
     # Manifest selection digest closure
     sel_hashes = [p["selection_hash"] for p in normalized_payloads]
     manifest_errors = validate_manifest_selection_digest(manifest, sel_hashes, normalized_payloads)
     if manifest_errors:
-        errors.extend(manifest_errors); return result
+        errors.extend(manifest_errors)
+        result.is_complete = False; return result
+    result.manifest_selection_digest_valid = True
 
-    result.is_complete = True
+    result.is_complete = (
+        result.receipt_valid and result.fragment_manifest_valid and result.fragment_sha_valid
+        and result.run_id_closure_valid and result.selection_closure_valid
+        and result.selection_payload_valid and result.realized_cost_valid
+        and result.mapping_valid and result.semantic_atomicity_valid
+        and result.m09_atomicity_valid and result.manifest_selection_digest_valid
+    )
     return result

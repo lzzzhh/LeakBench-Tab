@@ -24,7 +24,9 @@ def _write_gz(path, df):
 
 def test_parse_int_array_valid():
     assert parse_int_array_json("[1, 2, 3]") == [1, 2, 3]
-    assert parse_int_array_json([1, 2, 3]) == [1, 2, 3]  # pre-parsed
+    # List input must now be rejected
+    with pytest.raises(SelectionContractError, match="JSON string"):
+        parse_int_array_json([1, 2, 3])
 
 def test_parse_int_array_single_element():
     assert parse_int_array_json("[5]") == [5]
