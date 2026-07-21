@@ -28,13 +28,8 @@ from scripts.t0_b_full_b1.run_key_contract import (
 # Dependency injection
 # ======================================================================
 @dataclass
-class CallCounter:
-    lr: int = 0; p3: int = 0; p4: int = 0; p5: int = 0; p6: int = 0
-
-@dataclass
 class ExecutionDependencies:
     mode: str = "production"
-    counter: CallCounter = field(default_factory=CallCounter)
     synthetic_call_counter: SyntheticCallCounter = field(default_factory=SyntheticCallCounter)
     production_guard: ProductionGuard = field(default_factory=ProductionGuard)
 
@@ -44,34 +39,44 @@ class ExecutionDependencies:
             rng = np.random.RandomState(kp["training_seed"])
             X = rng.randn(100, n); y = (X[:, 0] > 0).astype(int)
             return X, y, np.arange(60), np.arange(60, 80), np.arange(80, 100)
+        self.production_guard.real_bundle_loads += 1
         bundle = np.load(ROOT / kp["bundle_path"], allow_pickle=False)
         X = np.concatenate((bundle["base_X"], bundle[f"block__{kp['bundle_key']}"]), axis=1)
         return X, bundle["y"], bundle["train_idx"], bundle["val_idx"], bundle["test_idx"]
 
     def model_factory(self, model_id, Xtr, ytr, Xva, yva, Xte, seed):
-        self.counter.lr += 1
         if self.mode == "synthetic":
+            self.synthetic_call_counter.lr_calls += 1
             rng = np.random.RandomState(seed + len(Xtr))
             class F: probabilities = rng.rand(len(Xte))
             return F()
+        self.production_guard.real_model_calls += 1
         from src.leakbench.models.core_models import fit_predict_core_model
         return fit_predict_core_model(model_id, Xtr, ytr, Xva, yva, Xte, seed)
 
     def mi_scorer(self, Xtr, ytr):
-        self.counter.p3 += 1
-        if self.mode == "synthetic": return np.random.RandomState(42).rand(Xtr.shape[1])
+        if self.mode == "synthetic":
+            self.synthetic_call_counter.p3_calls += 1
+            return np.random.RandomState(42).rand(Xtr.shape[1])
+        self.production_guard.real_selector_calls += 1
         from scripts.t0_b_v3.policy_selectors import score_mi; return score_mi(Xtr, ytr)
     def pb_scorer(self, Xtr, ytr):
-        self.counter.p4 += 1
-        if self.mode == "synthetic": return np.abs(np.random.RandomState(43).randn(Xtr.shape[1]))
+        if self.mode == "synthetic":
+            self.synthetic_call_counter.p4_calls += 1
+            return np.abs(np.random.RandomState(43).randn(Xtr.shape[1]))
+        self.production_guard.real_selector_calls += 1
         from scripts.t0_b_v3.policy_selectors import score_point_biserial; return score_point_biserial(Xtr, ytr)
     def lr_scorer(self, Xtr, ytr):
-        self.counter.p5 += 1
-        if self.mode == "synthetic": return np.abs(np.random.RandomState(44).randn(Xtr.shape[1]))
+        if self.mode == "synthetic":
+            self.synthetic_call_counter.p5_calls += 1
+            return np.abs(np.random.RandomState(44).randn(Xtr.shape[1]))
+        self.production_guard.real_selector_calls += 1
         from scripts.t0_b_v3.policy_selectors import score_lr_coef; return score_lr_coef(Xtr, ytr)
     def rf_scorer(self, Xtr, ytr):
-        self.counter.p6 += 1
-        if self.mode == "synthetic": return np.abs(np.random.RandomState(45).randn(Xtr.shape[1]))
+        if self.mode == "synthetic":
+            self.synthetic_call_counter.p6_calls += 1
+            return np.abs(np.random.RandomState(45).randn(Xtr.shape[1]))
+        self.production_guard.real_selector_calls += 1
         from scripts.t0_b_v3.policy_selectors import score_rf_permutation; return score_rf_permutation(Xtr, ytr)
 
     def mapping_loader(self, gz_name, key_tuple):
@@ -321,14 +326,27 @@ def main():
             cleanup_stale_temp_files(out, min_age_seconds=3600)
             out.mkdir(parents=True, exist_ok=True)
 
-            complete_ids = set(); recomputed = 0
+            # Snapshot counters at shard start
+            synth_start = SyntheticCallCounter(**deps.synthetic_call_counter.snapshot())
+            prod_start = ProductionGuard(**deps.production_guard.snapshot())
+
+            complete_ids = set(); recomputed = 0; invalid_results = {}
             plan_manifest_sha = hashlib.sha256(Path(args.plan_manifest).read_bytes()).hexdigest()
             if args.resume:
                 for kp in shard_keys:
                     cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
                     planned_for_key = sorted(planned_ids.get(cid, set()))
                     result = validate_completed_key(kp, planned_for_key, fdir, plan_manifest_sha)
-                    if result.is_complete: complete_ids.add(cid)
+                    if result.is_complete:
+                        complete_ids.add(cid)
+                    else:
+                        invalid_results[cid] = result.errors
+                # Fail closed: if any key invalid, exit without recompute
+                if invalid_results:
+                    print(f"RESUME_VALIDATION_FAIL: {len(invalid_results)} invalid keys")
+                    for cid, errs in invalid_results.items():
+                        print(f"  {cid[:16]}: {errs[:3]}")
+                    sys.exit(1)
 
             all_bl, all_gl, all_sl = [], [], []; new_keys = 0
             for kp in shard_keys:
@@ -341,7 +359,12 @@ def main():
                     continue
 
                 fdir.mkdir(parents=True, exist_ok=True)
+                # Per-key counter snapshots
+                key_synth_before = SyntheticCallCounter(**deps.synthetic_call_counter.snapshot())
+                key_prod_before = ProductionGuard(**deps.production_guard.snapshot())
                 result = execute_key(kp, deps, rid_lookup.get(cid, {}))
+                key_synth_delta = deps.synthetic_call_counter.delta(key_synth_before)
+                key_prod_delta = deps.production_guard.delta(key_prod_before)
                 new_keys += 1; recomputed += 1
 
                 for name, rows, cols in [
@@ -360,15 +383,15 @@ def main():
                 atomic_write_json(fdir / "fragment_manifest.json", manifest)
                 manifest_sha = hashlib.sha256((fdir/"fragment_manifest.json").read_bytes()).hexdigest()
 
-                # Write completion receipt
+                # Write completion receipt with PER-KEY delta
                 receipt = {"schema_version": 1, "canonical_key_id": cid, "status": "complete",
                     "scientific_freeze_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
                     "execution_contract_version": "v1", "plan_manifest_sha256": plan_manifest_sha,
                     "fragment_manifest_sha256": manifest_sha,
                     "baseline_rows": len(result["baseline_rows"]), "governed_rows": len(result["governed_rows"]),
                     "selection_rows": len(result["selection_rows"]), "failure_rows": 0,
-                    "synthetic_call_counter_delta": deps.synthetic_call_counter.snapshot(),
-                    "production_guard_delta": deps.production_guard.snapshot(),
+                    "synthetic_call_counter_delta": key_synth_delta,
+                    "production_guard_delta": key_prod_delta,
                     "completed_utc": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()}
                 atomic_write_json(fdir / "completion_receipt.json", receipt)
 
@@ -393,18 +416,13 @@ def main():
                             if line: lst.append(line)
 
             # Check duplicates — baseline and governed run IDs only
-            # (selection hashes can legitimately repeat across P2 seeds)
             bl_ids = [l.split(",")[0] for l in all_frag_bl]
             gl_ids = [l.split(",")[0] for l in all_frag_gl]
             bl_dups = _find_duplicates(bl_ids)
             gl_dups = _find_duplicates(gl_ids)
-            if bl_dups:
-                print(f"FAIL: duplicate baseline run IDs: {len(bl_dups)}"); sys.exit(1)
-            if gl_dups:
-                print(f"FAIL: duplicate governed run IDs: {len(gl_dups)}"); sys.exit(1)
-
-            if all_frag_fl:
-                print(f"FAIL: {len(all_frag_fl)} failure rows detected"); sys.exit(1)
+            if bl_dups: print(f"FAIL: duplicate baseline run IDs: {len(bl_dups)}"); sys.exit(1)
+            if gl_dups: print(f"FAIL: duplicate governed run IDs: {len(gl_dups)}"); sys.exit(1)
+            if all_frag_fl: print(f"FAIL: {len(all_frag_fl)} failure rows detected"); sys.exit(1)
 
             sorted_bl = sorted(all_frag_bl)
             sorted_gl = sorted(all_frag_gl)
@@ -421,19 +439,23 @@ def main():
             ]:
                 content = hdr + "\n" + "\n".join(lines) + ("\n" if lines else "\n")
                 atomic_write_gzip_text(out / f"{name}.csv.gz", content)
-
             atomic_write_gzip_text(out / "failure_ledger.csv.gz", "run_id\n")
 
             sm = {"shard_id": args.shard_id, "keys": len(shard_keys), "new_keys": new_keys, "complete_keys": len(complete_ids),
-                  "bl": len(sorted_bl), "gl": len(sorted_gl), "sl": len(sorted_sl),
-                  "lr": deps.counter.lr}
+                  "bl": len(sorted_bl), "gl": len(sorted_gl), "sl": len(sorted_sl)}
             atomic_write_json(out / "shard_manifest.json", sm)
+
+            # Shard execution receipt (dynamic, not deterministic manifest)
+            shard_exec = {"schema_version": 1, "shard_id": args.shard_id, "new_keys": new_keys,
+                "synthetic_call_counter_delta": deps.synthetic_call_counter.delta(synth_start),
+                "production_guard_delta": deps.production_guard.delta(prod_start)}
+            atomic_write_json(out / "shard_execution_receipt.json", shard_exec)
 
             if args.resume:
                 rr = {"shard_id": args.shard_id, "validated_complete": len(complete_ids), "recomputed": recomputed,
                       "skipped": len(complete_ids), "new_bl": 0, "new_gl": 0,
-                      "lr_delta": deps.counter.lr, "synthetic_delta": deps.synthetic_call_counter.snapshot(),
-                      "production_delta": deps.production_guard.snapshot()}
+                      "synthetic_delta": deps.synthetic_call_counter.delta(synth_start),
+                      "production_delta": deps.production_guard.delta(prod_start)}
                 atomic_write_json(out / "resume_receipt.json", rr)
 
             print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={sm['bl']}, gl={sm['gl']}")
