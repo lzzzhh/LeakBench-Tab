@@ -446,6 +446,62 @@ def validate_policy_mapping(policy_mapping: dict, key_plan_row: dict) -> Validat
 
 
 # ====================================================================
+# Semantic mapping validation
+# ====================================================================
+
+@dataclass(frozen=True)
+class ValidatedSemanticMapping:
+    leak_group_ids: tuple[str, ...]
+    leak_encoded_indices: frozenset[int]
+
+
+def validate_semantic_mapping(
+    semantic_mapping,
+    key_plan_row: dict,
+    policy_mapping: ValidatedPolicyMapping,
+) -> ValidatedSemanticMapping:
+    """Validate semantic mapping structure. For M09, verifies leak union is exactly 8 columns."""
+    if not isinstance(semantic_mapping, dict):
+        raise SelectionContractError("semantic mapping: must be dict")
+    leak_gids_raw = semantic_mapping.get("leak_group_ids")
+    mech = key_plan_row.get("mechanism", "")
+
+    if leak_gids_raw is None:
+        if mech == "M09":
+            raise SelectionContractError("M09: semantic mapping must have leak_group_ids")
+        return ValidatedSemanticMapping(leak_group_ids=(), leak_encoded_indices=frozenset())
+
+    if not isinstance(leak_gids_raw, list):
+        raise SelectionContractError(f"semantic mapping leak_group_ids: expected list, got {type(leak_gids_raw).__name__}")
+
+    # Validate uniqueness and type
+    seen = set()
+    validated_gids = []
+    for i, gid in enumerate(leak_gids_raw):
+        gid_str = require_nonempty_str(gid, f"leak_group_ids[{i}]")
+        if gid_str in seen:
+            raise SelectionContractError(f"semantic mapping: duplicate leak_group_id '{gid_str}'")
+        seen.add(gid_str)
+        validated_gids.append(gid_str)
+
+    # Verify all groups exist in policy mapping
+    leak_indices = set()
+    for gid in validated_gids:
+        if gid not in policy_mapping.group_members:
+            raise SelectionContractError(f"semantic mapping: leak_group_id '{gid}' not in policy mapping")
+        leak_indices.update(policy_mapping.group_members[gid])
+
+    # M09: union must be exactly 8
+    if mech == "M09":
+        if len(leak_indices) != 8:
+            raise SelectionContractError(f"M09 leak union size={len(leak_indices)}, expected 8")
+        if not validated_gids:
+            raise SelectionContractError("M09: leak_group_ids must be non-empty")
+
+    return ValidatedSemanticMapping(leak_group_ids=tuple(validated_gids), leak_encoded_indices=frozenset(leak_indices))
+
+
+# ====================================================================
 # Encoded-column contract validation
 # ====================================================================
 
@@ -467,30 +523,21 @@ def validate_encoded_column_contract(payload: dict, mapping: ValidatedPolicyMapp
 # M09 validation (uses explicit semantic mapping)
 # ====================================================================
 
-def validate_m09_eight_columns(payload: dict, mapping: ValidatedPolicyMapping, semantic_mapping: dict, key_plan_row: dict) -> list[str]:
-    """M09 leak group union must be exactly 8 columns. Uses semantic_mapping['leak_group_ids']."""
+def validate_m09_eight_columns(payload: dict, validated_semantic: ValidatedSemanticMapping, key_plan_row: dict) -> list[str]:
+    """M09 semantic-group contract: if leak group is selected, all 8 columns must be removed."""
     errors = []
     if key_plan_row.get("mechanism") != "M09":
         return errors
-    leak_gids = semantic_mapping.get("leak_group_ids")
-    if not isinstance(leak_gids, list) or len(leak_gids) == 0:
-        errors.append("M09: semantic_mapping must have non-empty leak_group_ids")
-        return errors
-    # Validate uniqueness
-    if len(leak_gids) != len(set(leak_gids)):
-        errors.append("M09: duplicate leak_group_ids")
-        return errors
-    # Compute union
-    union = set()
-    for gid in leak_gids:
-        gid_str = require_nonempty_str(gid, f"leak_group_id")
-        if gid_str not in mapping.group_members:
-            errors.append(f"M09: leak group '{gid_str}' not in policy mapping")
-            continue
-        union.update(mapping.group_members[gid_str])
-    if len(union) != 8:
-        errors.append(f"M09: leak group union size={len(union)}, expected 8")
-    # If semantic-group contract selects M09 leak group, atomicity already validated
+    leak_indices = validated_semantic.leak_encoded_indices
+    if len(leak_indices) != 8:
+        errors.append(f"M09 leak union size={len(leak_indices)}, expected 8")
+    if payload["contract"] == "semantic_group":
+        selected = set(payload["removed_group_ids"])
+        if selected & set(validated_semantic.leak_group_ids):
+            removed = set(payload["removed_encoded_indices"])
+            if not leak_indices.issubset(removed):
+                missing = leak_indices - removed
+                errors.append(f"M09: leak group selected but {len(missing)} columns missing")
     return errors
 
 
@@ -673,10 +720,15 @@ def validate_completed_key(
     if errors:
         result.is_complete = False; return result
 
-    # M09 validation (uses explicit semantic_mapping)
+    # M09 validation (uses validated semantic mapping)
+    try:
+        validated_semantic = validate_semantic_mapping(semantic_mapping, key_plan_row, validated_map)
+    except SelectionContractError as e:
+        errors.append(f"semantic mapping invalid: {e}")
+        result.is_complete = False; return result
     for p in normalized_payloads:
         try:
-            m09_errors = validate_m09_eight_columns(p, validated_map, semantic_mapping, key_plan_row)
+            m09_errors = validate_m09_eight_columns(p, validated_semantic, key_plan_row)
         except SelectionContractError as e:
             errors.append(f"semantic mapping invalid: {e}")
             result.is_complete = False; return result
