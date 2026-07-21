@@ -79,6 +79,6 @@ def main():
     if not (out / "full_b1_manifest.json").exists():
         print("PARTIAL_RESULTS: Manifest missing"); sys.exit(1)
 
-    print("FULL_RESULTS: would validate real data"); sys.exit(0)
+    print("NOT_IMPLEMENTED_FULL_VALIDATOR_R10D"); sys.exit(2)
 
 if __name__=="__main__": main()

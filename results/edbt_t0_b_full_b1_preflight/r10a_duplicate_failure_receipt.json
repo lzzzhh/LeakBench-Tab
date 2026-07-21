@@ -1,0 +1,11 @@
+{
+  "runner_duplicate_baseline_exit": 1,
+  "runner_duplicate_governed_exit": 1,
+  "runner_failure_row_exit": 1,
+  "merge_duplicate_baseline_exit": 1,
+  "merge_duplicate_governed_exit": 1,
+  "merge_duplicate_selection_exit": 1,
+  "merge_failure_row_exit": 1,
+  "all_nonzero": true,
+  "pass": true
+}

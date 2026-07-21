@@ -1,0 +1,12 @@
+{
+  "unique_tmp": true,
+  "pid_in_tmp": true,
+  "nonce_in_tmp": true,
+  "file_fsync": true,
+  "parent_fsync": true,
+  "os_replace": true,
+  "exception_cleanup": true,
+  "stale_tmp_cleanup": true,
+  "deterministic_gzip": true,
+  "pass": true
+}

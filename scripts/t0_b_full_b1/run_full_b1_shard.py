@@ -12,6 +12,10 @@ from scripts.t0_b_v3.seed_contract import derive_p2_seed
 from scripts.t0_b_v3.selection_hash import hash_encoded_selection, hash_semantic_selection
 # Lazy imports for selectors (only in production mode)
 # from scripts.t0_b_v3.policy_selectors import ...
+from scripts.t0_b_full_b1.io_contract import (
+    atomic_write_gzip_text, atomic_write_json, atomic_write_dataframe_gzip,
+    exclusive_writer_lock, WriterLockError, cleanup_stale_temp_files,
+)
 from scripts.t0_b_full_b1.run_key_contract import baseline_lookup_key, governed_lookup_key, build_run_id_lookup
 
 # ======================================================================
@@ -203,8 +207,27 @@ def validate_completed_key(cid, fdir, planned_run_ids_set):
 
 
 def _write_gz(path, df, cols):
-    buf = io.StringIO(); df.to_csv(buf, columns=cols, index=False, header=True)
-    path.write_bytes(gzip.compress(buf.getvalue().encode("utf-8"), mtime=0))
+    """Legacy helper — delegates to atomic_write_dataframe_gzip."""
+    atomic_write_dataframe_gzip(path, df, cols)
+
+
+def _find_duplicates(values):
+    """Return list of values that appear more than once."""
+    seen = {}; dups = []
+    for v in values:
+        if v in seen:
+            if seen[v] == 1: dups.append(v)
+            seen[v] += 1
+        else:
+            seen[v] = 1
+    return dups
+
+
+def shard_keys_for_validate(args):
+    """Check that the shard has planned keys (for validate-only mode)."""
+    plan_dir = Path(args.plan_manifest).parent
+    keys = [json.loads(l) for l in gzip.decompress((plan_dir / "full_b1_key_plan.jsonl.gz").read_bytes()).decode("utf-8").strip().split("\n")]
+    return [k for k in keys if k.get("shard_id") == args.shard_id]
 
 
 def main():
@@ -219,7 +242,22 @@ def main():
 
     with open(ROOT / args.plan_manifest) as f: pm = json.load(f)
     if args.validate_only:
-        print("validate-only — 0 calls"); return
+        # Real validation: check plan files exist and SHA matches
+        plan_dir = Path(args.plan_manifest).parent
+        errors = []
+        for fname, sha_key in [("full_b1_key_plan.jsonl.gz", "key_plan_sha256"),
+                                ("full_b1_run_plan.jsonl.gz", "run_plan_sha256")]:
+            fp = plan_dir / fname
+            if not fp.exists():
+                errors.append(f"{fname} missing"); continue
+            actual = hashlib.sha256(fp.read_bytes()).hexdigest()
+            if actual != pm.get(sha_key, ""):
+                errors.append(f"{fname} SHA mismatch")
+        if not shard_keys_for_validate(args):
+            errors.append("no planned keys for shard")
+        if errors:
+            print("VALIDATION_FAIL: " + "; ".join(errors)); sys.exit(1)
+        print("VALIDATION_PASS"); return
 
     plan_dir = Path(args.plan_manifest).parent
     keys = [json.loads(l) for l in gzip.decompress((plan_dir / "full_b1_key_plan.jsonl.gz").read_bytes()).decode("utf-8").strip().split("\n")]
@@ -266,44 +304,69 @@ def main():
             ("governed", result["governed_rows"], ["run_id","dataset_index","mechanism","strength","training_seed","governance_seed","learner","policy","contract","budget_bp","strict_auc","full_auc","governed_auc","legacy_sdr","selection_hash","realized_cost"]),
             ("selection", result["selection_rows"], ["selection_hash","policy","contract","budget_bp","removed_encoded_indices","removed_group_ids","realized_encoded_cost"]),
         ]:
-            _write_gz(fdir / f"{name}.csv.gz", pd.DataFrame(rows, columns=cols), cols)
-        _write_gz(fdir / "failure.csv.gz", pd.DataFrame(columns=["run_id"]), ["run_id"])
+            atomic_write_dataframe_gzip(fdir / f"{name}.csv.gz", pd.DataFrame(rows, columns=cols), cols)
+        atomic_write_dataframe_gzip(fdir / "failure.csv.gz", pd.DataFrame(columns=["run_id"]), ["run_id"])
 
-        with open(fdir / "completion_receipt.json", "w") as f:
-            json.dump({"cid": cid, "status": "complete", "bl": 2, "gl": 144, "sl": 144, "lr": deps.counter.lr}, f)
+        atomic_write_json(fdir / "completion_receipt.json", {"cid": cid, "status": "complete", "bl": 2, "gl": 144, "sl": 144, "lr": deps.counter.lr})
 
         for row in result["baseline_rows"]: all_bl.append(json.dumps(row))
         for row in result["governed_rows"]: all_gl.append(json.dumps(row))
         for row in result["selection_rows"]: all_sl.append(json.dumps(row))
 
-    # Rebuild shard ledgers from all fragments (new + loaded complete)
-    all_frag_bl = []; all_frag_gl = []; all_frag_sl = []
+    # Rebuild shard ledgers from all fragments — NO silent dedup
+    all_frag_bl = []; all_frag_gl = []; all_frag_sl = []; all_frag_fl = []
     for kp in shard_keys:
         cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
-        for name, lst in [("baseline", all_frag_bl), ("governed", all_frag_gl), ("selection", all_frag_sl)]:
-            data = gzip.decompress((fdir / f"{name}.csv.gz").read_bytes()).decode("utf-8")
-            for line in data.strip().split("\n")[1:]:
-                lst.append(line)
+        for name, lst in [("baseline", all_frag_bl), ("governed", all_frag_gl), ("selection", all_frag_sl), ("failure", all_frag_fl)]:
+            fp = fdir / f"{name}.csv.gz"
+            if fp.exists():
+                data = gzip.decompress(fp.read_bytes()).decode("utf-8")
+                for line in data.strip().split("\n")[1:]:
+                    if line: lst.append(line)
 
-    for name, lines, cols in [
-        ("baseline_ledger", sorted(set(all_frag_bl)), ["run_id","dataset_index","mechanism","strength","training_seed","learner","baseline_type","auc"]),
-        ("governed_ledger", sorted(set(all_frag_gl)), ["run_id","dataset_index","mechanism","strength","training_seed","governance_seed","learner","policy","contract","budget_bp","strict_auc","full_auc","governed_auc","legacy_sdr","selection_hash","realized_cost"]),
-        ("selection_ledger", sorted(set(all_frag_sl)), ["selection_hash","policy","contract","budget_bp","removed_encoded_indices","removed_group_ids","realized_encoded_cost"]),
+    # Check for duplicates BEFORE sorting
+    bl_ids = [l.split(",")[0] for l in all_frag_bl]
+    gl_ids = [l.split(",")[0] for l in all_frag_gl]
+    bl_dups = _find_duplicates(bl_ids)
+    gl_dups = _find_duplicates(gl_ids)
+    if bl_dups:
+        print(f"FAIL: duplicate baseline run IDs: {len(bl_dups)}"); sys.exit(1)
+    if gl_dups:
+        print(f"FAIL: duplicate governed run IDs: {len(gl_dups)}"); sys.exit(1)
+
+    # Check failure rows
+    if all_frag_fl:
+        print(f"FAIL: {len(all_frag_fl)} failure rows detected"); sys.exit(1)
+
+    # Sort and write shard ledgers via atomic I/O
+    sorted_bl = sorted(all_frag_bl)
+    sorted_gl = sorted(all_frag_gl)
+    sorted_sl = sorted(all_frag_sl)
+
+    bl_cols = "run_id,dataset_index,mechanism,strength,training_seed,learner,baseline_type,auc"
+    gl_cols = "run_id,dataset_index,mechanism,strength,training_seed,governance_seed,learner,policy,contract,budget_bp,strict_auc,full_auc,governed_auc,legacy_sdr,selection_hash,realized_cost"
+    sl_cols = "selection_hash,policy,contract,budget_bp,removed_encoded_indices,removed_group_ids,realized_encoded_cost"
+
+    for name, lines, hdr in [
+        ("baseline_ledger", sorted_bl, bl_cols),
+        ("governed_ledger", sorted_gl, gl_cols),
+        ("selection_ledger", sorted_sl, sl_cols),
     ]:
-        hdr = ",".join(cols); content = hdr + "\n" + "\n".join(lines) + "\n"
-        (out / f"{name}.csv.gz").write_bytes(gzip.compress(content.encode("utf-8"), mtime=0))
+        content = hdr + "\n" + "\n".join(lines) + ("\n" if lines else "\n")
+        atomic_write_gzip_text(out / f"{name}.csv.gz", content)
 
-    _write_gz(out / "failure_ledger.csv.gz", pd.DataFrame(columns=["run_id"]), ["run_id"])
+    # Failure ledger: header only (we already checked no failures)
+    atomic_write_gzip_text(out / "failure_ledger.csv.gz", "run_id\n")
 
     sm = {"shard_id": args.shard_id, "keys": len(shard_keys), "new_keys": new_keys, "complete_keys": len(complete_ids),
-          "bl": len(set(all_frag_bl)), "gl": len(set(all_frag_gl)), "sl": len(set(all_frag_sl)),
+          "bl": len(sorted_bl), "gl": len(sorted_gl), "sl": len(sorted_sl),
           "lr": deps.counter.lr}
-    with open(out / "shard_manifest.json", "w") as f: json.dump(sm, f)
+    atomic_write_json(out / "shard_manifest.json", sm)
 
     if args.resume:
         rr = {"shard_id": args.shard_id, "validated_complete": len(complete_ids), "recomputed": recomputed,
-              "new_bl": 0, "new_gl": 0, "new_lr": deps.counter.lr if recomputed == 0 else 0}
-        with open(out / "resume_receipt.json", "w") as f: json.dump(rr, f)
+              "new_bl": 0, "new_gl": 0, "new_lr": deps.counter.lr if recomputed == 0 else deps.counter.lr}
+        atomic_write_json(out / "resume_receipt.json", rr)
 
     print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={sm['bl']}, gl={sm['gl']}")
 

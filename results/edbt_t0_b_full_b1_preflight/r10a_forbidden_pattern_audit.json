@@ -1,0 +1,16 @@
+{
+  "pre_fix_matches": [
+    "scripts/t0_b_full_b1/merge_full_b1_shards.py:36:        (\"baseline_ledger\", sorted(set(all_bl)), \"run_id,dataset_index,mechanism,strength,training_seed,learner,baseline_type,auc\"),",
+    "scripts/t0_b_full_b1/merge_full_b1_shards.py:37:        (\"governed_ledger\", sorted(set(all_gl)), \"run_id,dataset_index,mechanism,strength,training_seed,governance_seed,learner,policy,contract,budget_bp,strict_auc,full_auc,governed_auc,legacy_sdr,selection_hash,realized_cost\"),",
+    "scripts/t0_b_full_b1/merge_full_b1_shards.py:38:        (\"selection_ledger\", sorted(set(all_sl)), \"selection_hash,policy,contract,budget_bp,removed_encoded_indices,removed_group_ids,realized_encoded_cost\"),",
+    "scripts/t0_b_full_b1/merge_full_b1_shards.py:39:        (\"failure_ledger\", sorted(set(all_fl)) if all_fl else [], \"run_id\"),",
+    "scripts/t0_b_full_b1/run_full_b1_shard.py:222:        print(\"validate-only \u2014 0 calls\"); return",
+    "scripts/t0_b_full_b1/run_full_b1_shard.py:289:        (\"baseline_ledger\", sorted(set(all_frag_bl)), [\"run_id\",\"dataset_index\",\"mechanism\",\"strength\",\"training_seed\",\"learner\",\"baseline_type\",\"auc\"]),",
+    "scripts/t0_b_full_b1/run_full_b1_shard.py:290:        (\"governed_ledger\", sorted(set(all_frag_gl)), [\"run_id\",\"dataset_index\",\"mechanism\",\"strength\",\"training_seed\",\"governance_seed\",\"learner\",\"policy\",\"contract\",\"budget_bp\",\"strict_auc\",\"full_auc\",\"governed_auc\",\"legacy_sdr\",\"selection_hash\",\"realized_cost\"]),",
+    "scripts/t0_b_full_b1/run_full_b1_shard.py:291:        (\"selection_ledger\", sorted(set(all_frag_sl)), [\"selection_hash\",\"policy\",\"contract\",\"budget_bp\",\"removed_encoded_indices\",\"removed_group_ids\",\"realized_encoded_cost\"]),",
+    "scripts/t0_b_full_b1/validate_full_b1_results.py:82:    print(\"FULL_RESULTS: would validate real data\"); sys.exit(0)"
+  ],
+  "post_fix_matches": [],
+  "disallowed_match_count": 0,
+  "pass": true
+}

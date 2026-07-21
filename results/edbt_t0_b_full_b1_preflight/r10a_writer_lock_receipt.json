@@ -1,0 +1,9 @@
+{
+  "shard_first_writer_exit": 0,
+  "shard_second_writer_exit": 1,
+  "merge_first_writer_exit": 0,
+  "merge_second_writer_exit": 1,
+  "lock_released_after_success": true,
+  "lock_released_after_failure": true,
+  "pass": true
+}
