@@ -4,11 +4,40 @@ from dataclasses import dataclass, field
 import gzip, hashlib, json, time
 from pathlib import Path
 import numpy as np, pandas as pd
+from numbers import Integral
 
 
 # ====================================================================
-# Counters
+# Strict scalar validation
 # ====================================================================
+
+def require_integral_scalar(value, field_name: str) -> int:
+    """Require strict Python/numpy integer, rejecting bool, float, str, None, NaN."""
+    if isinstance(value, (bool, np.bool_)):
+        raise SelectionContractError(f"{field_name}: bool not allowed (got {value})")
+    if not isinstance(value, Integral):
+        raise SelectionContractError(f"{field_name}: expected integral, got {type(value).__name__} (value={value})")
+    try:
+        v = int(value)
+    except (ValueError, TypeError):
+        raise SelectionContractError(f"{field_name}: cannot convert to int: {value}")
+    return v
+
+
+def require_positive_integral(value, field_name: str) -> int:
+    v = require_integral_scalar(value, field_name)
+    if v < 0:
+        raise SelectionContractError(f"{field_name}: must be non-negative, got {v}")
+    return v
+
+
+def require_nonempty_str(value, field_name: str) -> str:
+    """Require non-empty string, rejecting None, NaN, and non-str types."""
+    if not isinstance(value, str):
+        raise SelectionContractError(f"{field_name}: expected str, got {type(value).__name__}")
+    if not value.strip():
+        raise SelectionContractError(f"{field_name}: empty or whitespace-only")
+    return value.strip()
 
 @dataclass
 class ProductionGuard:
@@ -226,23 +255,28 @@ def _canonical_selection_json(row: dict) -> str:
 
 def normalize_selection_payload(row: dict) -> dict:
     """Parse and normalize a selection row into a validated dict."""
-    removed = parse_int_array_json(row["removed_encoded_indices"])
-    groups = parse_group_id_array_json(row["removed_group_ids"])
-    cost = int(row["realized_encoded_cost"])
-    if isinstance(row["realized_encoded_cost"], bool):
-        raise SelectionContractError("realized_encoded_cost must not be bool")
-    policy = str(row["policy"])
+    # Handle array fields: if pandas pre-parsed as list, re-serialize to JSON string
+    removed_raw = row["removed_encoded_indices"]
+    if isinstance(removed_raw, list):
+        removed_raw = json.dumps(removed_raw)
+    removed = parse_int_array_json(removed_raw)
+
+    groups_raw = row["removed_group_ids"]
+    if isinstance(groups_raw, list):
+        groups_raw = json.dumps(groups_raw)
+    groups = parse_group_id_array_json(groups_raw)
+
+    h = require_nonempty_str(row["selection_hash"], "selection_hash")
+    policy = require_nonempty_str(row["policy"], "policy")
     if policy not in ("P2", "P3", "P4", "P5", "P6"):
         raise SelectionContractError(f"invalid policy: {policy}")
-    contract = str(row["contract"])
+    contract = require_nonempty_str(row["contract"], "contract")
     if contract not in ("semantic_group", "encoded_column"):
         raise SelectionContractError(f"invalid contract: {contract}")
-    bp = int(row["budget_bp"])
+    bp = require_integral_scalar(row["budget_bp"], "budget_bp")
     if bp not in (500, 1000, 2000):
         raise SelectionContractError(f"invalid budget_bp: {bp}")
-    h = str(row["selection_hash"])
-    if not h:
-        raise SelectionContractError("empty selection_hash")
+    cost = require_positive_integral(row["realized_encoded_cost"], "realized_encoded_cost")
     return {
         "selection_hash": h, "policy": policy, "contract": contract, "budget_bp": bp,
         "removed_encoded_indices": removed, "removed_group_ids": groups, "realized_encoded_cost": cost,
@@ -343,32 +377,6 @@ def validate_semantic_group_atomicity(payload: dict, group_members: dict[str, se
     return errors
 
 
-def validate_m09_eight_columns(payload: dict, policy_mapping: dict, key_plan_row: dict) -> list[str]:
-    """M09 leak group must have exactly 8 columns; if selected, all 8 must appear."""
-    errors = []
-    if key_plan_row.get("mechanism") != "M09":
-        return errors
-    # Find the 8-column M09 injected group (last group with size 8)
-    groups = policy_mapping.get("groups", [])
-    m09_group = None
-    for g in groups:
-        if g.get("group_size") == 8 and len(g.get("member_encoded_indices", [])) == 8:
-            m09_group = g
-            break
-    if m09_group is None:
-        return errors  # No 8-column group found; not an error for non-M09
-    m09_gid = m09_group["opaque_group_id"]
-    m09_members = set(m09_group["member_encoded_indices"])
-    if len(m09_members) != 8:
-        errors.append(f"M09 leak group {m09_gid}: size={len(m09_members)}, expected 8")
-    if payload["contract"] == "semantic_group" and m09_gid in payload["removed_group_ids"]:
-        removed = set(payload["removed_encoded_indices"])
-        if not m09_members.issubset(removed):
-            missing = m09_members - removed
-            errors.append(f"M09: semantic group {m09_gid} selected but {len(missing)} columns missing")
-    return errors
-
-
 def validate_manifest_selection_digest(manifest: dict, sel_hashes: list[str], sel_payloads: list[dict]) -> list[str]:
     """Verify manifest selection hash multiset and payload digest match actual data."""
     errors = []
@@ -383,6 +391,108 @@ def validate_manifest_selection_digest(manifest: dict, sel_hashes: list[str], se
 
 
 # ====================================================================
+# Policy mapping validation
+# ====================================================================
+
+@dataclass
+class ValidatedPolicyMapping:
+    group_members: dict[str, frozenset[int]]
+    all_encoded_indices: frozenset[int]
+    n_total_columns: int
+
+
+def validate_policy_mapping(policy_mapping: dict, key_plan_row: dict) -> ValidatedPolicyMapping:
+    """Validate policy mapping structure."""
+    if not isinstance(policy_mapping, dict):
+        raise SelectionContractError("policy_mapping must be dict")
+    groups = policy_mapping.get("groups")
+    if not isinstance(groups, list) or len(groups) == 0:
+        raise SelectionContractError("policy_mapping.groups must be non-empty list")
+
+    n_total = key_plan_row.get("n_total_columns") or key_plan_row.get("n_original", 0) + key_plan_row.get("n_injected", 0)
+    if n_total <= 0:
+        raise SelectionContractError(f"cannot determine n_total_columns from key_plan_row")
+
+    group_members = {}; all_indices = set(); seen_gids = set()
+    for gi, g in enumerate(groups):
+        if not isinstance(g, dict):
+            raise SelectionContractError(f"group {gi}: must be dict")
+        gid = require_nonempty_str(g.get("opaque_group_id", ""), f"group {gi} opaque_group_id")
+        if gid in seen_gids:
+            raise SelectionContractError(f"duplicate group ID: {gid}")
+        seen_gids.add(gid)
+        members = g.get("member_encoded_indices")
+        if not isinstance(members, list):
+            raise SelectionContractError(f"group {gid}: member_encoded_indices must be list")
+        validated = []
+        for mi, m in enumerate(members):
+            idx = require_integral_scalar(m, f"group {gid} member {mi}")
+            if idx < 0 or idx >= n_total:
+                raise SelectionContractError(f"group {gid}: index {idx} out of bounds [0, {n_total})")
+            validated.append(idx)
+        if len(validated) != len(set(validated)):
+            raise SelectionContractError(f"group {gid}: duplicate member indices")
+        gs = require_integral_scalar(g.get("group_size", 0), f"group {gid} group_size")
+        if gs != len(validated):
+            raise SelectionContractError(f"group {gid}: group_size={gs} != len(members)={len(validated)}")
+        group_members[gid] = frozenset(validated)
+        overlap = all_indices & frozenset(validated)
+        if overlap:
+            raise SelectionContractError(f"group {gid}: encoded indices {sorted(overlap)} already claimed by other groups")
+        all_indices.update(validated)
+    return ValidatedPolicyMapping(group_members=group_members, all_encoded_indices=frozenset(all_indices), n_total_columns=n_total)
+
+
+# ====================================================================
+# Encoded-column contract validation
+# ====================================================================
+
+def validate_encoded_column_contract(payload: dict, mapping: ValidatedPolicyMapping) -> list[str]:
+    """For encoded_column contract: all indices in range, unknown groups rejected."""
+    errors = []
+    if payload["contract"] != "encoded_column":
+        return errors
+    for idx in payload["removed_encoded_indices"]:
+        if idx < 0 or idx >= mapping.n_total_columns:
+            errors.append(f"encoded-column: index {idx} out of bounds [0, {mapping.n_total_columns})")
+    for gid in payload["removed_group_ids"]:
+        if gid not in mapping.group_members:
+            errors.append(f"encoded-column: unknown group '{gid}'")
+    return errors
+
+
+# ====================================================================
+# M09 validation (uses explicit semantic mapping)
+# ====================================================================
+
+def validate_m09_eight_columns(payload: dict, mapping: ValidatedPolicyMapping, semantic_mapping: dict, key_plan_row: dict) -> list[str]:
+    """M09 leak group union must be exactly 8 columns. Uses semantic_mapping['leak_group_ids']."""
+    errors = []
+    if key_plan_row.get("mechanism") != "M09":
+        return errors
+    leak_gids = semantic_mapping.get("leak_group_ids")
+    if not isinstance(leak_gids, list) or len(leak_gids) == 0:
+        errors.append("M09: semantic_mapping must have non-empty leak_group_ids")
+        return errors
+    # Validate uniqueness
+    if len(leak_gids) != len(set(leak_gids)):
+        errors.append("M09: duplicate leak_group_ids")
+        return errors
+    # Compute union
+    union = set()
+    for gid in leak_gids:
+        gid_str = require_nonempty_str(gid, f"leak_group_id")
+        if gid_str not in mapping.group_members:
+            errors.append(f"M09: leak group '{gid_str}' not in policy mapping")
+            continue
+        union.update(mapping.group_members[gid_str])
+    if len(union) != 8:
+        errors.append(f"M09: leak group union size={len(union)}, expected 8")
+    # If semantic-group contract selects M09 leak group, atomicity already validated
+    return errors
+
+
+# ====================================================================
 # Main validator
 # ====================================================================
 
@@ -391,7 +501,8 @@ def validate_completed_key(
     planned_run_ids: list[str],
     fragment_dir: Path,
     plan_manifest_sha256: str,
-    policy_mapping: dict | None = None,
+    policy_mapping: dict,
+    semantic_mapping: dict,
 ) -> CompletedKeyValidation:
     """Validate a completed key fragment directory."""
     errors = []
@@ -534,19 +645,36 @@ def validate_completed_key(
         errors.extend(gc_errors); return result
     result.realized_cost_valid = True
 
-    # Semantic-group atomicity (if mapping provided)
-    if policy_mapping is not None:
-        groups = policy_mapping.get("groups", [])
-        group_members = {g["opaque_group_id"]: set(g["member_encoded_indices"]) for g in groups}
-        for p in normalized_payloads:
-            sem_errors = validate_semantic_group_atomicity(p, group_members)
-            if sem_errors:
-                errors.extend(sem_errors)
-            m09_errors = validate_m09_eight_columns(p, policy_mapping, key_plan_row)
-            if m09_errors:
-                errors.extend(m09_errors)
-        if errors:
-            return result
+    # ── Policy mapping + semantic validation ──
+    try:
+        validated_map = validate_policy_mapping(policy_mapping, key_plan_row)
+    except SelectionContractError as e:
+        errors.append(f"policy mapping invalid: {e}")
+        return result
+
+    # Encoded-column contract validation
+    for p in normalized_payloads:
+        ec_errors = validate_encoded_column_contract(p, validated_map)
+        if ec_errors:
+            errors.extend(ec_errors)
+    if errors:
+        return result
+
+    # Semantic-group atomicity
+    for p in normalized_payloads:
+        sem_errors = validate_semantic_group_atomicity(p, {gid: set(members) for gid, members in validated_map.group_members.items()})
+        if sem_errors:
+            errors.extend(sem_errors)
+    if errors:
+        return result
+
+    # M09 validation (uses explicit semantic_mapping)
+    for p in normalized_payloads:
+        m09_errors = validate_m09_eight_columns(p, validated_map, semantic_mapping, key_plan_row)
+        if m09_errors:
+            errors.extend(m09_errors)
+    if errors:
+        return result
     result.semantic_atomicity_valid = True
 
     # Manifest selection digest closure

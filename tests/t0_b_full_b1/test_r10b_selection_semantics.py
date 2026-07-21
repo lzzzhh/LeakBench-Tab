@@ -111,22 +111,41 @@ def test_unknown_group_fails():
 # ─── M09 ───────────────────────────────────────────────────────
 
 def test_m09_eight_columns_passes():
-    """M09 with 8-column group passes when group is selected completely."""
+    """M09 with 8-column group passes when semantic_mapping has leak_group_ids."""
     pol_map = {"groups": [{"opaque_group_id": "g012", "member_encoded_indices": list(range(12, 20)), "group_size": 8}]}
+    sem_map = {"leak_group_ids": ["g012"]}
     kp = {"mechanism": "M09"}
+    from scripts.t0_b_full_b1.fragment_contract import validate_policy_mapping, ValidatedPolicyMapping
+    vm = validate_policy_mapping(pol_map, {**kp, "n_total_columns": 20})
     p = {"contract": "semantic_group", "removed_group_ids": ["g012"], "removed_encoded_indices": list(range(12, 20))}
-    assert validate_m09_eight_columns(p, pol_map, kp) == []
+    assert validate_m09_eight_columns(p, vm, sem_map, kp) == []
 
 def test_m09_seven_columns_fails():
-    pol_map = {"groups": [{"opaque_group_id": "g012", "member_encoded_indices": list(range(12, 20)), "group_size": 8}]}
+    pol_map = {"groups": [{"opaque_group_id": "g012", "member_encoded_indices": list(range(12, 19)), "group_size": 7}]}
+    sem_map = {"leak_group_ids": ["g012"]}
     kp = {"mechanism": "M09"}
-    p = {"contract": "semantic_group", "removed_group_ids": ["g012"], "removed_encoded_indices": list(range(12, 19))}
-    assert len(validate_m09_eight_columns(p, pol_map, kp)) > 0
+    from scripts.t0_b_full_b1.fragment_contract import validate_policy_mapping
+    vm = validate_policy_mapping(pol_map, {**kp, "n_total_columns": 19})
+    p = {"contract": "semantic_group", "removed_group_ids": [], "removed_encoded_indices": []}
+    assert len(validate_m09_eight_columns(p, vm, sem_map, kp)) > 0
 
 def test_m09_skips_non_m09_keys():
-    pol_map = {"groups": []}
-    kp = {"mechanism": "M01"}
-    assert validate_m09_eight_columns({"contract": "sg", "removed_group_ids": [], "removed_encoded_indices": []}, pol_map, kp) == []
+    pol_map = {"groups": [{"opaque_group_id": "g000", "member_encoded_indices": [0], "group_size": 1}]}
+    sem_map = {"leak_group_ids": ["g000"]}
+    kp = {"mechanism": "M01", "n_total_columns": 1}
+    from scripts.t0_b_full_b1.fragment_contract import validate_policy_mapping
+    vm = validate_policy_mapping(pol_map, kp)
+    p = {"contract": "sg", "removed_group_ids": [], "removed_encoded_indices": []}
+    assert validate_m09_eight_columns(p, vm, sem_map, kp) == []
+
+def test_m09_missing_leak_group_ids_fails():
+    pol_map = {"groups": [{"opaque_group_id": "g000", "member_encoded_indices": [0], "group_size": 1}]}
+    sem_map = {}  # missing leak_group_ids
+    kp = {"mechanism": "M09", "n_total_columns": 1}
+    from scripts.t0_b_full_b1.fragment_contract import validate_policy_mapping
+    vm = validate_policy_mapping(pol_map, kp)
+    p = {"contract": "sg", "removed_group_ids": [], "removed_encoded_indices": []}
+    assert len(validate_m09_eight_columns(p, vm, sem_map, kp)) > 0
 
 
 # ─── CLI: first execution still works ──────────────────────────

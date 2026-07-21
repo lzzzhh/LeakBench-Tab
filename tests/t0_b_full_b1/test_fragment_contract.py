@@ -4,6 +4,10 @@ from pathlib import Path; import pandas as pd, pytest
 
 ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
 
+# Minimal valid mappings for test use
+_SYNTH_POL = {"groups": [{"opaque_group_id": f"g{i:03d}", "member_encoded_indices": [i], "group_size": 1} for i in range(15)]}
+_SYNTH_SEM = {"leak_group_ids": ["g012"]}
+
 from scripts.t0_b_full_b1.fragment_contract import (
     ProductionGuard, SyntheticCallCounter,
     CompletedKeyValidation, validate_completed_key,
@@ -84,7 +88,7 @@ def test_ids_sha256_deterministic():
 def test_validate_completed_key_passes_on_valid_fragment():
     with tempfile.TemporaryDirectory() as td:
         fdir, planned, _ = _make_fixture(td)
-        result = validate_completed_key({"canonical_key_id": "test_key_001"}, planned, fdir, "plan_sha")
+        result = validate_completed_key({"canonical_key_id": "test_key_001", "n_total_columns": 15}, planned, fdir, "plan_sha", _SYNTH_POL, _SYNTH_SEM)
         assert result.is_complete
         assert result.baseline_rows == 2
         assert result.governed_rows == 144
@@ -97,7 +101,7 @@ def test_missing_completion_receipt_invalid():
     with tempfile.TemporaryDirectory() as td:
         fdir, planned, _ = _make_fixture(td)
         (fdir / "completion_receipt.json").unlink()
-        result = validate_completed_key({"canonical_key_id": "test_key_001"}, planned, fdir, "plan_sha")
+        result = validate_completed_key({"canonical_key_id": "test_key_001", "n_total_columns": 15}, planned, fdir, "plan_sha", _SYNTH_POL, _SYNTH_SEM)
         assert not result.is_complete
         assert any("receipt missing" in e for e in result.errors)
 
@@ -105,7 +109,7 @@ def test_corrupt_completion_receipt_invalid():
     with tempfile.TemporaryDirectory() as td:
         fdir, planned, _ = _make_fixture(td)
         (fdir / "completion_receipt.json").write_text("not json")
-        result = validate_completed_key({"canonical_key_id": "test_key_001"}, planned, fdir, "plan_sha")
+        result = validate_completed_key({"canonical_key_id": "test_key_001", "n_total_columns": 15}, planned, fdir, "plan_sha", _SYNTH_POL, _SYNTH_SEM)
         assert not result.is_complete
 
 def test_baseline_sha_mismatch_invalid():
@@ -113,27 +117,27 @@ def test_baseline_sha_mismatch_invalid():
         fdir, planned, _ = _make_fixture(td)
         # Corrupt baseline
         (fdir / "baseline.csv.gz").write_bytes(b"corrupt")
-        result = validate_completed_key({"canonical_key_id": "test_key_001"}, planned, fdir, "plan_sha")
+        result = validate_completed_key({"canonical_key_id": "test_key_001", "n_total_columns": 15}, planned, fdir, "plan_sha", _SYNTH_POL, _SYNTH_SEM)
         assert not result.is_complete
 
 def test_duplicate_run_id_invalid():
     with tempfile.TemporaryDirectory() as td:
         fdir, planned, _ = _make_fixture(td, gl_run_ids=["dup_id"] * 144)
-        result = validate_completed_key({"canonical_key_id": "test_key_001"}, planned, fdir, "plan_sha")
+        result = validate_completed_key({"canonical_key_id": "test_key_001", "n_total_columns": 15}, planned, fdir, "plan_sha", _SYNTH_POL, _SYNTH_SEM)
         assert not result.is_complete
         assert len(result.duplicate_run_ids) > 0
 
 def test_missing_run_id_invalid():
     with tempfile.TemporaryDirectory() as td:
         fdir, planned, _ = _make_fixture(td, gl_rows=143)
-        result = validate_completed_key({"canonical_key_id": "test_key_001"}, planned, fdir, "plan_sha")
+        result = validate_completed_key({"canonical_key_id": "test_key_001", "n_total_columns": 15}, planned, fdir, "plan_sha", _SYNTH_POL, _SYNTH_SEM)
         assert not result.is_complete
         assert len(result.missing_run_ids) > 0 or len(result.errors) > 0
 
 def test_selection_multiset_closure_invalid():
     with tempfile.TemporaryDirectory() as td:
         fdir, planned, _ = _make_fixture(td, extra_selection=True)
-        result = validate_completed_key({"canonical_key_id": "test_key_001"}, planned, fdir, "plan_sha")
+        result = validate_completed_key({"canonical_key_id": "test_key_001", "n_total_columns": 15}, planned, fdir, "plan_sha", _SYNTH_POL, _SYNTH_SEM)
         assert not result.is_complete
         assert any("selection multiset" in e for e in result.errors)
 
