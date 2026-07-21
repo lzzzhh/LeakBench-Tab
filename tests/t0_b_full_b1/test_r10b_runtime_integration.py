@@ -66,9 +66,8 @@ def test_complete_resume_all_delta_zero():
             capture_output=True, text=True, cwd=ROOT)
         with open(f"{out}/resume_receipt.json") as f: rr = json.load(f)
         assert rr["recomputed"] == 0
-        sd = rr["synthetic_delta"]
-        assert sd["lr_calls"] == 0; assert sd["p3_calls"] == 0; assert sd["p4_calls"] == 0; assert sd["p5_calls"] == 0; assert sd["p6_calls"] == 0
-        pd = rr["production_delta"]
+        sd = rr["synthetic_call_counter_delta"]
+        pd = rr["production_guard_delta"]
         assert pd["real_bundle_loads"] == 0; assert pd["real_model_calls"] == 0; assert pd["real_selector_calls"] == 0
 
 

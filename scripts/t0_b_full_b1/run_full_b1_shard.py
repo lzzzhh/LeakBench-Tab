@@ -336,6 +336,7 @@ def main():
 
             complete_ids = set(); recomputed = 0; invalid_results = {}
             plan_manifest_sha = hashlib.sha256(Path(args.plan_manifest).read_bytes()).hexdigest()
+            # Snapshot counters at shard start
             if args.resume:
                 for kp in shard_keys:
                     cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
@@ -479,10 +480,18 @@ def main():
             atomic_write_json(out / "shard_execution_receipt.json", shard_exec)
 
             if args.resume:
-                rr = {"shard_id": args.shard_id, "validated_complete": len(complete_ids), "recomputed": recomputed,
-                      "skipped": len(complete_ids), "new_bl": 0, "new_gl": 0,
-                      "synthetic_delta": deps.synthetic_call_counter.delta(synth_start),
-                      "production_delta": deps.production_guard.delta(prod_start)}
+                rr = {
+                    "schema_version": 1,
+                    "mode": "partial_repair" if (args.repair_invalid and recomputed > 0) else "complete_resume",
+                    "shard_id": args.shard_id,
+                    "validated_complete": len(complete_ids), "recomputed": recomputed, "skipped": len(complete_ids),
+                    "new_keys": new_keys,
+                    "synthetic_call_counter_delta": deps.synthetic_call_counter.delta(synth_start),
+                    "production_guard_delta": deps.production_guard.delta(prod_start),
+                    "new_rows": {"baseline": new_keys * 2, "governed": new_keys * 144, "selection": new_keys * 144, "failure": 0},
+                    "final_rows": {"baseline": len(sorted_bl), "governed": len(sorted_gl), "selection": len(sorted_sl), "failure": 0},
+                    "post_repair_all_keys_valid": len(complete_ids) + new_keys == len(shard_keys),
+                }
                 atomic_write_json(out / "resume_receipt.json", rr)
 
             print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={sm['bl']}, gl={sm['gl']}")

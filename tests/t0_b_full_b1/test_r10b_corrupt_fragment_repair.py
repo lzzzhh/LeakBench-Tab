@@ -1,6 +1,10 @@
 """R10b-3 Corrupt fragment repair tests — CLI-level quarantine and single-key recompute."""
 import gzip, hashlib, io, json, os, subprocess, sys, tempfile
 from pathlib import Path; import pytest
+from scripts.t0_b_full_b1.resume_contract import (
+    classify_completed_key_failure, ResumeReasonCode, ClassifiedValidationFailure,
+)
+from scripts.t0_b_full_b1.fragment_contract import CompletedKeyValidation
 
 ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
 RUNNER = str(ROOT/"scripts/t0_b_full_b1/run_full_b1_shard.py")
@@ -118,6 +122,37 @@ def test_partial_repair_counter_delta():
         assert scd["p6_calls"] == 1
         pgd = ser["production_guard_delta"]
         assert pgd["real_bundle_loads"] == 0
+
+
+def test_mixed_sha_receipt_unrepairable():
+    """classify_completed_key_failure marks mixed SHA+non-SHA errors as unrepairable."""
+    validation = CompletedKeyValidation(
+        is_complete=False,
+        errors=[
+            "governed SHA mismatch",
+            "completion receipt missing",
+        ],
+    )
+    cf = classify_completed_key_failure("test_key_001", validation)
+    assert cf.repairable is False
+    assert cf.reason_code not in (ResumeReasonCode.FRAGMENT_SHA_MISMATCH,)
+    # Should be RECEIPT_MISSING (first non-SHA error)
+    assert cf.reason_code == ResumeReasonCode.RECEIPT_MISSING
+
+
+def test_mixed_sha_run_id_unrepairable():
+    """classify_completed_key_failure marks mixed SHA+run_id errors as unrepairable."""
+    validation = CompletedKeyValidation(
+        is_complete=False,
+        errors=[
+            "baseline SHA mismatch",
+            "selection SHA mismatch",
+            "planned run has null selection_hash",
+        ],
+    )
+    cf = classify_completed_key_failure("test_key_002", validation)
+    assert cf.repairable is False
+    assert cf.reason_code not in (ResumeReasonCode.FRAGMENT_SHA_MISMATCH,)
 
 
 def test_missing_receipt_remains_unsupported():
