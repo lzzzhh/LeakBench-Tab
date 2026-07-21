@@ -1,0 +1,19 @@
+{
+  "implementation_checkpoint_sha": "1feac238aba5e2c5f08a2120a26fc009304ceb81",
+  "targeted_passed": 94,
+  "targeted_failed": 0,
+  "targeted_skipped": 0,
+  "repository_passed": 519,
+  "repository_failed": 0,
+  "repository_skipped": 0,
+  "wall_clock_s": 22.5,
+  "python_version": "3.13.5",
+  "numpy_version": "2.1.3",
+  "pandas_version": "2.2.3",
+  "scikit_learn_version": "1.6.1",
+  "platform": "macOS-15.6-arm64-arm-64bit-Mach-O",
+  "physical_cpu_count": 10,
+  "timestamp_utc": "2026-07-21T03:50:35.022778+00:00",
+  "validation_scope": "LOCAL_TEST_RECEIPT_ONLY",
+  "remote_ci": "ABSENT"
+}

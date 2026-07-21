@@ -1,0 +1,8 @@
+{
+  "production_guard_implemented": true,
+  "synthetic_counter_implemented": true,
+  "real_bundle_loads": 0,
+  "real_model_calls": 0,
+  "real_selector_calls": 0,
+  "pass": true
+}

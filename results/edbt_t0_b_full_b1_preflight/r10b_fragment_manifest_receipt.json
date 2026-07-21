@@ -1,0 +1,7 @@
+{
+  "fragment_manifest_implemented": true,
+  "completion_receipt_binds_manifest": true,
+  "validate_completed_key_checks": 51,
+  "targeted_tests": 94,
+  "pass": true
+}
