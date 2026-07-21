@@ -133,7 +133,8 @@ def test_global_count_mismatch_fails():
         # Modify the plan's baseline_rows but keep all SHA bindings matching original
         plan = json.loads(Path(SYNTH_PLAN).read_text())
         original_plan_sha = hashlib.sha256(Path(SYNTH_PLAN).read_bytes()).hexdigest()
-        plan["baseline_rows"] = 999  # only change the count
+        plan["baseline_rows"] = 999  # only change the count, keep downstream consistent for schema
+        plan["downstream_rows"] = 999 + plan["governed_rows"]
         tmp_plan = Path(td) / "modified_plan.json"
         tmp_plan.write_text(json.dumps(plan))
         # Copy key/run plans for CLI to find
@@ -168,3 +169,174 @@ def test_global_count_mismatch_fails():
         assert r.returncode != 0
         assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
         assert "global baseline_rows mismatch" in r.stdout
+
+
+def test_missing_required_global_count_field_fails_closed():
+    """Missing required count field fails at plan schema stage."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f'{td}/shards'
+        _generate_all_shards(shard_root)
+        plan_d = Path(td)
+        plan_dir = Path(SYNTH_PLAN).parent
+        shutil.copy(plan_dir / 'full_b1_key_plan.jsonl.gz', plan_d / 'full_b1_key_plan.jsonl.gz')
+        shutil.copy(plan_dir / 'full_b1_run_plan.jsonl.gz', plan_d / 'full_b1_run_plan.jsonl.gz')
+        plan = json.loads(Path(SYNTH_PLAN).read_text())
+        del plan['selection_rows']
+        plan['key_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_key_plan.jsonl.gz').read_bytes()).hexdigest()
+        plan['run_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).hexdigest()
+        tmp_plan = plan_d / 'modified_plan.json'
+        tmp_plan.write_text(json.dumps(plan))
+        r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(tmp_plan),
+            '--shard-root', shard_root, '--synthetic'],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
+        assert 'plan manifest missing required field: selection_rows' in r.stdout
+
+
+def test_string_global_count_is_not_silently_skipped():
+    """String count value fails with type error."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f'{td}/shards'
+        _generate_all_shards(shard_root)
+        plan_d = Path(td)
+        plan_dir = Path(SYNTH_PLAN).parent
+        shutil.copy(plan_dir / 'full_b1_key_plan.jsonl.gz', plan_d / 'full_b1_key_plan.jsonl.gz')
+        shutil.copy(plan_dir / 'full_b1_run_plan.jsonl.gz', plan_d / 'full_b1_run_plan.jsonl.gz')
+        plan = json.loads(Path(SYNTH_PLAN).read_text())
+        plan['governed_rows'] = '1152'
+        plan['key_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_key_plan.jsonl.gz').read_bytes()).hexdigest()
+        plan['run_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).hexdigest()
+        tmp_plan = plan_d / 'modified_plan.json'
+        tmp_plan.write_text(json.dumps(plan))
+        r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(tmp_plan),
+            '--shard-root', shard_root, '--synthetic'],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
+        assert 'governed_rows' in r.stdout and 'integer' in r.stdout.lower()
+
+
+def test_bool_global_count_is_not_accepted_as_integer():
+    """Bool True fails with type error."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f'{td}/shards'
+        _generate_all_shards(shard_root)
+        plan_d = Path(td)
+        plan_dir = Path(SYNTH_PLAN).parent
+        shutil.copy(plan_dir / 'full_b1_key_plan.jsonl.gz', plan_d / 'full_b1_key_plan.jsonl.gz')
+        shutil.copy(plan_dir / 'full_b1_run_plan.jsonl.gz', plan_d / 'full_b1_run_plan.jsonl.gz')
+        plan = json.loads(Path(SYNTH_PLAN).read_text())
+        plan['baseline_rows'] = True
+        plan['key_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_key_plan.jsonl.gz').read_bytes()).hexdigest()
+        plan['run_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).hexdigest()
+        tmp_plan = plan_d / 'modified_plan.json'
+        tmp_plan.write_text(json.dumps(plan))
+        r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(tmp_plan),
+            '--shard-root', shard_root, '--synthetic'],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
+        assert 'baseline_rows' in r.stdout and 'bool' in r.stdout.lower()
+
+
+def test_bool_run_shard_id_does_not_equal_integer_zero():
+    """False is not accepted as integer 0 for shard_id."""
+    with tempfile.TemporaryDirectory() as td:
+        plan_d = Path(td)
+        plan_dir = Path(SYNTH_PLAN).parent
+        shutil.copy(plan_dir / 'full_b1_key_plan.jsonl.gz', plan_d / 'full_b1_key_plan.jsonl.gz')
+        shutil.copy(plan_dir / 'full_b1_run_plan.jsonl.gz', plan_d / 'full_b1_run_plan.jsonl.gz')
+        # Load and modify run plan
+        raw = gzip.decompress((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).decode('utf-8')
+        lines = [l for l in raw.split("\n") if l != ""]
+        # Replace a shard_id with False
+        for i, line in enumerate(lines):
+            obj = json.loads(line)
+            if obj.get('shard_id') == 0:
+                obj['shard_id'] = False
+                lines[i] = json.dumps(obj)
+                break
+        new_raw = "\n".join(lines) + "\n"
+        (plan_d / "full_b1_run_plan.jsonl.gz").write_bytes(gzip.compress(new_raw.encode("utf-8"), mtime=0))
+        plan = json.loads(Path(SYNTH_PLAN).read_text())
+        plan['key_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_key_plan.jsonl.gz').read_bytes()).hexdigest()
+        plan['run_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).hexdigest()
+        tmp_plan = plan_d / 'modified_plan.json'
+        tmp_plan.write_text(json.dumps(plan))
+        r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(tmp_plan),
+            '--shard-root', plan_d, '--synthetic'],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
+        assert 'shard_id' in r.stdout and 'bool' in r.stdout.lower()
+
+
+def test_corrupt_plan_manifest_is_structured_cli_failure():
+    """Invalid plan manifest JSON produces structured failure."""
+    with tempfile.TemporaryDirectory() as td:
+        bad_plan = Path(td) / 'bad.json'
+        bad_plan.write_text('{"mode":')
+        r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(bad_plan),
+            '--shard-root', td, '--synthetic'],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
+        assert 'corrupt JSON' in r.stdout
+
+
+def test_corrupt_run_plan_jsonl_is_structured_failure():
+    """Malformed JSONL in run plan produces structured failure with line number."""
+    with tempfile.TemporaryDirectory() as td:
+        plan_d = Path(td)
+        plan_dir = Path(SYNTH_PLAN).parent
+        shutil.copy(plan_dir / 'full_b1_key_plan.jsonl.gz', plan_d / 'full_b1_key_plan.jsonl.gz')
+        # Create valid gzip but malformed JSONL
+        corrupt_text = "valid_line\n" + '{"broken"\n'
+        (plan_d / "full_b1_run_plan.jsonl.gz").write_bytes(gzip.compress(corrupt_text.encode("utf-8"), mtime=0))
+        plan = json.loads(Path(SYNTH_PLAN).read_text())
+        plan['key_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_key_plan.jsonl.gz').read_bytes()).hexdigest()
+        plan['run_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).hexdigest()
+        tmp_plan = plan_d / 'modified_plan.json'
+        tmp_plan.write_text(json.dumps(plan))
+        r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(tmp_plan),
+            '--shard-root', td, '--synthetic'],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
+        assert 'JSON parse error at line' in r.stdout
+
+
+def test_corrupt_shard_manifest_is_structured_admission_failure():
+    """Corrupt shard manifest JSON produces structured admission failure."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f'{td}/shards'
+        _generate_all_shards(shard_root)
+        (Path(shard_root) / 'shard_0' / 'shard_manifest.json').write_text('{"shard_id":')
+        r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', SYNTH_PLAN,
+            '--shard-root', shard_root, '--synthetic'],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
+        assert 'corrupt JSON' in r.stdout
+
+
+def test_failure_rows_nonzero_declaration_fails():
+    """Plan declaring failure_rows=1 fails at schema stage."""
+    with tempfile.TemporaryDirectory() as td:
+        plan_d = Path(td)
+        plan_dir = Path(SYNTH_PLAN).parent
+        shutil.copy(plan_dir / 'full_b1_key_plan.jsonl.gz', plan_d / 'full_b1_key_plan.jsonl.gz')
+        shutil.copy(plan_dir / 'full_b1_run_plan.jsonl.gz', plan_d / 'full_b1_run_plan.jsonl.gz')
+        plan = json.loads(Path(SYNTH_PLAN).read_text())
+        plan['failure_rows'] = 1
+        plan['key_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_key_plan.jsonl.gz').read_bytes()).hexdigest()
+        plan['run_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).hexdigest()
+        tmp_plan = plan_d / 'modified_plan.json'
+        tmp_plan.write_text(json.dumps(plan))
+        r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(tmp_plan),
+            '--shard-root', td, '--synthetic'],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
+        assert 'failure_rows must equal 0' in r.stdout

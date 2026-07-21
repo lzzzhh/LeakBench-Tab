@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from scripts.t0_b_full_b1.merge_contract import (
-    validate_shard_set, ShardSetAdmissionResult,
+    validate_shard_set,
 )
 
 
@@ -19,23 +19,45 @@ def main():
     ap.add_argument("--synthetic", action="store_true")
     args = ap.parse_args()
 
+    # ── Structured plan manifest loading ──
     plan_path = Path(args.plan_manifest)
     if not plan_path.exists():
-        print(f"plan manifest not found: {plan_path}")
+        print("STRICT_SHARD_SET_ADMISSION_FAIL")
+        print(f"  plan manifest not found: {plan_path}")
+        sys.exit(1)
+    if plan_path.is_symlink():
+        print("STRICT_SHARD_SET_ADMISSION_FAIL")
+        print(f"  plan manifest is a symlink: {plan_path}")
+        sys.exit(1)
+    try:
+        raw_plan = plan_path.read_text()
+    except (OSError, UnicodeDecodeError) as exc:
+        print("STRICT_SHARD_SET_ADMISSION_FAIL")
+        print(f"  plan manifest read error: {exc}")
+        sys.exit(1)
+    try:
+        plan_manifest = json.loads(raw_plan)
+    except json.JSONDecodeError as exc:
+        print("STRICT_SHARD_SET_ADMISSION_FAIL")
+        print(f"  plan manifest corrupt JSON: {exc}")
+        sys.exit(1)
+    if not isinstance(plan_manifest, dict):
+        print("STRICT_SHARD_SET_ADMISSION_FAIL")
+        print("  plan manifest not a JSON object")
         sys.exit(1)
 
-    plan_manifest = json.loads(plan_path.read_text())
     plan_sha = hashlib.sha256(plan_path.read_bytes()).hexdigest()
     plan_dir = plan_path.parent
     shard_root = Path(args.shard_root)
+
+    expected_mode = "synthetic" if args.synthetic else None
 
     result = validate_shard_set(
         plan_manifest=plan_manifest,
         plan_manifest_sha256=plan_sha,
         plan_dir=plan_dir,
-        key_rows=[],
-        run_rows=[],
         shard_root=shard_root,
+        expected_mode=expected_mode,
     )
 
     if result.is_valid:
