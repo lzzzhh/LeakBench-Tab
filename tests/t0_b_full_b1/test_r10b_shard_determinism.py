@@ -503,3 +503,123 @@ def test_active_fragment_blank_record_is_not_silently_normalized():
         assert result.fragment_sources_valid is False
         assert any("blank data record" in e.lower() for e in result.errors), \
             f"expected blank record error, got: {result.errors[:5]}"
+
+
+def test_unplanned_empty_shard_id_fails_closed_without_publication():
+    """Unplanned shard_id fails before any artifact is written."""
+    plan_dir = Path(SYNTH_PLAN).parent
+    keys = [json.loads(l) for l in gzip.decompress(
+        (plan_dir / "full_b1_key_plan.jsonl.gz").read_bytes()
+    ).decode("utf-8").strip().split("\n")]
+    max_id = max(k.get("shard_id", -1) for k in keys)
+    invalid_id = max_id + 1000
+
+    with tempfile.TemporaryDirectory() as td:
+        out = f"{td}/shard_{invalid_id}"
+        r = subprocess.run([sys.executable, RUNNER, "--plan-manifest", SYNTH_PLAN,
+            "--shard-id", str(invalid_id), "--output-dir", out, "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert "NO_PLANNED_KEYS_FOR_SHARD" in r.stdout, f"stdout={r.stdout}"
+        out_p = Path(out)
+        for fname in ["baseline_ledger.csv.gz", "governed_ledger.csv.gz",
+                       "selection_ledger.csv.gz", "failure_ledger.csv.gz",
+                       "shard_manifest.json", "shard_execution_receipt.json",
+                       "resume_receipt.json"]:
+            assert not (out_p / fname).exists(), f"{fname} should not exist"
+
+
+def test_shard_validator_rejects_empty_planned_scope():
+    """Validator returns invalid when given empty key/run rows."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(f"{td}/shard_0")
+        _setup_valid(out)
+        plan, plan_sha, shard_keys, shard_runs = _load_plan()
+        result = validate_shard_artifacts(
+            output_dir=out, plan_manifest=plan, plan_manifest_sha256=plan_sha,
+            shard_key_rows=[], shard_run_rows=[],
+        )
+        assert not result.is_valid
+        assert result.planned_scope_valid is False
+        assert "no planned keys for shard" in result.errors
+        assert result.fragment_sources_valid is False
+        assert result.fragment_aggregate_valid is False
+
+
+def test_quoted_multiline_fragment_record_is_rejected_before_aggregation():
+    """Legally quoted multiline CSV record is rejected by physical-line parser."""
+    import csv as csv_mod
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(f"{td}/shard_0")
+        _setup_valid(out)
+        plan, plan_sha, shard_keys, shard_runs = _load_plan()
+        cids = sorted(k["canonical_key_id"] for k in shard_keys)
+        cid = cids[0]
+
+        # Create a selection.csv.gz with a multiline quoted field
+        sp = out / "key_fragments" / cid / "selection.csv.gz"
+        raw = gzip.decompress(sp.read_bytes()).decode("utf-8")
+        lines = raw.split("\n")
+        # Build a data row with an embedded newline using csv.writer
+        import csv
+        row_with_newline = ['hash1', 'P2', 'semantic_group', '500', '[]', '[]', '0']
+        row_with_newline[2] = 'line1\nline2'  # embedded newline
+        buf = io.StringIO()
+        w = csv.writer(buf, lineterminator="\n")
+        w.writerow(row_with_newline)
+        multiline_row = buf.getvalue().rstrip("\n")  # physical repr spans lines
+        new_text = lines[0] + "\n" + multiline_row + "\n"
+        sp.write_bytes(gzip.compress(new_text.encode("utf-8"), mtime=0))
+
+        # Update manifest SHAs
+        fm = json.loads((out / "key_fragments" / cid / "fragment_manifest.json").read_text())
+        fm["selection_sha256"] = hashlib.sha256(sp.read_bytes()).hexdigest()
+        (out / "key_fragments" / cid / "fragment_manifest.json").write_text(json.dumps(fm))
+
+        from scripts.t0_b_full_b1.shard_contract import fragment_manifest_set_sha256
+        key_dirs = [out / "key_fragments" / c for c in cids]
+        sm = json.loads((out / "shard_manifest.json").read_text())
+        sm["fragment_manifest_set_sha256"] = fragment_manifest_set_sha256(key_dirs)
+        (out / "shard_manifest.json").write_text(json.dumps(sm))
+
+        result = _validate(out, plan, plan_sha, shard_keys, shard_runs)
+        assert not result.is_valid
+        assert result.fragment_sources_valid is False
+        assert any("embedded newline" in e.lower() or "multiline" in e.lower()
+                   or "csv parse error" in e.lower()
+                   for e in result.errors), f"expected multiline rejection, got: {result.errors[:5]}"
+
+
+def test_quoted_canonical_header_is_not_accepted_as_exact_header():
+    """Quoted header fields (semantically equivalent) are rejected as exact mismatch."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(f"{td}/shard_0")
+        _setup_valid(out)
+        plan, plan_sha, shard_keys, shard_runs = _load_plan()
+        cids = sorted(k["canonical_key_id"] for k in shard_keys)
+        cid = cids[0]
+
+        # Change baseline header: run_id -> "run_id"
+        bp = out / "key_fragments" / cid / "baseline.csv.gz"
+        raw = gzip.decompress(bp.read_bytes()).decode("utf-8")
+        lines = raw.split("\n")
+        header_parts = lines[0].split(",")
+        header_parts[0] = '\"run_id\"'
+        new_text = ",".join(header_parts) + "\n" + "\n".join(lines[1:])
+        bp.write_bytes(gzip.compress(new_text.encode("utf-8"), mtime=0))
+
+        # Update manifest SHAs
+        fm = json.loads((out / "key_fragments" / cid / "fragment_manifest.json").read_text())
+        fm["baseline_sha256"] = hashlib.sha256(bp.read_bytes()).hexdigest()
+        (out / "key_fragments" / cid / "fragment_manifest.json").write_text(json.dumps(fm))
+
+        from scripts.t0_b_full_b1.shard_contract import fragment_manifest_set_sha256
+        key_dirs = [out / "key_fragments" / c for c in cids]
+        sm = json.loads((out / "shard_manifest.json").read_text())
+        sm["fragment_manifest_set_sha256"] = fragment_manifest_set_sha256(key_dirs)
+        (out / "shard_manifest.json").write_text(json.dumps(sm))
+
+        result = _validate(out, plan, plan_sha, shard_keys, shard_runs)
+        assert not result.is_valid
+        assert result.fragment_sources_valid is False
+        assert any("exact header mismatch" in e for e in result.errors),             f"expected header mismatch, got: {result.errors[:5]}"

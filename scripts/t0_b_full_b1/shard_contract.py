@@ -28,6 +28,7 @@ class ShardArtifactValidation:
     manifest_schema_valid: bool = False
     provenance_valid: bool = False
     artifact_sha_valid: bool = False
+    planned_scope_valid: bool = False
     fragment_aggregate_valid: bool = False
     fragment_sources_valid: bool = False
     row_counts_valid: bool = False
@@ -107,11 +108,12 @@ _EXPECTED_FIELD_COUNTS = {name: len(h.split(",")) for name, h in _SHARD_LEDGER_H
 def _parse_fragment_csv_strict(
     fragment_dir: Path, cid: str, name: str, header: str,
 ) -> list[str]:
-    """Parse a fragment CSV with strict csv.reader. Returns validated data rows.
+    """Parse a fragment CSV with physical-line validation. Returns original raw data rows.
 
-    Rejects: gzip corruption, UTF-8 errors, header mismatch, blank records,
-    wrong field counts, CSV quoting errors, missing/excess trailing content.
-    Never silently normalizes or drops rows.
+    Rejects: gzip corruption, UTF-8 errors, exact header mismatch, blank physical
+    lines, wrong field counts, CSV quoting errors, embedded newlines in fields,
+    multiline logical records spanning physical lines.
+    Never silently normalizes, requotes, or drops rows.
     """
     raw = _check_common_fragment_file(fragment_dir, cid, name)
     try:
@@ -119,53 +121,66 @@ def _parse_fragment_csv_strict(
     except UnicodeDecodeError as exc:
         raise ValueError(f"active key {cid}: {name}.csv.gz UTF-8 decode error: {exc}") from exc
 
-    if not text.endswith("\n"):
-        raise ValueError(f"active key {cid}: {name}.csv.gz missing trailing newline")
     if "\r" in text:
         raise ValueError(f"active key {cid}: {name}.csv.gz contains CR (carriage return)")
 
-    stream = io.StringIO(text, newline="")
-    reader = csv.reader(stream, strict=True)
-    try:
-        all_rows = list(reader)
-    except csv.Error as exc:
-        raise ValueError(f"active key {cid}: {name}.csv.gz CSV parse error: {exc}") from exc
+    # Must end with exactly one trailing newline
+    if not text.endswith("\n"):
+        raise ValueError(f"active key {cid}: {name}.csv.gz missing trailing newline")
 
-    if not all_rows:
+    # Split into physical lines (remove trailing empty from final \n)
+    physical_lines = text[:-1].split("\n")
+
+    if not physical_lines:
         raise ValueError(f"active key {cid}: {name}.csv.gz is empty")
 
-    # Exact header match
-    actual_header = ",".join(all_rows[0])
-    if actual_header != header:
+    # Exact raw header comparison
+    if physical_lines[0] != header:
         raise ValueError(
-            f"active key {cid}: {name}.csv.gz header mismatch, "
-            f"expected [{header}], got [{actual_header[:80]}]"
+            f"active key {cid}: {name}.csv.gz exact header mismatch, "
+            f"expected [{header[:80]}], got [{physical_lines[0][:80]}]"
         )
 
     expected_count = _EXPECTED_FIELD_COUNTS[name]
-    for i, row in enumerate(all_rows[1:], start=1):
-        # Blank record: all fields empty or zero-length
-        if len(row) == 0 or all(field.strip() == "" for field in row):
+    data_rows = []
+
+    for i, physical_line in enumerate(physical_lines[1:], start=1):
+        # Blank physical line
+        if physical_line == "":
             raise ValueError(
                 f"active key {cid}: {name}.csv.gz blank data record at row {i}"
             )
+
+        # Parse this single physical line with csv.reader
+        try:
+            parsed = list(csv.reader([physical_line], strict=True))
+        except csv.Error as exc:
+            raise ValueError(f"active key {cid}: {name}.csv.gz CSV parse error: {exc}") from exc
+
+        # Must produce exactly one record
+        if len(parsed) != 1:
+            raise ValueError(
+                f"active key {cid}: {name}.csv.gz embedded newline or multiline "
+                f"CSV record is forbidden at row {i}"
+            )
+
+        row = parsed[0]
         if len(row) != expected_count:
             raise ValueError(
                 f"active key {cid}: {name}.csv.gz row {i} has {len(row)} fields; "
                 f"expected {expected_count}"
             )
 
-    # Reconstruct properly-quoted raw data rows from validated CSV fields
-    data_rows = []
-    for row in all_rows[1:]:
-        buf = io.StringIO()
-        writer = csv.writer(buf, lineterminator="\n")
-        writer.writerow(row)
-        line = buf.getvalue()
-        # Remove trailing newline (we control newlines ourselves)
-        if line.endswith("\n"):
-            line = line[:-1]
-        data_rows.append(line)
+        # Reject embedded newline/carriage return in any field
+        for fi, field in enumerate(row):
+            if "\n" in field or "\r" in field:
+                raise ValueError(
+                    f"active key {cid}: {name}.csv.gz embedded newline in field {fi} at row {i}"
+                )
+
+        # Return the original physical data row
+        data_rows.append(physical_line)
+
     return data_rows
 
 
@@ -219,6 +234,12 @@ def collect_validated_active_fragment_rows(
     collected = {name: [] for name in _SHARD_LEDGER_HEADERS}
 
     cids = []
+    if not shard_key_rows:
+        errors.append("no planned keys for shard")
+        return collected, errors
+    if not shard_run_rows:
+        errors.append("no planned runs for shard")
+        return collected, errors
     for kp in shard_key_rows:
         cid = kp.get("canonical_key_id")
         if not cid or not isinstance(cid, str) or cid.strip() == "":
@@ -227,6 +248,22 @@ def collect_validated_active_fragment_rows(
         cids.append(cid)
     if len(set(cids)) != len(cids):
         errors.append("duplicate canonical_key_ids in shard_key_rows")
+    if errors:
+        return collected, errors
+
+    # Key/run membership closure
+    run_key_ids = set()
+    for r in shard_run_rows:
+        rcid = r.get("canonical_key_id")
+        if not rcid or not isinstance(rcid, str) or rcid.strip() == "":
+            errors.append(f"run plan row has invalid canonical_key_id: {rcid!r}")
+        run_key_ids.add(rcid)
+    extra_run_keys = run_key_ids - set(cids)
+    if extra_run_keys:
+        errors.append(f"run plan contains keys outside shard key universe: {sorted(extra_run_keys)}")
+    for cid in cids:
+        if cid not in run_key_ids:
+            errors.append(f"planned key {cid} has no run rows")
     if errors:
         return collected, errors
 
@@ -498,6 +535,34 @@ def validate_shard_artifacts(
     errors = []
     result = ShardArtifactValidation(is_valid=False, errors=errors)
 
+    # ── Scope: non-empty valid input ──
+    if not shard_key_rows:
+        errors.append("no planned keys for shard")
+        return result
+    if not shard_run_rows:
+        errors.append("no planned runs for shard")
+        return result
+    cids = []
+    for kp in shard_key_rows:
+        cid = kp.get("canonical_key_id")
+        if not cid or not isinstance(cid, str) or cid.strip() == "":
+            errors.append(f"invalid canonical_key_id in shard_key_rows: {cid!r}")
+            continue
+        cids.append(cid)
+    if len(set(cids)) != len(cids):
+        errors.append("duplicate canonical_key_ids in shard_key_rows")
+        return result
+    for r in shard_run_rows:
+        rcid = r.get("canonical_key_id")
+        if not rcid or not isinstance(rcid, str) or rcid.strip() == "":
+            errors.append(f"run plan row has invalid canonical_key_id: {rcid!r}")
+    for c in cids:
+        if not any(r.get("canonical_key_id") == c for r in shard_run_rows):
+            errors.append(f"planned key {c} has no run rows")
+    if errors:
+        return result
+    result.planned_scope_valid = True
+
     # ── A. Manifest existence + parse ──
     mp = out / "shard_manifest.json"
     if not mp.exists():
@@ -686,7 +751,8 @@ def validate_shard_artifacts(
     result.fragment_aggregate_valid = True
 
     result.is_valid = (
-        result.manifest_schema_valid and result.provenance_valid
+        result.planned_scope_valid
+        and result.manifest_schema_valid and result.provenance_valid
         and result.artifact_sha_valid and result.fragment_sources_valid
         and result.fragment_aggregate_valid
         and result.row_counts_valid

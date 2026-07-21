@@ -374,6 +374,14 @@ def main():
 
     shard_keys = [k for k in keys if k.get("shard_id") == args.shard_id]
     shard_runs = [r for r in runs if r.get("shard_id") == args.shard_id]
+    # Scope guard: reject empty/unplanned shards
+    if not shard_keys:
+        print(f"NO_PLANNED_KEYS_FOR_SHARD: shard_id={args.shard_id}")
+        sys.exit(1)
+    if not shard_runs:
+        print(f"NO_PLANNED_RUNS_FOR_SHARD: shard_id={args.shard_id}")
+        sys.exit(1)
+
     rid_lookup = build_run_id_lookup(shard_runs)
 
     planned_ids = {}
@@ -586,15 +594,21 @@ def main():
                 sys.exit(1)
 
             # ─── Build canonical shard ledgers from active fragments ───
-            canonical_ledgers = build_canonical_shard_ledger_bytes(
-                output_dir=out,
-                shard_key_rows=shard_keys,
-                shard_run_rows=shard_runs,
-                plan_manifest_sha256=plan_manifest_sha,
-            )
-            for name in ["baseline", "governed", "selection", "failure"]:
-                fname = "failure_ledger" if name == "failure" else f"{name}_ledger"
-                atomic_write_gzip_text(out / f"{fname}.csv.gz", gzip.decompress(canonical_ledgers[name]).decode("utf-8"))
+            try:
+                canonical_ledgers = build_canonical_shard_ledger_bytes(
+                    output_dir=out,
+                    shard_key_rows=shard_keys,
+                    shard_run_rows=shard_runs,
+                    plan_manifest_sha256=plan_manifest_sha,
+                )
+                for name in ["baseline", "governed", "selection", "failure"]:
+                    fname = "failure_ledger" if name == "failure" else f"{name}_ledger"
+                    atomic_write_gzip_text(out / f"{fname}.csv.gz", gzip.decompress(canonical_ledgers[name]).decode("utf-8"))
+            except ValueError as exc:
+                print("SHARD_FRAGMENT_SOURCE_VALIDATION_FAIL")
+                for line in str(exc).split("\n"):
+                    print(f"  {line}")
+                sys.exit(1)
 
             # Row counts from canonical output (for receipt)
             def _row_count_from_canonical(name: str) -> int:
