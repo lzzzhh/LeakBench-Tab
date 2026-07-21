@@ -274,9 +274,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--plan-manifest", required=True); ap.add_argument("--shard-id", type=int, required=True)
     ap.add_argument("--output-dir", default="/tmp/t0b_shard"); ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--repair-invalid", action="store_true")
     ap.add_argument("--synthetic", action="store_true"); ap.add_argument("--validate-only", action="store_true")
     args = ap.parse_args()
     out = Path(args.output_dir)
+
+    if args.repair_invalid and not args.resume:
+        print("REPAIR_INVALID_REQUIRES_RESUME"); sys.exit(2)
 
     with open(ROOT / args.plan_manifest) as f: pm = json.load(f)
     plan_dir = Path(args.plan_manifest).parent
@@ -342,13 +346,32 @@ def main():
                     if result.is_complete:
                         complete_ids.add(cid)
                     else:
-                        invalid_results[cid] = result.errors
-                # Fail closed: if any key invalid, exit without recompute
+                        invalid_results[cid] = result
+                # Handle invalid keys
                 if invalid_results:
-                    print(f"RESUME_VALIDATION_FAIL: {len(invalid_results)} invalid keys")
-                    for cid, errs in invalid_results.items():
-                        print(f"  {cid[:16]}: {errs[:3]}")
-                    sys.exit(1)
+                    if not args.repair_invalid:
+                        print(f"RESUME_VALIDATION_FAIL: {len(invalid_results)} invalid keys")
+                        for cid, r in invalid_results.items():
+                            print(f"  {cid[:16]}: {r.errors[:3]}")
+                        sys.exit(1)
+                    # Repair path: classify, check repairability, quarantine, recompute
+                    from scripts.t0_b_full_b1.resume_contract import (
+                        classify_completed_key_failure, quarantine_invalid_key, ResumeReasonCode,
+                    )
+                    classified = {cid: classify_completed_key_failure(cid, r) for cid, r in invalid_results.items()}
+                    unrepairable = {cid: c for cid, c in classified.items() if not c.repairable}
+                    if unrepairable:
+                        reasons = ", ".join(f"{cid[:12]}:{c.reason_code.value}" for cid, c in unrepairable.items())
+                        print(f"RESUME_REPAIR_UNSUPPORTED: {reasons}")
+                        for cid, c in unrepairable.items():
+                            print(f"  {cid[:16]}: {c.reason_code.value} — {list(c.validation_errors)[:3]}")
+                        sys.exit(1)
+                    # Quarantine all repairable keys
+                    quarantined = {}
+                    for cid, cf in classified.items():
+                        rec = quarantine_invalid_key(out, cid, cf.reason_code, cf.validation_errors)
+                        quarantined[cid] = rec
+                        print(f"  Quarantined {cid[:16]} → {rec.quarantine_directory.relative_to(out)}")
 
             all_bl, all_gl, all_sl = [], [], []; new_keys = 0
             for kp in shard_keys:
