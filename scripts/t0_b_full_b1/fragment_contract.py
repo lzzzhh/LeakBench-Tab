@@ -545,36 +545,56 @@ def validate_m09_eight_columns(payload: dict, validated_semantic: ValidatedSeman
 # Main validator
 # ====================================================================
 
-def validate_completed_key(
+@dataclass
+class FragmentArtifactValidation:
+    """Receipt-independent validation of all key-level artifacts."""
+    is_valid: bool
+    errors: list[str] = field(default_factory=list)
+
+    baseline_rows: int = 0
+    governed_rows: int = 0
+    selection_rows: int = 0
+    failure_rows: int = 0
+
+    duplicate_run_ids: list[str] = field(default_factory=list)
+    missing_run_ids: list[str] = field(default_factory=list)
+    extra_run_ids: list[str] = field(default_factory=list)
+    null_run_id_count: int = 0
+
+    fragment_manifest_valid: bool = False
+    fragment_sha_valid: bool = False
+    row_count_valid: bool = False
+    run_id_closure_valid: bool = False
+    selection_closure_valid: bool = False
+    selection_payload_valid: bool = False
+    realized_cost_valid: bool = False
+    mapping_valid: bool = False
+    semantic_atomicity_valid: bool = False
+    m09_atomicity_valid: bool = False
+    manifest_selection_digest_valid: bool = False
+
+
+@dataclass
+class MissingReceiptCandidateValidation:
+    """Result of validating a key that is missing its completion receipt."""
+    is_repairable: bool
+    errors: list[str]
+    missing_receipt_confirmed: bool
+    artifact_validation: FragmentArtifactValidation
+
+
+def validate_fragment_artifacts(
     key_plan_row: dict,
     planned_run_ids: list[str],
     fragment_dir: Path,
     plan_manifest_sha256: str,
     policy_mapping: dict,
     semantic_mapping: dict,
-) -> CompletedKeyValidation:
-    """Validate a completed key fragment directory."""
+) -> FragmentArtifactValidation:
+    """Validate all key-level artifacts WITHOUT reading completion_receipt.json."""
     errors = []
     cid = key_plan_row.get("canonical_key_id", "unknown")
-    result = CompletedKeyValidation(is_complete=False, errors=errors)
-
-    # ── Receipt check ──
-    receipt_path = fragment_dir / "completion_receipt.json"
-    if not receipt_path.exists():
-        errors.append("completion receipt missing")
-        return result
-    try:
-        receipt = json.loads(receipt_path.read_text())
-    except json.JSONDecodeError:
-        errors.append("completion receipt corrupt")
-        return result
-    if receipt.get("status") != "complete":
-        errors.append(f"receipt status: {receipt.get('status')}")
-        return result
-    if receipt.get("canonical_key_id") != cid:
-        errors.append("receipt cid mismatch")
-        return result
-    result.receipt_valid = True
+    result = FragmentArtifactValidation(is_valid=False, errors=errors)
 
     # ── Fragment manifest check ──
     manifest_path = fragment_dir / "fragment_manifest.json"
@@ -589,13 +609,10 @@ def validate_completed_key(
     if manifest.get("canonical_key_id") != cid:
         errors.append("manifest cid mismatch")
         return result
-    if receipt.get("fragment_manifest_sha256") != hashlib.sha256(manifest_path.read_bytes()).hexdigest():
-        errors.append("receipt manifest SHA mismatch")
-        return result
     result.fragment_manifest_valid = True
 
     # ── File SHA checks ──
-    for name, key in [("baseline", "baseline_rows"), ("governed", "governed_rows"), ("selection", "selection_rows"), ("failure", "failure_rows")]:
+    for name in ["baseline", "governed", "selection", "failure"]:
         fp = fragment_dir / f"{name}.csv.gz"
         if not fp.exists():
             errors.append(f"{name} fragment missing")
@@ -632,6 +649,7 @@ def validate_completed_key(
         errors.append(f"failure rows: {result.failure_rows}")
     if errors:
         return result
+    result.row_count_valid = True
 
     # ── Run ID checks ──
     produced_ids = list(bl_df["run_id"]) + list(gl_df["run_id"])
@@ -640,7 +658,6 @@ def validate_completed_key(
     if null_count > 0:
         errors.append(f"null run IDs: {null_count}")
 
-    # Detect duplicates BEFORE set comparison
     seen = {}; dups = []
     for rid in produced_ids:
         if rid in seen:
@@ -672,24 +689,20 @@ def validate_completed_key(
         errors.append(f"selection payload parse error: {e}")
         return result
 
-    # Multiset closure (with payload normalization)
     multiset_errors = validate_selection_multiset_closure(gl_df, normalized_payloads)
     if multiset_errors:
         errors.extend(multiset_errors); return result
     result.selection_closure_valid = True
 
-    # Payload consistency (same hash, same payload)
     payload_errors = validate_selection_payload_consistency(normalized_payloads)
     if payload_errors:
         errors.extend(payload_errors); return result
     result.selection_payload_valid = True
 
-    # Selection realized-cost closure
     sc_errors = validate_selection_realized_cost(normalized_payloads)
     if sc_errors:
         errors.extend(sc_errors); return result
 
-    # Governed realized-cost closure
     payload_by_hash = {p["selection_hash"]: p for p in normalized_payloads}
     gc_errors = validate_governed_realized_cost(gl_df, payload_by_hash)
     if gc_errors:
@@ -701,42 +714,38 @@ def validate_completed_key(
         validated_map = validate_policy_mapping(policy_mapping, key_plan_row)
     except SelectionContractError as e:
         errors.append(f"policy mapping invalid: {e}")
-        result.is_complete = False; return result
+        return result
     result.mapping_valid = True
 
-    # Encoded-column contract validation
     for p in normalized_payloads:
         ec_errors = validate_encoded_column_contract(p, validated_map)
         if ec_errors:
             errors.extend(ec_errors)
     if errors:
-        result.is_complete = False; return result
+        return result
 
-    # Semantic-group atomicity
     for p in normalized_payloads:
         sem_errors = validate_semantic_group_atomicity(p, {gid: set(members) for gid, members in validated_map.group_members.items()})
         if sem_errors:
             errors.extend(sem_errors)
     if errors:
-        result.is_complete = False; return result
+        return result
 
-    # M09 validation (uses validated semantic mapping)
     try:
         validated_semantic = validate_semantic_mapping(semantic_mapping, key_plan_row, validated_map)
     except SelectionContractError as e:
         errors.append(f"semantic mapping invalid: {e}")
-        result.is_complete = False; return result
+        return result
     for p in normalized_payloads:
         try:
             m09_errors = validate_m09_eight_columns(p, validated_semantic, key_plan_row)
         except SelectionContractError as e:
             errors.append(f"semantic mapping invalid: {e}")
-            result.is_complete = False; return result
+            return result
         if m09_errors:
             errors.extend(m09_errors)
     if errors:
-        result.is_complete = False; return result
-    # Set semantic flags — M09 passes for non-M09 keys, validated for M09 keys
+        return result
     result.semantic_atomicity_valid = True
     result.m09_atomicity_valid = True
 
@@ -745,8 +754,139 @@ def validate_completed_key(
     manifest_errors = validate_manifest_selection_digest(manifest, sel_hashes, normalized_payloads)
     if manifest_errors:
         errors.extend(manifest_errors)
-        result.is_complete = False; return result
+        return result
     result.manifest_selection_digest_valid = True
+
+    result.is_valid = (
+        result.fragment_manifest_valid and result.fragment_sha_valid
+        and result.row_count_valid and result.run_id_closure_valid
+        and result.selection_closure_valid and result.selection_payload_valid
+        and result.realized_cost_valid and result.mapping_valid
+        and result.semantic_atomicity_valid and result.m09_atomicity_valid
+        and result.manifest_selection_digest_valid
+    )
+    return result
+
+
+def validate_missing_receipt_candidate(
+    key_plan_row: dict,
+    planned_run_ids: list[str],
+    fragment_dir: Path,
+    plan_manifest_sha256: str,
+    policy_mapping: dict,
+    semantic_mapping: dict,
+) -> MissingReceiptCandidateValidation:
+    """Validate a key missing its completion receipt as a candidate for replay.
+
+    Must confirm: receipt is truly absent, AND all other artifacts pass full validation.
+    Never modifies any files.
+    """
+    errors = []
+    receipt_path = fragment_dir / "completion_receipt.json"
+
+    # 1. Confirm receipt is truly missing
+    if receipt_path.exists():
+        return MissingReceiptCandidateValidation(
+            is_repairable=False,
+            errors=["completion receipt unexpectedly exists"],
+            missing_receipt_confirmed=False,
+            artifact_validation=FragmentArtifactValidation(is_valid=False, errors=[]),
+        )
+
+    # 2. Validate all non-receipt artifacts
+    artifact_validation = validate_fragment_artifacts(
+        key_plan_row=key_plan_row,
+        planned_run_ids=planned_run_ids,
+        fragment_dir=fragment_dir,
+        plan_manifest_sha256=plan_manifest_sha256,
+        policy_mapping=policy_mapping,
+        semantic_mapping=semantic_mapping,
+    )
+
+    if not artifact_validation.is_valid:
+        errors.extend(artifact_validation.errors)
+        return MissingReceiptCandidateValidation(
+            is_repairable=False,
+            errors=errors,
+            missing_receipt_confirmed=True,
+            artifact_validation=artifact_validation,
+        )
+
+    return MissingReceiptCandidateValidation(
+        is_repairable=True,
+        errors=[],
+        missing_receipt_confirmed=True,
+        artifact_validation=artifact_validation,
+    )
+
+
+def validate_completed_key(
+    key_plan_row: dict,
+    planned_run_ids: list[str],
+    fragment_dir: Path,
+    plan_manifest_sha256: str,
+    policy_mapping: dict,
+    semantic_mapping: dict,
+) -> CompletedKeyValidation:
+    """Validate a completed key fragment directory with its completion receipt."""
+    errors = []
+    cid = key_plan_row.get("canonical_key_id", "unknown")
+    result = CompletedKeyValidation(is_complete=False, errors=errors)
+
+    # ── Receipt check ──
+    receipt_path = fragment_dir / "completion_receipt.json"
+    if not receipt_path.exists():
+        errors.append("completion receipt missing")
+        return result
+    try:
+        receipt = json.loads(receipt_path.read_text())
+    except json.JSONDecodeError:
+        errors.append("completion receipt corrupt")
+        return result
+    if receipt.get("status") != "complete":
+        errors.append(f"receipt status: {receipt.get('status')}")
+        return result
+    if receipt.get("canonical_key_id") != cid:
+        errors.append("receipt cid mismatch")
+        return result
+    result.receipt_valid = True
+
+    # ── Receipt→manifest SHA binding ──
+    manifest_path = fragment_dir / "fragment_manifest.json"
+    if receipt.get("fragment_manifest_sha256") != hashlib.sha256(manifest_path.read_bytes()).hexdigest():
+        errors.append("receipt manifest SHA mismatch")
+        return result
+
+    # ── Delegate all artifact checks to the receipt-independent validator ──
+    av = validate_fragment_artifacts(
+        key_plan_row=key_plan_row,
+        planned_run_ids=planned_run_ids,
+        fragment_dir=fragment_dir,
+        plan_manifest_sha256=plan_manifest_sha256,
+        policy_mapping=policy_mapping,
+        semantic_mapping=semantic_mapping,
+    )
+
+    # Copy artifact validation results into completed-key result
+    errors.extend(av.errors)
+    result.baseline_rows = av.baseline_rows
+    result.governed_rows = av.governed_rows
+    result.selection_rows = av.selection_rows
+    result.failure_rows = av.failure_rows
+    result.duplicate_run_ids = av.duplicate_run_ids
+    result.missing_run_ids = av.missing_run_ids
+    result.extra_run_ids = av.extra_run_ids
+    result.null_run_id_count = av.null_run_id_count
+    result.fragment_manifest_valid = av.fragment_manifest_valid
+    result.fragment_sha_valid = av.fragment_sha_valid
+    result.run_id_closure_valid = av.run_id_closure_valid
+    result.selection_closure_valid = av.selection_closure_valid
+    result.selection_payload_valid = av.selection_payload_valid
+    result.realized_cost_valid = av.realized_cost_valid
+    result.mapping_valid = av.mapping_valid
+    result.semantic_atomicity_valid = av.semantic_atomicity_valid
+    result.m09_atomicity_valid = av.m09_atomicity_valid
+    result.manifest_selection_digest_valid = av.manifest_selection_digest_valid
 
     result.is_complete = (
         result.receipt_valid and result.fragment_manifest_valid and result.fragment_sha_valid

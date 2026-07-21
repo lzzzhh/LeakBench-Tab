@@ -167,6 +167,7 @@ def test_mixed_sha_run_id_unrepairable():
 
 
 def test_missing_receipt_remains_unsupported():
+    """Missing receipt with nonreceipt corruption is unsupported for repair."""
     with tempfile.TemporaryDirectory() as td:
         out = f"{td}/shard_0"
         _first_exec(out)
@@ -177,10 +178,15 @@ def test_missing_receipt_remains_unsupported():
                        "shard_manifest.json", "shard_execution_receipt.json"]:
             fp = Path(out) / fname
             shard_before[fname] = hashlib.sha256(fp.read_bytes()).hexdigest()
-        # Remove receipt from first key
+        # Remove receipt AND corrupt fragment
         frags = Path(out) / "key_fragments"
         first_key = sorted(frags.iterdir())[0]
         (first_key / "completion_receipt.json").unlink()
+        # Also corrupt governed fragment
+        gpath = first_key / "governed.csv.gz"
+        data = bytearray(gpath.read_bytes())
+        data[0] ^= 0x01
+        gpath.write_bytes(bytes(data))
         r = subprocess.run([sys.executable, RUNNER, "--plan-manifest", SYNTH_PLAN,
             "--shard-id", "0", "--output-dir", out, "--synthetic", "--resume", "--repair-invalid"],
             capture_output=True, text=True, cwd=ROOT)

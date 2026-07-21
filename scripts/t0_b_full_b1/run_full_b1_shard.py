@@ -22,6 +22,10 @@ from scripts.t0_b_full_b1.fragment_contract import (
 )
 from scripts.t0_b_full_b1.resume_contract import (
     classify_completed_key_failure, quarantine_invalid_key, ResumeReasonCode,
+    decide_repairability, ClassifiedValidationFailure,
+)
+from scripts.t0_b_full_b1.fragment_contract import (
+    validate_missing_receipt_candidate,
 )
 from scripts.t0_b_full_b1.run_key_contract import (
     baseline_lookup_key, governed_lookup_key, build_run_id_lookup,
@@ -414,19 +418,64 @@ def main():
                         for cid, r in invalid_results.items():
                             print(f"  {cid[:16]}: {r.errors[:3]}")
                         sys.exit(1)
-                    # Repair path: classify, check repairability, quarantine all repairable
+                    # Repair path: classify, evaluate missing-receipt candidates, decide repairability
                     classified = {cid: classify_completed_key_failure(cid, r) for cid, r in invalid_results.items()}
-                    unrepairable = {cid: c for cid, c in classified.items() if not c.repairable}
-                    if unrepairable:
-                        reasons = ", ".join(f"{cid[:12]}:{c.reason_code.value}" for cid, c in unrepairable.items())
-                        print(f"RESUME_REPAIR_UNSUPPORTED: {reasons}")
-                        for cid, c in unrepairable.items():
-                            print(f"  {cid[:16]}: {c.reason_code.value} — {list(c.validation_errors)[:3]}")
-                        sys.exit(1)
-                    # Quarantine all repairable keys
+
+                    # Build candidate validations for receipt-missing keys
+                    missing_receipt_candidates = {}
                     for cid, cf in classified.items():
-                        rec = quarantine_invalid_key(out, cid, cf.reason_code, cf.validation_errors)
+                        if cf.reason_code != ResumeReasonCode.RECEIPT_MISSING:
+                            continue
+                        kp = next(k for k in shard_keys if k["canonical_key_id"] == cid)
+                        planned_for_key = sorted(planned_ids.get(cid, set()))
+                        pol_info = deps.mapping_loader(
+                            "policy_group_mapping_v3.jsonl.gz",
+                            (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]),
+                        )
+                        sem_info = deps.mapping_loader(
+                            "semantic_evaluation_mapping_v3.jsonl.gz",
+                            (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]),
+                        )
+                        candidate = validate_missing_receipt_candidate(
+                            key_plan_row=kp,
+                            planned_run_ids=planned_for_key,
+                            fragment_dir=out / "key_fragments" / cid,
+                            plan_manifest_sha256=plan_manifest_sha,
+                            policy_mapping=pol_info,
+                            semantic_mapping=sem_info,
+                        )
+                        missing_receipt_candidates[cid] = candidate
+
+                    # Produce final repair decisions
+                    decisions = {}
+                    for cid, cf in classified.items():
+                        decisions[cid] = decide_repairability(
+                            cf,
+                            missing_receipt_candidates.get(cid),
+                        )
+
+                    # All-or-nothing: any unrepairable means no quarantine, no recompute
+                    unrepairable = {cid: d for cid, d in decisions.items() if not d.repairable}
+                    if unrepairable:
+                        reasons = []
+                        for cid, d in unrepairable.items():
+                            reasons.append(f"{cid[:12]}:{d.reason_code.value}")
+                            print(f"  {cid[:16]}: {d.reason_code.value} — {list(d.validation_errors)[:3]}")
+                            if d.candidate_errors:
+                                print(f"    candidate errors: {list(d.candidate_errors)[:3]}")
+                        print(f"RESUME_REPAIR_UNSUPPORTED: {', '.join(reasons)}")
+                        sys.exit(1)
+
+                    # Quarantine all repairable keys
+                    for cid, d in decisions.items():
+                        rec = quarantine_invalid_key(out, cid, d.reason_code, d.validation_errors)
                         quarantined[cid] = rec
+                        classified[cid] = ClassifiedValidationFailure(  # update classification with final reason
+                            canonical_key_id=cid,
+                            reason_code=d.reason_code,
+                            validation_errors=d.validation_errors,
+                            repairable=True,
+                        )
                         repairable_key_ids.add(cid)
                         print(f"  Quarantined {cid[:16]} → {rec.quarantine_directory.relative_to(out)}")
 

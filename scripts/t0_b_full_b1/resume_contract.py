@@ -7,7 +7,9 @@ import hashlib, json, os, secrets
 from datetime import datetime, timezone
 from pathlib import Path
 
-from scripts.t0_b_full_b1.fragment_contract import CompletedKeyValidation
+from scripts.t0_b_full_b1.fragment_contract import (
+    CompletedKeyValidation, MissingReceiptCandidateValidation,
+)
 from scripts.t0_b_full_b1.io_contract import atomic_write_json
 
 
@@ -17,6 +19,15 @@ class QuarantineIntegrityError(RuntimeError):
 
 class QuarantineReceiptWriteError(RuntimeError):
     """Raised when quarantine receipt write fails, preserving original exception."""
+
+
+@dataclass(frozen=True)
+class RepairDecision:
+    canonical_key_id: str
+    reason_code: ResumeReasonCode
+    repairable: bool
+    validation_errors: tuple[str, ...]
+    candidate_errors: tuple[str, ...]
 
 
 class ResumeReasonCode(str, Enum):
@@ -85,6 +96,54 @@ def classify_completed_key_failure(
                 return ClassifiedValidationFailure(canonical_key_id, ResumeReasonCode.FAILURE_ROWS_PRESENT, errors, False)
 
     return ClassifiedValidationFailure(canonical_key_id, ResumeReasonCode.UNKNOWN, errors, False)
+
+
+def decide_repairability(
+    classified_failure: ClassifiedValidationFailure,
+    missing_receipt_candidate: MissingReceiptCandidateValidation | None,
+) -> RepairDecision:
+    """Produce final repair decision combining classification with candidate validation.
+
+    - Fragment SHA mismatch: always repairable.
+    - Receipt missing: repairable only if candidate validation passes all non-receipt checks.
+    - All other reasons (including receipt corrupt, mixed errors, etc.): NOT repairable.
+    """
+    errors = tuple(classified_failure.validation_errors)
+    candidate_errors = (
+        tuple(missing_receipt_candidate.errors) if missing_receipt_candidate is not None
+        else ()
+    )
+
+    # Fragment SHA mismatch: always repairable
+    if classified_failure.repairable:
+        return RepairDecision(
+            canonical_key_id=classified_failure.canonical_key_id,
+            reason_code=classified_failure.reason_code,
+            repairable=True,
+            validation_errors=errors,
+            candidate_errors=candidate_errors,
+        )
+
+    # Receipt missing: repairable only if all non-receipt artifacts pass validation
+    if (classified_failure.reason_code == ResumeReasonCode.RECEIPT_MISSING
+            and missing_receipt_candidate is not None
+            and missing_receipt_candidate.is_repairable):
+        return RepairDecision(
+            canonical_key_id=classified_failure.canonical_key_id,
+            reason_code=ResumeReasonCode.RECEIPT_MISSING,
+            repairable=True,
+            validation_errors=errors,
+            candidate_errors=(),
+        )
+
+    # All other cases: NOT repairable
+    return RepairDecision(
+        canonical_key_id=classified_failure.canonical_key_id,
+        reason_code=classified_failure.reason_code,
+        repairable=False,
+        validation_errors=errors,
+        candidate_errors=candidate_errors,
+    )
 
 
 @dataclass(frozen=True)
