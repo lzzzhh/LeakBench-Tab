@@ -336,7 +336,8 @@ def main():
                 for kp in shard_keys:
                     cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
                     planned_for_key = sorted(planned_ids.get(cid, set()))
-                    result = validate_completed_key(kp, planned_for_key, fdir, plan_manifest_sha)
+                    pol_info = deps.mapping_loader("policy_group_mapping_v3.jsonl.gz", (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]))
+                    result = validate_completed_key(kp, planned_for_key, fdir, plan_manifest_sha, pol_info)
                     if result.is_complete:
                         complete_ids.add(cid)
                     else:
@@ -396,7 +397,8 @@ def main():
                 atomic_write_json(fdir / "completion_receipt.json", receipt)
 
                 # Write-then-validate
-                post_result = validate_completed_key(kp, planned_for_key, fdir, plan_manifest_sha)
+                pol_info = deps.mapping_loader("policy_group_mapping_v3.jsonl.gz", (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]))
+                post_result = validate_completed_key(kp, planned_for_key, fdir, plan_manifest_sha, pol_info)
                 if not post_result.is_complete:
                     print(f"FAIL: post-write validation failed for {cid}: {post_result.errors}"); sys.exit(1)
 

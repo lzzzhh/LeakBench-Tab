@@ -125,15 +125,7 @@ def build_fragment_manifest(
     # Selection payload digest
     sel_payloads = []
     for _, r in selection_df.sort_values("selection_hash").iterrows():
-        sel_payloads.append(json.dumps({
-            "selection_hash": r["selection_hash"],
-            "policy": r["policy"],
-            "contract": r["contract"],
-            "budget_bp": int(r["budget_bp"]),
-            "removed_encoded_indices": sorted(json.loads(r["removed_encoded_indices"])),
-            "removed_group_ids": sorted(json.loads(r["removed_group_ids"])),
-            "realized_encoded_cost": int(r["realized_encoded_cost"]),
-        }, sort_keys=True, separators=(",", ":")))
+        sel_payloads.append(_canonical_selection_json(r))
     sel_payload_digest_sha = _sorted_counts_sha256(sel_payloads)
 
     return {
@@ -158,11 +150,248 @@ def build_fragment_manifest(
     }
 
 
+class SelectionContractError(ValueError):
+    """Raised when selection array fields are invalid."""
+    pass
+
+
+# ====================================================================
+# Array field parsing
+# ====================================================================
+
+def parse_int_array_json(value) -> list[int]:
+    """Parse a JSON-encoded integer array. Accepts both str (JSON) and list (pre-parsed by pandas)."""
+    if isinstance(value, list):
+        arr = value
+    elif isinstance(value, str):
+        try:
+            arr = json.loads(value)
+        except json.JSONDecodeError as e:
+            raise SelectionContractError(f"JSON parse error: {e}")
+    else:
+        raise SelectionContractError(f"expected str or list, got {type(value).__name__}")
+    if not isinstance(arr, list):
+        raise SelectionContractError(f"expected list, got {type(arr).__name__}")
+    result = []
+    for i, item in enumerate(arr):
+        if isinstance(item, bool) or not isinstance(item, int):
+            raise SelectionContractError(f"index {i}: expected int, got {type(item).__name__} (value={item})")
+        if item < 0:
+            raise SelectionContractError(f"index {i}: negative encoded index {item}")
+        result.append(item)
+    if len(result) != len(set(result)):
+        raise SelectionContractError(f"duplicate encoded indices found")
+    return sorted(result)
+
+
+def parse_group_id_array_json(value) -> list[str]:
+    """Parse a JSON-encoded string array for group IDs. Accepts both str and list."""
+    if isinstance(value, list):
+        arr = value
+    elif isinstance(value, str):
+        try:
+            arr = json.loads(value)
+        except json.JSONDecodeError as e:
+            raise SelectionContractError(f"JSON parse error: {e}")
+    else:
+        raise SelectionContractError(f"expected str or list, got {type(value).__name__}")
+    if not isinstance(arr, list):
+        raise SelectionContractError(f"expected list, got {type(arr).__name__}")
+    result = []
+    for i, item in enumerate(arr):
+        if not isinstance(item, str) or item == "":
+            raise SelectionContractError(f"index {i}: expected non-empty str, got {type(item).__name__}")
+        result.append(item)
+    if len(result) != len(set(result)):
+        raise SelectionContractError(f"duplicate group IDs found")
+    return sorted(result)
+
+
+# ====================================================================
+# Canonical selection payload
+# ====================================================================
+
+def _canonical_selection_json(row: dict) -> str:
+    """Canonical JSON for a selection row (shared by builder and validator)."""
+    return json.dumps({
+        "selection_hash": row["selection_hash"],
+        "policy": row["policy"],
+        "contract": row["contract"],
+        "budget_bp": int(row["budget_bp"]),
+        "removed_encoded_indices": sorted(parse_int_array_json(row["removed_encoded_indices"])),
+        "removed_group_ids": sorted(parse_group_id_array_json(row["removed_group_ids"])),
+        "realized_encoded_cost": int(row["realized_encoded_cost"]),
+    }, sort_keys=True, separators=(",", ":"))
+
+
+def normalize_selection_payload(row: dict) -> dict:
+    """Parse and normalize a selection row into a validated dict."""
+    removed = parse_int_array_json(row["removed_encoded_indices"])
+    groups = parse_group_id_array_json(row["removed_group_ids"])
+    cost = int(row["realized_encoded_cost"])
+    if isinstance(row["realized_encoded_cost"], bool):
+        raise SelectionContractError("realized_encoded_cost must not be bool")
+    policy = str(row["policy"])
+    if policy not in ("P2", "P3", "P4", "P5", "P6"):
+        raise SelectionContractError(f"invalid policy: {policy}")
+    contract = str(row["contract"])
+    if contract not in ("semantic_group", "encoded_column"):
+        raise SelectionContractError(f"invalid contract: {contract}")
+    bp = int(row["budget_bp"])
+    if bp not in (500, 1000, 2000):
+        raise SelectionContractError(f"invalid budget_bp: {bp}")
+    h = str(row["selection_hash"])
+    if not h:
+        raise SelectionContractError("empty selection_hash")
+    return {
+        "selection_hash": h, "policy": policy, "contract": contract, "budget_bp": bp,
+        "removed_encoded_indices": removed, "removed_group_ids": groups, "realized_encoded_cost": cost,
+    }
+
+
+# ====================================================================
+# Selection validation functions
+# ====================================================================
+
+def validate_selection_multiset_closure(governed_df, normalized_payloads: list[dict]) -> list[str]:
+    """Verify governed.selection_hash multiset == selection multiset."""
+    errors = []
+    from collections import Counter
+    gov_counter = Counter(str(h) for h in governed_df["selection_hash"].dropna())
+    sel_counter = Counter(p["selection_hash"] for p in normalized_payloads)
+    if gov_counter != sel_counter:
+        missing = {k: v for k, v in sel_counter.items() if gov_counter.get(k, 0) < v}
+        extra = {k: v for k, v in gov_counter.items() if sel_counter.get(k, 0) < v}
+        if missing:
+            errors.append(f"selection multiset: {sum(missing.values())} missing occurrences")
+        if extra:
+            errors.append(f"selection multiset: {sum(extra.values())} extra occurrences")
+    return errors
+
+
+def validate_selection_payload_consistency(normalized_payloads: list[dict]) -> list[str]:
+    """Same selection_hash must have identical payload."""
+    errors = []
+    by_hash = {}
+    for pi, p in enumerate(normalized_payloads):
+        h = p["selection_hash"]
+        if h not in by_hash:
+            by_hash[h] = (pi, p)
+        else:
+            prev_i, prev = by_hash[h]
+            for key in ["policy", "contract", "budget_bp", "removed_encoded_indices", "removed_group_ids", "realized_encoded_cost"]:
+                if prev[key] != p[key]:
+                    errors.append(f"selection_hash {h[:16]}: {key} differs between row {prev_i} and {pi}")
+                    break
+    return errors
+
+
+def validate_selection_realized_cost(normalized_payloads: list[dict]) -> list[str]:
+    """realized_encoded_cost must equal len(removed_encoded_indices)."""
+    errors = []
+    for pi, p in enumerate(normalized_payloads):
+        expected = len(p["removed_encoded_indices"])
+        actual = p["realized_encoded_cost"]
+        if actual != expected:
+            errors.append(f"selection row {pi}: cost={actual}, expected={expected}")
+    return errors
+
+
+def validate_governed_realized_cost(governed_df, payload_by_hash: dict) -> list[str]:
+    """Governed realized_cost must match selection payload cost."""
+    errors = []
+    for gi, row in governed_df.iterrows():
+        h = str(row["selection_hash"])
+        gcost = int(row["realized_cost"])
+        if isinstance(row["realized_cost"], bool):
+            gcost = -1
+        if h in payload_by_hash:
+            expected = payload_by_hash[h]["realized_encoded_cost"]
+            if gcost != expected:
+                errors.append(f"governed row {gi}: cost={gcost}, selection cost={expected}")
+    return errors
+
+
+# ====================================================================
+# Semantic validation
+# ====================================================================
+
+def validate_semantic_group_atomicity(payload: dict, group_members: dict[str, set[int]]) -> list[str]:
+    """For semantic_group contract, removed columns must exactly equal group union."""
+    errors = []
+    if payload["contract"] != "semantic_group":
+        return errors
+    gids = payload["removed_group_ids"]
+    for gid in gids:
+        if gid not in group_members:
+            errors.append(f"unknown group: {gid}")
+            return errors
+    if errors:
+        return errors
+    expected_indices = set()
+    for gid in gids:
+        expected_indices.update(group_members[gid])
+    actual_indices = set(payload["removed_encoded_indices"])
+    missing = expected_indices - actual_indices
+    extra = actual_indices - expected_indices
+    if missing:
+        errors.append(f"semantic-group: missing encoded indices: {sorted(missing)[:10]}")
+    if extra:
+        errors.append(f"semantic-group: extra encoded indices: {sorted(extra)[:10]}")
+    if missing or extra:
+        errors.append("semantic-group: partial group removal detected")
+    return errors
+
+
+def validate_m09_eight_columns(payload: dict, policy_mapping: dict, key_plan_row: dict) -> list[str]:
+    """M09 leak group must have exactly 8 columns; if selected, all 8 must appear."""
+    errors = []
+    if key_plan_row.get("mechanism") != "M09":
+        return errors
+    # Find the 8-column M09 injected group (last group with size 8)
+    groups = policy_mapping.get("groups", [])
+    m09_group = None
+    for g in groups:
+        if g.get("group_size") == 8 and len(g.get("member_encoded_indices", [])) == 8:
+            m09_group = g
+            break
+    if m09_group is None:
+        return errors  # No 8-column group found; not an error for non-M09
+    m09_gid = m09_group["opaque_group_id"]
+    m09_members = set(m09_group["member_encoded_indices"])
+    if len(m09_members) != 8:
+        errors.append(f"M09 leak group {m09_gid}: size={len(m09_members)}, expected 8")
+    if payload["contract"] == "semantic_group" and m09_gid in payload["removed_group_ids"]:
+        removed = set(payload["removed_encoded_indices"])
+        if not m09_members.issubset(removed):
+            missing = m09_members - removed
+            errors.append(f"M09: semantic group {m09_gid} selected but {len(missing)} columns missing")
+    return errors
+
+
+def validate_manifest_selection_digest(manifest: dict, sel_hashes: list[str], sel_payloads: list[dict]) -> list[str]:
+    """Verify manifest selection hash multiset and payload digest match actual data."""
+    errors = []
+    actual_multiset = _sorted_counts_sha256(sorted(sel_hashes))
+    if actual_multiset != manifest.get("selection_hash_multiset_sha256", ""):
+        errors.append("manifest selection_hash_multiset_sha256 mismatch")
+    canonical = [_canonical_selection_json(p) for p in sel_payloads]
+    actual_digest = _sorted_counts_sha256(sorted(canonical))
+    if actual_digest != manifest.get("selection_payload_digest_sha256", ""):
+        errors.append("manifest selection_payload_digest_sha256 mismatch")
+    return errors
+
+
+# ====================================================================
+# Main validator
+# ====================================================================
+
 def validate_completed_key(
     key_plan_row: dict,
     planned_run_ids: list[str],
     fragment_dir: Path,
     plan_manifest_sha256: str,
+    policy_mapping: dict | None = None,
 ) -> CompletedKeyValidation:
     """Validate a completed key fragment directory."""
     errors = []
@@ -274,14 +503,57 @@ def validate_completed_key(
         return result
     result.run_id_closure_valid = True
 
-    # ── Selection multiset closure ──
-    from collections import Counter
-    gov_counter = Counter(gl_df["selection_hash"].dropna())
-    sel_counter = Counter(sl_df["selection_hash"].dropna())
-    if gov_counter != sel_counter:
-        errors.append("selection multiset mismatch")
+    # ── Selection semantic validation ──
+    try:
+        normalized_payloads = [normalize_selection_payload(row) for _, row in sl_df.iterrows()]
+    except SelectionContractError as e:
+        errors.append(f"selection payload parse error: {e}")
         return result
+
+    # Multiset closure (with payload normalization)
+    multiset_errors = validate_selection_multiset_closure(gl_df, normalized_payloads)
+    if multiset_errors:
+        errors.extend(multiset_errors); return result
     result.selection_closure_valid = True
 
-    result.is_complete = len(errors) == 0
+    # Payload consistency (same hash, same payload)
+    payload_errors = validate_selection_payload_consistency(normalized_payloads)
+    if payload_errors:
+        errors.extend(payload_errors); return result
+    result.selection_payload_valid = True
+
+    # Selection realized-cost closure
+    sc_errors = validate_selection_realized_cost(normalized_payloads)
+    if sc_errors:
+        errors.extend(sc_errors); return result
+
+    # Governed realized-cost closure
+    payload_by_hash = {p["selection_hash"]: p for p in normalized_payloads}
+    gc_errors = validate_governed_realized_cost(gl_df, payload_by_hash)
+    if gc_errors:
+        errors.extend(gc_errors); return result
+    result.realized_cost_valid = True
+
+    # Semantic-group atomicity (if mapping provided)
+    if policy_mapping is not None:
+        groups = policy_mapping.get("groups", [])
+        group_members = {g["opaque_group_id"]: set(g["member_encoded_indices"]) for g in groups}
+        for p in normalized_payloads:
+            sem_errors = validate_semantic_group_atomicity(p, group_members)
+            if sem_errors:
+                errors.extend(sem_errors)
+            m09_errors = validate_m09_eight_columns(p, policy_mapping, key_plan_row)
+            if m09_errors:
+                errors.extend(m09_errors)
+        if errors:
+            return result
+    result.semantic_atomicity_valid = True
+
+    # Manifest selection digest closure
+    sel_hashes = [p["selection_hash"] for p in normalized_payloads]
+    manifest_errors = validate_manifest_selection_digest(manifest, sel_hashes, normalized_payloads)
+    if manifest_errors:
+        errors.extend(manifest_errors); return result
+
+    result.is_complete = True
     return result
