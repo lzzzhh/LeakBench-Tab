@@ -20,6 +20,9 @@ from scripts.t0_b_full_b1.fragment_contract import (
     ProductionGuard, SyntheticCallCounter,
     build_fragment_manifest, validate_completed_key,
 )
+from scripts.t0_b_full_b1.run_key_contract import (
+    baseline_lookup_key, governed_lookup_key, build_run_id_lookup,
+)
 
 # ======================================================================
 # Dependency injection
@@ -32,6 +35,8 @@ class CallCounter:
 class ExecutionDependencies:
     mode: str = "production"
     counter: CallCounter = field(default_factory=CallCounter)
+    synthetic_call_counter: SyntheticCallCounter = field(default_factory=SyntheticCallCounter)
+    production_guard: ProductionGuard = field(default_factory=ProductionGuard)
 
     def bundle_loader(self, kp):
         if self.mode == "synthetic":
@@ -163,50 +168,10 @@ def execute_key(kp, deps, run_ids):
                                "selection_hash": sh, "realized_cost": len(rc)})
     return {"baseline_rows": bl, "governed_rows": gl, "selection_rows": sl}
 
+# (validate_completed_key is now imported from fragment_contract)
 
-# ======================================================================
-# Key fragment validation for resume
-# ======================================================================
-def validate_completed_key(cid, fdir, planned_run_ids_set):
-    """Returns (is_complete, errors) — checks receipt, fragment files, SHA, row counts, run-ID parity."""
-    errors = []
-    receipt_path = fdir / "completion_receipt.json"
-    if not receipt_path.exists():
-        return False, ["receipt missing"]
 
-    try:
-        with open(receipt_path) as f: rec = json.load(f)
-    except:
-        return False, ["receipt corrupt"]
 
-    if rec.get("cid") != cid: errors.append("cid mismatch")
-    if rec.get("status") != "complete": errors.append(f"status={rec.get('status')}")
-    if rec.get("bl", -1) != 2: errors.append(f"bl={rec.get('bl')}")
-    if rec.get("gl", -1) != 144: errors.append(f"gl={rec.get('gl')}")
-
-    # Check fragment files
-    for name, exp_rows in [("baseline", 2), ("governed", 144), ("selection", 144), ("failure", 0)]:
-        fp = fdir / f"{name}.csv.gz"
-        if not fp.exists():
-            errors.append(f"{name} missing"); continue
-        data = gzip.decompress(fp.read_bytes()).decode("utf-8")
-        n = len([l for l in data.strip().split("\n") if l]) - 1
-        if n != exp_rows: errors.append(f"{name} rows={n} expected={exp_rows}")
-
-    # Run-ID parity
-    produced = set()
-    for name in ["baseline", "governed"]:
-        fp = fdir / f"{name}.csv.gz"
-        if fp.exists():
-            data = gzip.decompress(fp.read_bytes()).decode("utf-8")
-            for line in data.strip().split("\n")[1:]:
-                produced.add(line.split(",")[0])
-    missing = planned_run_ids_set - produced
-    extra = produced - planned_run_ids_set
-    if missing: errors.append(f"missing IDs: {len(missing)}")
-    if extra: errors.append(f"extra IDs: {len(extra)}")
-
-    return len(errors) == 0, errors
 
 
 def _write_gz(path, df, cols):
@@ -357,11 +322,13 @@ def main():
             out.mkdir(parents=True, exist_ok=True)
 
             complete_ids = set(); recomputed = 0
+            plan_manifest_sha = hashlib.sha256(Path(args.plan_manifest).read_bytes()).hexdigest()
             if args.resume:
                 for kp in shard_keys:
                     cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
-                    ok, errs = validate_completed_key(cid, fdir, planned_ids.get(cid, set()))
-                    if ok: complete_ids.add(cid)
+                    planned_for_key = sorted(planned_ids.get(cid, set()))
+                    result = validate_completed_key(kp, planned_for_key, fdir, plan_manifest_sha)
+                    if result.is_complete: complete_ids.add(cid)
 
             all_bl, all_gl, all_sl = [], [], []; new_keys = 0
             for kp in shard_keys:
@@ -384,7 +351,31 @@ def main():
                 ]:
                     atomic_write_dataframe_gzip(fdir / f"{name}.csv.gz", pd.DataFrame(rows, columns=cols), cols)
                 atomic_write_dataframe_gzip(fdir / "failure.csv.gz", pd.DataFrame(columns=["run_id"]), ["run_id"])
-                atomic_write_json(fdir / "completion_receipt.json", {"cid": cid, "status": "complete", "bl": 2, "gl": 144, "sl": 144, "lr": deps.counter.lr})
+
+                # Build fragment manifest
+                produced_ids = [r["run_id"] for r in result["baseline_rows"]] + [r["run_id"] for r in result["governed_rows"]]
+                planned_for_key = sorted(planned_ids.get(cid, set()))
+                manifest = build_fragment_manifest(cid, kp, planned_for_key, produced_ids,
+                    fdir/"baseline.csv.gz", fdir/"governed.csv.gz", fdir/"selection.csv.gz", fdir/"failure.csv.gz", plan_manifest_sha)
+                atomic_write_json(fdir / "fragment_manifest.json", manifest)
+                manifest_sha = hashlib.sha256((fdir/"fragment_manifest.json").read_bytes()).hexdigest()
+
+                # Write completion receipt
+                receipt = {"schema_version": 1, "canonical_key_id": cid, "status": "complete",
+                    "scientific_freeze_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
+                    "execution_contract_version": "v1", "plan_manifest_sha256": plan_manifest_sha,
+                    "fragment_manifest_sha256": manifest_sha,
+                    "baseline_rows": len(result["baseline_rows"]), "governed_rows": len(result["governed_rows"]),
+                    "selection_rows": len(result["selection_rows"]), "failure_rows": 0,
+                    "synthetic_call_counter_delta": deps.synthetic_call_counter.snapshot(),
+                    "production_guard_delta": deps.production_guard.snapshot(),
+                    "completed_utc": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()}
+                atomic_write_json(fdir / "completion_receipt.json", receipt)
+
+                # Write-then-validate
+                post_result = validate_completed_key(kp, planned_for_key, fdir, plan_manifest_sha)
+                if not post_result.is_complete:
+                    print(f"FAIL: post-write validation failed for {cid}: {post_result.errors}"); sys.exit(1)
 
                 for row in result["baseline_rows"]: all_bl.append(json.dumps(row))
                 for row in result["governed_rows"]: all_gl.append(json.dumps(row))
@@ -440,7 +431,9 @@ def main():
 
             if args.resume:
                 rr = {"shard_id": args.shard_id, "validated_complete": len(complete_ids), "recomputed": recomputed,
-                      "new_bl": 0, "new_gl": 0, "new_lr": deps.counter.lr if recomputed == 0 else deps.counter.lr}
+                      "skipped": len(complete_ids), "new_bl": 0, "new_gl": 0,
+                      "lr_delta": deps.counter.lr, "synthetic_delta": deps.synthetic_call_counter.snapshot(),
+                      "production_delta": deps.production_guard.snapshot()}
                 atomic_write_json(out / "resume_receipt.json", rr)
 
             print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={sm['bl']}, gl={sm['gl']}")
