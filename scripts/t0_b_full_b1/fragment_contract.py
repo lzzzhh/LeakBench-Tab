@@ -26,6 +26,29 @@ class FragmentArtifactError(ValueError):
 
 
 # ====================================================================
+# Key-plan row canonicalization (stable across builder + validator)
+# ====================================================================
+
+_RUNTIME_ONLY_KEY_PLAN_FIELDS = frozenset({"n_total_columns",})
+
+
+def canonicalize_key_plan_row_for_manifest(key_plan_row: dict) -> dict:
+    """Strip runtime-derived fields so builder and validator agree on digest."""
+    if not isinstance(key_plan_row, dict):
+        raise FragmentArtifactError("key plan row must be a JSON object")
+    return {
+        key: value
+        for key, value in key_plan_row.items()
+        if key not in _RUNTIME_ONLY_KEY_PLAN_FIELDS
+    }
+
+
+def key_plan_row_sha256(key_plan_row: dict) -> str:
+    """Deterministic SHA of the stable key-plan row."""
+    return _row_sha256(canonicalize_key_plan_row_for_manifest(key_plan_row))
+
+
+# ====================================================================
 # Strict scalar validation
 # ====================================================================
 
@@ -155,6 +178,16 @@ def _is_hex64(value) -> bool:
     return isinstance(value, str) and bool(_HEX64_RE.match(value))
 
 
+def require_sha256_field(payload: dict, field_name: str, *, label: str) -> str:
+    """Require a field exists, is 64-char hex, and return it for comparison."""
+    if field_name not in payload:
+        raise FragmentArtifactError(f"{label} {field_name} missing")
+    value = payload[field_name]
+    if not _is_hex64(value):
+        raise FragmentArtifactError(f"{label} {field_name} invalid format")
+    return value
+
+
 def _require_nonneg_integer(value, field_name: str) -> int:
     """Strict non-negative integer check. Returns int or raises FragmentArtifactError."""
     if isinstance(value, bool):
@@ -168,8 +201,13 @@ def _require_nonneg_integer(value, field_name: str) -> int:
 
 
 _CSV_REQUIRED_COLUMNS = {
-    "baseline": {"run_id"},
-    "governed": {"run_id", "selection_hash", "realized_cost"},
+    "baseline": {"run_id", "dataset_index", "mechanism", "strength",
+                  "training_seed", "learner", "baseline_type", "auc"},
+    "governed": {"run_id", "dataset_index", "mechanism", "strength",
+                  "training_seed", "governance_seed", "learner",
+                  "policy", "contract", "budget_bp",
+                  "strict_auc", "full_auc", "governed_auc", "legacy_sdr",
+                  "selection_hash", "realized_cost"},
     "selection": {"selection_hash", "policy", "contract", "budget_bp",
                   "removed_encoded_indices", "removed_group_ids", "realized_encoded_cost"},
     "failure": {"run_id"},
@@ -250,7 +288,7 @@ def build_fragment_manifest(
         "scientific_freeze_sha": SCIENTIFIC_FREEZE_SHA,
         "execution_contract_version": EXECUTION_CONTRACT_VERSION,
         "plan_manifest_sha256": plan_manifest_sha256,
-        "key_plan_row_sha256": _row_sha256(key_plan_row),
+        "key_plan_row_sha256": key_plan_row_sha256(key_plan_row),
         "planned_run_ids_sha256": _ids_sha256(planned_run_ids),
         "produced_run_ids_sha256": _ids_sha256(produced_run_ids),
         "baseline_sha256": hashlib.sha256(baseline_path.read_bytes()).hexdigest(),
@@ -709,12 +747,19 @@ def validate_fragment_artifacts(
         errors.append(f"manifest scientific_freeze_sha: expected {SCIENTIFIC_FREEZE_SHA}, got {manifest.get('scientific_freeze_sha')}")
     if manifest.get("execution_contract_version") != EXECUTION_CONTRACT_VERSION:
         errors.append(f"manifest execution_contract_version: expected {EXECUTION_CONTRACT_VERSION}, got {manifest.get('execution_contract_version')}")
-    if _is_hex64(manifest.get("plan_manifest_sha256", "")) and manifest.get("plan_manifest_sha256") != plan_manifest_sha256:
-        errors.append("manifest plan_manifest_sha256 mismatch")
-    # key_plan_row_sha256 is recorded in manifest but the runner mutates kp
-    # (adds n_total_columns) during execution, making exact cross-check impossible
-    # without access to the same execution-stage kp. We still verify the field
-    # format but skip exact comparison for provenance consistency.
+    # Plan-manifest SHA: validate argument, then require + match manifest field
+    if not _is_hex64(plan_manifest_sha256):
+        errors.append("plan_manifest_sha256 argument invalid format")
+    try:
+        stored_plan_sha = require_sha256_field(manifest, "plan_manifest_sha256", label="manifest")
+    except FragmentArtifactError as exc:
+        errors.append(str(exc))
+    else:
+        if stored_plan_sha != plan_manifest_sha256:
+            errors.append("manifest plan_manifest_sha256 mismatch")
+    # Key-plan row digest: canonicalize (strip n_total_columns), exact compare
+    if manifest.get("key_plan_row_sha256") != key_plan_row_sha256(key_plan_row):
+        errors.append("manifest key_plan_row_sha256 mismatch")
     if errors:
         return result
     result.manifest_schema_valid = True
@@ -824,12 +869,19 @@ def validate_fragment_artifacts(
         return result
     result.run_id_closure_valid = True
 
-    # planned_run_ids_sha256 and produced_run_ids_sha256 are verified for format
-    # but exact comparison is deferred: replays with remapped IDs produce
-    # different digests. The run_id_closure_valid check above verifies
-    # correctness of the actual universe.
+    # ── Run-ID digest binding (strict) ──
     result.planned_run_ids_sha256 = _ids_sha256(planned_run_ids)
     result.produced_run_ids_sha256 = _ids_sha256(produced_ids)
+    try:
+        stored_planned = require_sha256_field(manifest, "planned_run_ids_sha256", label="manifest")
+        stored_produced = require_sha256_field(manifest, "produced_run_ids_sha256", label="manifest")
+    except FragmentArtifactError as exc:
+        errors.append(str(exc))
+        return result
+    if stored_planned != result.planned_run_ids_sha256:
+        errors.append("manifest planned_run_ids_sha256 mismatch")
+    if stored_produced != result.produced_run_ids_sha256:
+        errors.append("manifest produced_run_ids_sha256 mismatch")
     if errors:
         return result
     result.run_id_digest_valid = True
@@ -1003,19 +1055,40 @@ def validate_completed_key(
         errors.append("completion receipt not a JSON object")
         return result
 
-    # ── Receipt schema + provenance (only check present fields) ──
-    if "schema_version" in receipt and receipt.get("schema_version") != COMPLETION_RECEIPT_SCHEMA_VERSION:
+    # ── Receipt schema + provenance (all fields required) ──
+    required_receipt_fields = [
+        "schema_version", "canonical_key_id", "status",
+        "scientific_freeze_sha", "execution_contract_version",
+        "plan_manifest_sha256", "fragment_manifest_sha256",
+        "baseline_rows", "governed_rows", "selection_rows", "failure_rows",
+        "synthetic_call_counter_delta", "production_guard_delta",
+        "completed_utc",
+    ]
+    for field in required_receipt_fields:
+        if field not in receipt:
+            errors.append(f"receipt {field} missing")
+    if errors:
+        return result
+
+    if receipt.get("schema_version") != COMPLETION_RECEIPT_SCHEMA_VERSION:
         errors.append(f"receipt schema_version: expected {COMPLETION_RECEIPT_SCHEMA_VERSION}, got {receipt.get('schema_version')}")
     if receipt.get("canonical_key_id") != cid:
         errors.append("receipt cid mismatch")
     if receipt.get("status") != "complete":
         errors.append(f"receipt status: {receipt.get('status')}")
-    if "scientific_freeze_sha" in receipt and receipt.get("scientific_freeze_sha") != SCIENTIFIC_FREEZE_SHA:
-        errors.append(f"receipt scientific_freeze_sha: expected {SCIENTIFIC_FREEZE_SHA}")
-    if "execution_contract_version" in receipt and receipt.get("execution_contract_version") != EXECUTION_CONTRACT_VERSION:
-        errors.append(f"receipt execution_contract_version: expected {EXECUTION_CONTRACT_VERSION}")
-    if "plan_manifest_sha256" in receipt and receipt.get("plan_manifest_sha256") != plan_manifest_sha256:
+    if receipt.get("scientific_freeze_sha") != SCIENTIFIC_FREEZE_SHA:
+        errors.append(f"receipt scientific_freeze_sha: expected {SCIENTIFIC_FREEZE_SHA}, got {receipt.get('scientific_freeze_sha')}")
+    if receipt.get("execution_contract_version") != EXECUTION_CONTRACT_VERSION:
+        errors.append(f"receipt execution_contract_version: expected {EXECUTION_CONTRACT_VERSION}, got {receipt.get('execution_contract_version')}")
+    if receipt.get("plan_manifest_sha256") != plan_manifest_sha256:
         errors.append("receipt plan_manifest_sha256 mismatch")
+    # Counter deltas must be dicts, completed_utc must be non-empty string
+    if not isinstance(receipt.get("synthetic_call_counter_delta"), dict):
+        errors.append("receipt synthetic_call_counter_delta not a dict")
+    if not isinstance(receipt.get("production_guard_delta"), dict):
+        errors.append("receipt production_guard_delta not a dict")
+    if not isinstance(receipt.get("completed_utc"), str) or not receipt.get("completed_utc"):
+        errors.append("receipt completed_utc missing or empty")
     if errors:
         return result
 
