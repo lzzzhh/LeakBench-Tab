@@ -371,3 +371,135 @@ def test_missing_planned_active_fragment_ledger_is_structured_invalid():
         assert result.fragment_aggregate_valid is False
         assert any("selection" in e.lower() and "missing" in e.lower() for e in result.errors), \
             f"expected selection missing error, got: {result.errors[:5]}"
+
+
+def test_self_consistent_active_fragment_and_shard_tamper_is_rejected_by_fragment_manifest_source_binding():
+    """Dual tamper: active fragment + shard agree, but fragment manifest is stale."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(f"{td}/shard_0")
+        _setup_valid(out)
+        plan, plan_sha, shard_keys, shard_runs = _load_plan()
+        cids = sorted(k["canonical_key_id"] for k in shard_keys)
+        cid = cids[0]
+
+        # Read fragment governed, mutate legacy_sdr (field index 13)
+        fg_path = out / "key_fragments" / cid / "governed.csv.gz"
+        fg_raw = gzip.decompress(fg_path.read_bytes()).decode("utf-8")
+        fg_lines = fg_raw.split("\n")
+        fg_data = [l for l in fg_lines[1:] if l != ""]
+        parts = fg_data[0].split(",")
+        old_sdr = parts[13]
+        parts[13] = "0.999" if old_sdr != "0.999" else "0.001"
+        fg_data[0] = ",".join(parts)
+        fg_new_text = fg_lines[0] + "\n" + "\n".join(sorted(fg_data)) + "\n"
+        fg_path.write_bytes(gzip.compress(fg_new_text.encode("utf-8"), mtime=0))
+
+        # Apply identical mutation to shard governed ledger
+        gl_path = out / "governed_ledger.csv.gz"
+        gl_raw = gzip.decompress(gl_path.read_bytes()).decode("utf-8")
+        gl_lines = gl_raw.split("\n")
+        gl_data = [l for l in gl_lines[1:] if l != ""]
+        # Find matching row by run_id
+        target_rid = parts[0]
+        for i, row in enumerate(gl_data):
+            if row.split(",")[0] == target_rid:
+                rp = row.split(",")
+                rp[13] = parts[13]
+                gl_data[i] = ",".join(rp)
+                break
+        gl_new_text = gl_lines[0] + "\n" + "\n".join(sorted(gl_data)) + "\n"
+        gl_new_bytes = gzip.compress(gl_new_text.encode("utf-8"), mtime=0)
+        gl_path.write_bytes(gl_new_bytes)
+
+        # Update shard manifest governed SHA (NOT fragment manifest)
+        sm = json.loads((out / "shard_manifest.json").read_text())
+        sm["governed_sha256"] = hashlib.sha256(gl_new_bytes).hexdigest()
+        (out / "shard_manifest.json").write_text(json.dumps(sm))
+
+        # Assert: fragment manifest NOT changed
+        fm = json.loads((out / "key_fragments" / cid / "fragment_manifest.json").read_text())
+        assert fm["governed_sha256"] != hashlib.sha256(fg_path.read_bytes()).hexdigest(), \
+            "fragment manifest governed_sha256 should be stale"
+
+        # Validate
+        result = _validate(out, plan, plan_sha, shard_keys, shard_runs)
+        assert not result.is_valid
+        assert result.fragment_manifest_set_valid is True
+        assert result.fragment_sources_valid is False
+        assert any(f"{cid}: governed.csv.gz sha256 mismatch against fragment manifest" in e
+                   for e in result.errors), \
+            f"expected source SHA mismatch, got: {result.errors[:5]}"
+
+
+def test_active_fragment_malformed_csv_is_structured_invalid():
+    """Malformed CSV (unterminated quote) is caught by strict csv.reader."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(f"{td}/shard_0")
+        _setup_valid(out)
+        plan, plan_sha, shard_keys, shard_runs = _load_plan()
+        cids = sorted(k["canonical_key_id"] for k in shard_keys)
+        cid = cids[0]
+
+        # Corrupt a selection fragment: unterminated quoted field
+        sp = out / "key_fragments" / cid / "selection.csv.gz"
+        raw = gzip.decompress(sp.read_bytes()).decode("utf-8")
+        # Insert an unterminated quote in a data row
+        lines = raw.split("\n")
+        lines[1] = lines[1].replace(",", ',"unterminated,', 1)  # creates unterminated quote
+        new_text = "\n".join(lines)
+        sp.write_bytes(gzip.compress(new_text.encode("utf-8"), mtime=0))
+
+        # Update fragment manifest selection SHA
+        fm = json.loads((out / "key_fragments" / cid / "fragment_manifest.json").read_text())
+        fm["selection_sha256"] = hashlib.sha256(sp.read_bytes()).hexdigest()
+        (out / "key_fragments" / cid / "fragment_manifest.json").write_text(json.dumps(fm))
+
+        # Update shard manifest fragment-manifest set
+        from scripts.t0_b_full_b1.shard_contract import fragment_manifest_set_sha256
+        key_dirs = [out / "key_fragments" / c for c in cids]
+        sm = json.loads((out / "shard_manifest.json").read_text())
+        sm["fragment_manifest_set_sha256"] = fragment_manifest_set_sha256(key_dirs)
+        (out / "shard_manifest.json").write_text(json.dumps(sm))
+
+        result = _validate(out, plan, plan_sha, shard_keys, shard_runs)
+        assert not result.is_valid
+        assert result.fragment_sources_valid is False
+        assert any("CSV parse error" in e for e in result.errors), \
+            f"expected CSV parse error, got: {result.errors[:5]}"
+
+
+def test_active_fragment_blank_record_is_not_silently_normalized():
+    """Blank data record in fragment CSV is rejected."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(f"{td}/shard_0")
+        _setup_valid(out)
+        plan, plan_sha, shard_keys, shard_runs = _load_plan()
+        cids = sorted(k["canonical_key_id"] for k in shard_keys)
+        cid = cids[0]
+
+        # Insert a blank line in baseline fragment
+        bp = out / "key_fragments" / cid / "baseline.csv.gz"
+        raw = gzip.decompress(bp.read_bytes()).decode("utf-8")
+        lines = raw.split("\n")
+        # Insert a completely blank record (empty line) after header
+        lines.insert(2, "")
+        new_text = "\n".join(lines)
+        bp.write_bytes(gzip.compress(new_text.encode("utf-8"), mtime=0))
+
+        # Update fragment manifest baseline SHA
+        fm = json.loads((out / "key_fragments" / cid / "fragment_manifest.json").read_text())
+        fm["baseline_sha256"] = hashlib.sha256(bp.read_bytes()).hexdigest()
+        (out / "key_fragments" / cid / "fragment_manifest.json").write_text(json.dumps(fm))
+
+        # Update shard manifest fragment-manifest set
+        from scripts.t0_b_full_b1.shard_contract import fragment_manifest_set_sha256
+        key_dirs = [out / "key_fragments" / c for c in cids]
+        sm = json.loads((out / "shard_manifest.json").read_text())
+        sm["fragment_manifest_set_sha256"] = fragment_manifest_set_sha256(key_dirs)
+        (out / "shard_manifest.json").write_text(json.dumps(sm))
+
+        result = _validate(out, plan, plan_sha, shard_keys, shard_runs)
+        assert not result.is_valid
+        assert result.fragment_sources_valid is False
+        assert any("blank data record" in e.lower() for e in result.errors), \
+            f"expected blank record error, got: {result.errors[:5]}"

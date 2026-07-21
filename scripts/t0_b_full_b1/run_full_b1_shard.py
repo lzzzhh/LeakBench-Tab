@@ -589,6 +589,8 @@ def main():
             canonical_ledgers = build_canonical_shard_ledger_bytes(
                 output_dir=out,
                 shard_key_rows=shard_keys,
+                shard_run_rows=shard_runs,
+                plan_manifest_sha256=plan_manifest_sha,
             )
             for name in ["baseline", "governed", "selection", "failure"]:
                 fname = "failure_ledger" if name == "failure" else f"{name}_ledger"

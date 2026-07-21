@@ -1,12 +1,13 @@
 """T0-B Shard Contract — deterministic manifest, digest helpers, artifact validator."""
 from __future__ import annotations
 from dataclasses import dataclass, field
-import gzip, hashlib, json
+import csv, gzip, hashlib, io, json
 from pathlib import Path
 import pandas as pd
 
 from scripts.t0_b_full_b1.fragment_contract import (
     SCIENTIFIC_FREEZE_SHA, EXECUTION_CONTRACT_VERSION,
+    key_plan_row_sha256,
 )
 
 SHARD_MANIFEST_SCHEMA_VERSION = 1
@@ -28,6 +29,7 @@ class ShardArtifactValidation:
     provenance_valid: bool = False
     artifact_sha_valid: bool = False
     fragment_aggregate_valid: bool = False
+    fragment_sources_valid: bool = False
     row_counts_valid: bool = False
     key_universe_valid: bool = False
     run_id_universe_valid: bool = False
@@ -89,7 +91,7 @@ def fragment_manifest_set_sha256(key_fragment_dirs: list[Path]) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Canonical active-fragment aggregate → deterministic shard ledger bytes
+# Strict fragment CSV parser + source validation
 # ═══════════════════════════════════════════════════════════════════
 
 _SHARD_LEDGER_HEADERS = {
@@ -98,6 +100,73 @@ _SHARD_LEDGER_HEADERS = {
     "selection": "selection_hash,policy,contract,budget_bp,removed_encoded_indices,removed_group_ids,realized_encoded_cost",
     "failure": "run_id",
 }
+
+_EXPECTED_FIELD_COUNTS = {name: len(h.split(",")) for name, h in _SHARD_LEDGER_HEADERS.items()}
+
+
+def _parse_fragment_csv_strict(
+    fragment_dir: Path, cid: str, name: str, header: str,
+) -> list[str]:
+    """Parse a fragment CSV with strict csv.reader. Returns validated data rows.
+
+    Rejects: gzip corruption, UTF-8 errors, header mismatch, blank records,
+    wrong field counts, CSV quoting errors, missing/excess trailing content.
+    Never silently normalizes or drops rows.
+    """
+    raw = _check_common_fragment_file(fragment_dir, cid, name)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"active key {cid}: {name}.csv.gz UTF-8 decode error: {exc}") from exc
+
+    if not text.endswith("\n"):
+        raise ValueError(f"active key {cid}: {name}.csv.gz missing trailing newline")
+    if "\r" in text:
+        raise ValueError(f"active key {cid}: {name}.csv.gz contains CR (carriage return)")
+
+    stream = io.StringIO(text, newline="")
+    reader = csv.reader(stream, strict=True)
+    try:
+        all_rows = list(reader)
+    except csv.Error as exc:
+        raise ValueError(f"active key {cid}: {name}.csv.gz CSV parse error: {exc}") from exc
+
+    if not all_rows:
+        raise ValueError(f"active key {cid}: {name}.csv.gz is empty")
+
+    # Exact header match
+    actual_header = ",".join(all_rows[0])
+    if actual_header != header:
+        raise ValueError(
+            f"active key {cid}: {name}.csv.gz header mismatch, "
+            f"expected [{header}], got [{actual_header[:80]}]"
+        )
+
+    expected_count = _EXPECTED_FIELD_COUNTS[name]
+    for i, row in enumerate(all_rows[1:], start=1):
+        # Blank record: all fields empty or zero-length
+        if len(row) == 0 or all(field.strip() == "" for field in row):
+            raise ValueError(
+                f"active key {cid}: {name}.csv.gz blank data record at row {i}"
+            )
+        if len(row) != expected_count:
+            raise ValueError(
+                f"active key {cid}: {name}.csv.gz row {i} has {len(row)} fields; "
+                f"expected {expected_count}"
+            )
+
+    # Reconstruct properly-quoted raw data rows from validated CSV fields
+    data_rows = []
+    for row in all_rows[1:]:
+        buf = io.StringIO()
+        writer = csv.writer(buf, lineterminator="\n")
+        writer.writerow(row)
+        line = buf.getvalue()
+        # Remove trailing newline (we control newlines ourselves)
+        if line.endswith("\n"):
+            line = line[:-1]
+        data_rows.append(line)
+    return data_rows
 
 
 def _check_common_fragment_file(
@@ -119,71 +188,193 @@ def _check_common_fragment_file(
     return decompressed
 
 
-def _parse_fragment_csv(
-    fragment_dir: Path, cid: str, name: str, header: str, dtype: dict | None,
-) -> list[str]:
-    """Parse a fragment CSV, validate schema, return data rows as strings."""
-    raw = _check_common_fragment_file(fragment_dir, cid, name)
-    try:
-        text = raw.decode("utf-8")
-    except UnicodeDecodeError as exc:
-        raise ValueError(f"active key {cid}: {name}.csv.gz UTF-8 decode error: {exc}") from exc
-
-    lines = text.split("\n")
-    if not lines or lines[0].strip() != header:
-        raise ValueError(
-            f"active key {cid}: {name}.csv.gz header mismatch, "
-            f"expected [{header}]"
-        )
-    # Return data rows (skip header, keep trailing empty line out)
-    data_rows = [line for line in lines[1:] if line != ""]
-    if len(lines) > 0 and lines[-1] == "" and len(lines) >= 2:
-        pass  # trailing newline is OK, we removed the empty last element
-    return data_rows
+def _compute_ids_sha256(ids: list[str]) -> str:
+    """Deterministic SHA-256 of sorted ID list (same as fragment contract _ids_sha256)."""
+    content = "\n".join(sorted(ids)) + "\n"
+    return hashlib.sha256(content.encode()).hexdigest()
 
 
-def build_canonical_shard_ledger_bytes(
+def collect_validated_active_fragment_rows(
     *,
     output_dir: Path,
     shard_key_rows: list[dict],
-) -> dict[str, bytes]:
-    """Build deterministic shard ledger bytes from planned active fragment files only.
+    shard_run_rows: list[dict],
+    plan_manifest_sha256: str,
+) -> tuple[dict[str, list[str]], list[str]]:
+    """Validate all fragment source bindings and return validated data rows.
 
-    Never reads baseline_ledger.csv.gz, governed_ledger.csv.gz, etc.
-    Only reads from key_fragments/<cid>/<name>.csv.gz.
+    For each planned active key, validates:
+    - fragment_manifest.json existence, parse, provenance
+    - fragment file SHA against manifest declarations
+    - strict CSV parse of all four fragment files
+    - row count binding
+    - planned/produced run-ID digests
+
+    Returns (collected_rows, errors) where collected_rows maps ledger name to
+    list of validated raw data-row strings. If errors is non-empty, collected_rows
+    is empty and the caller must NOT proceed with aggregation.
     """
-    if not isinstance(shard_key_rows, list):
-        raise ValueError("shard_key_rows must be a list")
-    if not shard_key_rows:
-        raise ValueError("shard_key_rows is empty")
+    out = Path(output_dir)
+    errors = []
+    collected = {name: [] for name in _SHARD_LEDGER_HEADERS}
 
     cids = []
     for kp in shard_key_rows:
         cid = kp.get("canonical_key_id")
         if not cid or not isinstance(cid, str) or cid.strip() == "":
-            raise ValueError(f"invalid canonical_key_id: {cid!r}")
+            errors.append(f"invalid canonical_key_id: {cid!r}")
+            continue
         cids.append(cid)
     if len(set(cids)) != len(cids):
-        raise ValueError("duplicate canonical_key_ids in shard_key_rows")
+        errors.append("duplicate canonical_key_ids in shard_key_rows")
+    if errors:
+        return collected, errors
 
-    # Collect data rows from each active fragment
-    collected: dict[str, list[str]] = {name: [] for name in _SHARD_LEDGER_HEADERS}
-    fragment_dir = Path(output_dir) / "key_fragments"
+    fragment_dir = out / "key_fragments"
 
-    for cid in sorted(cids):
+    for kp, cid in zip(shard_key_rows, cids):
         kdir = fragment_dir / cid
         if not kdir.exists() or not kdir.is_dir():
-            raise ValueError(f"active key {cid}: key_fragments directory missing")
+            errors.append(f"active key {cid}: key_fragments directory missing")
+            continue
 
-        for name, header in _SHARD_LEDGER_HEADERS.items():
-            dtype = {"selection_hash": str, "run_id": str} if name in ("governed", "selection", "baseline") else None
-            rows = _parse_fragment_csv(kdir, cid, name, header, dtype)
-            collected[name].extend(rows)
+        # ── Fragment manifest validation ──
+        mp = kdir / "fragment_manifest.json"
+        if not mp.exists():
+            errors.append(f"active key {cid}: fragment_manifest.json missing")
+            continue
+        if not mp.is_file():
+            errors.append(f"active key {cid}: fragment_manifest.json is not a regular file")
+            continue
+        try:
+            fm = json.loads(mp.read_text())
+        except json.JSONDecodeError as exc:
+            errors.append(f"active key {cid}: fragment_manifest.json corrupt JSON: {exc}")
+            continue
+        if not isinstance(fm, dict):
+            errors.append(f"active key {cid}: fragment_manifest.json not a JSON object")
+            continue
 
-    # Sort and build canonical text
+        # Provenance
+        if fm.get("schema_version") != 1:
+            errors.append(f"active key {cid}: fragment manifest schema_version mismatch")
+        if fm.get("canonical_key_id") != cid:
+            errors.append(f"active key {cid}: fragment manifest canonical_key_id mismatch")
+        if fm.get("scientific_freeze_sha") != SCIENTIFIC_FREEZE_SHA:
+            errors.append(f"active key {cid}: fragment manifest scientific_freeze_sha mismatch")
+        if fm.get("execution_contract_version") != EXECUTION_CONTRACT_VERSION:
+            errors.append(f"active key {cid}: fragment manifest execution_contract_version mismatch")
+        if fm.get("plan_manifest_sha256") != plan_manifest_sha256:
+            errors.append(f"active key {cid}: fragment manifest plan_manifest_sha256 mismatch")
+        if fm.get("key_plan_row_sha256") != key_plan_row_sha256(kp):
+            errors.append(f"active key {cid}: fragment manifest key_plan_row_sha256 mismatch")
+
+        # Planned run-ID digest
+        planned_for_key = sorted(r["run_id"] for r in shard_run_rows if r.get("canonical_key_id") == cid)
+        if fm.get("planned_run_ids_sha256") != _compute_ids_sha256(planned_for_key):
+            errors.append(f"active key {cid}: fragment manifest planned_run_ids_sha256 mismatch")
+
+        if errors:
+            continue  # skip CSV parse if provenance failed
+
+        # ── Fragment file SHA + strict CSV + row counts ──
+        fragment_names = ["baseline", "governed", "selection", "failure"]
+        fragment_rows = {}
+        fragment_row_counts = {}
+
+        for name in fragment_names:
+            fp = kdir / f"{name}.csv.gz"
+            if not fp.exists():
+                errors.append(f"active key {cid}: {name}.csv.gz missing")
+                continue
+            actual_sha = hashlib.sha256(fp.read_bytes()).hexdigest()
+            manifest_sha = fm.get(f"{name}_sha256")
+            if not isinstance(manifest_sha, str) or len(manifest_sha) != 64:
+                errors.append(f"active key {cid}: fragment manifest {name}_sha256 invalid format")
+                continue
+            if actual_sha != manifest_sha:
+                errors.append(f"active key {cid}: {name}.csv.gz sha256 mismatch against fragment manifest")
+                continue
+
+            # Strict CSV parse
+            try:
+                rows = _parse_fragment_csv_strict(kdir, cid, name, _SHARD_LEDGER_HEADERS[name])
+            except ValueError as exc:
+                errors.append(str(exc))
+                continue
+            fragment_rows[name] = rows
+            fragment_row_counts[name] = len(rows)
+
+        if errors:
+            continue
+
+        # Row count binding
+        for name in fragment_names:
+            manifest_rows = fm.get(f"{name}_rows")
+            if not isinstance(manifest_rows, int) or isinstance(manifest_rows, bool):
+                errors.append(f"active key {cid}: fragment manifest {name}_rows invalid type")
+            elif manifest_rows != fragment_row_counts.get(name, -1):
+                errors.append(
+                    f"active key {cid}: {name} row count mismatch: "
+                    f"manifest={manifest_rows}, actual={fragment_row_counts[name]}"
+                )
+
+        # Produced run-ID digest
+        produced_ids = fragment_rows.get("baseline", []) + fragment_rows.get("governed", [])
+        produced_run_ids = [r.split(",")[0] for r in produced_ids]
+        if any(not rid or rid == "" for rid in produced_run_ids):
+            errors.append(f"active key {cid}: null/empty produced run ID")
+        elif len(set(produced_run_ids)) != len(produced_run_ids):
+            errors.append(f"active key {cid}: duplicate produced run IDs")
+        else:
+            actual_produced_sha = _compute_ids_sha256(produced_run_ids)
+            manifest_produced = fm.get("produced_run_ids_sha256")
+            if manifest_produced != actual_produced_sha:
+                errors.append(f"active key {cid}: fragment manifest produced_run_ids_sha256 mismatch")
+
+        if errors:
+            continue
+
+        # Collect validated rows
+        for name in fragment_names:
+            collected[name].extend(fragment_rows[name])
+
+    return collected, errors
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Canonical active-fragment aggregate → deterministic shard ledger bytes
+# ═══════════════════════════════════════════════════════════════════
+
+def build_canonical_shard_ledger_bytes(
+    *,
+    output_dir: Path,
+    shard_key_rows: list[dict],
+    shard_run_rows: list[dict],
+    plan_manifest_sha256: str,
+) -> dict[str, bytes]:
+    """Build deterministic shard ledger bytes from validated active fragment rows.
+
+    Validates all fragment source bindings (manifest provenance, file SHA,
+    strict CSV parse, row counts, run-ID digests), then aggregates validated
+    rows into canonical sorted ledger bytes.
+
+    Never reads baseline_ledger.csv.gz, governed_ledger.csv.gz, etc.
+    Only reads from key_fragments/<cid>/<name>.csv.gz.
+    """
+    collected, errors = collect_validated_active_fragment_rows(
+        output_dir=output_dir,
+        shard_key_rows=shard_key_rows,
+        shard_run_rows=shard_run_rows,
+        plan_manifest_sha256=plan_manifest_sha256,
+    )
+    if errors:
+        raise ValueError("\n".join(errors))
+
     result = {}
     for name, header in _SHARD_LEDGER_HEADERS.items():
         rows = sorted(collected[name])
+        # Data rows are already properly quoted CSV lines (from csv.writer in _parse_fragment_csv_strict)
         content = header + "\n" + "\n".join(rows) + ("\n" if rows else "\n")
         result[name] = gzip.compress(content.encode("utf-8"), mtime=0)
 
@@ -453,11 +644,25 @@ def validate_shard_artifacts(
         return result
     result.fragment_manifest_set_valid = True
 
-    # ── H. Active-fragment aggregate byte-level closure ──
+    # ── H. Active-fragment source binding ──
+    collected, source_errors = collect_validated_active_fragment_rows(
+        output_dir=output_dir,
+        shard_key_rows=shard_key_rows,
+        shard_run_rows=shard_run_rows,
+        plan_manifest_sha256=plan_manifest_sha256,
+    )
+    if source_errors:
+        errors.extend(source_errors)
+        return result
+    result.fragment_sources_valid = True
+
+    # ── I. Active-fragment aggregate byte-level closure ──
     try:
         expected_bytes = build_canonical_shard_ledger_bytes(
             output_dir=output_dir,
             shard_key_rows=shard_key_rows,
+            shard_run_rows=shard_run_rows,
+            plan_manifest_sha256=plan_manifest_sha256,
         )
     except ValueError as exc:
         errors.append(str(exc))
@@ -466,7 +671,7 @@ def validate_shard_artifacts(
     for name in ["baseline", "governed", "selection", "failure"]:
         disk_path = out / f"{name}_ledger.csv.gz"
         if not disk_path.exists():
-            continue  # Already caught by artifact_sha_valid
+            continue
         disk_bytes = disk_path.read_bytes()
         expected = expected_bytes[name]
         if disk_bytes != expected:
@@ -482,7 +687,8 @@ def validate_shard_artifacts(
 
     result.is_valid = (
         result.manifest_schema_valid and result.provenance_valid
-        and result.artifact_sha_valid and result.fragment_aggregate_valid
+        and result.artifact_sha_valid and result.fragment_sources_valid
+        and result.fragment_aggregate_valid
         and result.row_counts_valid
         and result.key_universe_valid and result.run_id_universe_valid
         and result.selection_multiset_valid and result.fragment_manifest_set_valid
