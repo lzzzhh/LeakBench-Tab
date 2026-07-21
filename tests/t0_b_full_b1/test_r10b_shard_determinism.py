@@ -304,3 +304,70 @@ def test_selection_multiset_mutation_is_rejected():
         result = _validate(out, plan, plan_sha, shard_keys, shard_runs)
         assert not result.is_valid
         assert any("multiset" in e for e in result.errors)
+
+
+def test_self_consistent_governed_shard_tamper_is_rejected_by_active_fragment_aggregate_closure():
+    """Self-consistent shard ledger + manifest is rejected by fragment aggregate closure."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(f"{td}/shard_0")
+        _setup_valid(out)
+        plan, plan_sha, shard_keys, shard_runs = _load_plan()
+
+        # Read governed ledger, mutate governed_auc on first data row
+        gl_path = out / "governed_ledger.csv.gz"
+        raw = gzip.decompress(gl_path.read_bytes()).decode("utf-8")
+        lines = raw.split("\n")
+        # Find first data row and mutate governed_auc (14th comma-separated field)
+        data_rows = [l for l in lines[1:] if l != ""]
+        parts = data_rows[0].split(",")
+        # governed_auc is at index 13 (0-based: run_id=0,...,legacy_sdr=13, selection_hash=14, realized_cost=15)
+        old_auc = parts[13]
+        new_auc = "0.999" if old_auc != "0.999" else "0.001"
+        parts[13] = new_auc
+        data_rows[0] = ",".join(parts)
+        # Rebuild canonical text
+        header = lines[0]
+        new_text = header + "\n" + "\n".join(sorted(data_rows)) + "\n"
+        new_bytes = gzip.compress(new_text.encode("utf-8"), mtime=0)
+        gl_path.write_bytes(new_bytes)
+
+        # Verify key invariants: row count, run IDs unchanged
+        assert len(data_rows) == 576, f"governed row count changed: {len(data_rows)}"
+        run_ids = [r.split(",")[0] for r in data_rows]
+        assert len(set(run_ids)) == len(run_ids), "duplicate run IDs introduced"
+
+        # Update shard manifest governed SHA
+        sm = json.loads((out / "shard_manifest.json").read_text())
+        sm["governed_sha256"] = hashlib.sha256(new_bytes).hexdigest()
+        (out / "shard_manifest.json").write_text(json.dumps(sm))
+
+        # Assert manifest self-consistent
+        assert sm["governed_rows"] == 576
+        assert sm["governed_sha256"] == hashlib.sha256(gl_path.read_bytes()).hexdigest()
+
+        # Validate: must be rejected by fragment aggregate closure
+        result = _validate(out, plan, plan_sha, shard_keys, shard_runs)
+        assert not result.is_valid
+        assert result.fragment_aggregate_valid is False
+        assert any("governed" in e.lower() and "aggregate" in e.lower() for e in result.errors), \
+            f"expected governed aggregate error, got: {result.errors[:5]}"
+        # Must NOT be rejected by ordinary SHA mismatch
+        assert not any("governed_sha256 mismatch" in e for e in result.errors), \
+            f"should not fail on SHA check: {result.errors[:5]}"
+
+
+def test_missing_planned_active_fragment_ledger_is_structured_invalid():
+    """Missing active fragment file is rejected with structured error."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(f"{td}/shard_0")
+        _setup_valid(out)
+        plan, plan_sha, shard_keys, shard_runs = _load_plan()
+        cids = sorted(k["canonical_key_id"] for k in shard_keys)
+        # Delete one active fragment
+        sel_path = out / "key_fragments" / cids[0] / "selection.csv.gz"
+        sel_path.unlink()
+        result = _validate(out, plan, plan_sha, shard_keys, shard_runs)
+        assert not result.is_valid
+        assert result.fragment_aggregate_valid is False
+        assert any("selection" in e.lower() and "missing" in e.lower() for e in result.errors), \
+            f"expected selection missing error, got: {result.errors[:5]}"

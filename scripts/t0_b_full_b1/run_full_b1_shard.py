@@ -29,6 +29,7 @@ from scripts.t0_b_full_b1.fragment_contract import (
 )
 from scripts.t0_b_full_b1.shard_contract import (
     build_shard_manifest, validate_shard_artifacts,
+    build_canonical_shard_ledger_bytes,
 )
 from scripts.t0_b_full_b1.run_key_contract import (
     baseline_lookup_key, governed_lookup_key, build_run_id_lookup,
@@ -584,43 +585,21 @@ def main():
                 print("SHARD_PUBLICATION_BLOCKED_BY_VALIDATION")
                 sys.exit(1)
 
-            # Rebuild shard ledgers — structured duplicate detection
-            all_frag_bl = []; all_frag_gl = []; all_frag_sl = []; all_frag_fl = []
-            for kp in shard_keys:
-                cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
-                for name, lst in [("baseline", all_frag_bl), ("governed", all_frag_gl), ("selection", all_frag_sl), ("failure", all_frag_fl)]:
-                    fp = fdir / f"{name}.csv.gz"
-                    if fp.exists():
-                        data = gzip.decompress(fp.read_bytes()).decode("utf-8")
-                        for line in data.strip().split("\n")[1:]:
-                            if line: lst.append(line)
+            # ─── Build canonical shard ledgers from active fragments ───
+            canonical_ledgers = build_canonical_shard_ledger_bytes(
+                output_dir=out,
+                shard_key_rows=shard_keys,
+            )
+            for name in ["baseline", "governed", "selection", "failure"]:
+                fname = "failure_ledger" if name == "failure" else f"{name}_ledger"
+                atomic_write_gzip_text(out / f"{fname}.csv.gz", gzip.decompress(canonical_ledgers[name]).decode("utf-8"))
 
-            # Check duplicates — baseline and governed run IDs only
-            bl_ids = [l.split(",")[0] for l in all_frag_bl]
-            gl_ids = [l.split(",")[0] for l in all_frag_gl]
-            bl_dups = _find_duplicates(bl_ids)
-            gl_dups = _find_duplicates(gl_ids)
-            if bl_dups: print(f"FAIL: duplicate baseline run IDs: {len(bl_dups)}"); sys.exit(1)
-            if gl_dups: print(f"FAIL: duplicate governed run IDs: {len(gl_dups)}"); sys.exit(1)
-            if all_frag_fl: print(f"FAIL: {len(all_frag_fl)} failure rows detected"); sys.exit(1)
-
-            sorted_bl = sorted(all_frag_bl)
-            sorted_gl = sorted(all_frag_gl)
-            sorted_sl = sorted(all_frag_sl)
-
-            bl_cols = "run_id,dataset_index,mechanism,strength,training_seed,learner,baseline_type,auc"
-            gl_cols = "run_id,dataset_index,mechanism,strength,training_seed,governance_seed,learner,policy,contract,budget_bp,strict_auc,full_auc,governed_auc,legacy_sdr,selection_hash,realized_cost"
-            sl_cols = "selection_hash,policy,contract,budget_bp,removed_encoded_indices,removed_group_ids,realized_encoded_cost"
-
-            # ─── Write four deterministic ledgers ───
-            for name, lines, hdr in [
-                ("baseline_ledger", sorted_bl, bl_cols),
-                ("governed_ledger", sorted_gl, gl_cols),
-                ("selection_ledger", sorted_sl, sl_cols),
-            ]:
-                content = hdr + "\n" + "\n".join(lines) + ("\n" if lines else "\n")
-                atomic_write_gzip_text(out / f"{name}.csv.gz", content)
-            atomic_write_gzip_text(out / "failure_ledger.csv.gz", "run_id\n")
+            # Row counts from canonical output (for receipt)
+            def _row_count_from_canonical(name: str) -> int:
+                text = gzip.decompress(canonical_ledgers[name]).decode("utf-8")
+                lines = text.split("\n")
+                # header + data rows + trailing newline → count data rows
+                return max(0, len([l for l in lines[1:] if l != ""]))
 
             # ─── Build and validate deterministic shard manifest ───
             plan_manifest_full = json.loads(Path(args.plan_manifest).read_text())
@@ -723,10 +702,10 @@ def main():
                         "failure": new_fl_count,
                     },
                     "final_rows": {
-                        "baseline": len(sorted_bl),
-                        "governed": len(sorted_gl),
-                        "selection": len(sorted_sl),
-                        "failure": len(all_frag_fl),
+                        "baseline": _row_count_from_canonical("baseline"),
+                        "governed": _row_count_from_canonical("governed"),
+                        "selection": _row_count_from_canonical("selection"),
+                        "failure": _row_count_from_canonical("failure"),
                     },
 
                     # Final validation results (all keys)
@@ -751,7 +730,7 @@ def main():
 
                 atomic_write_json(out / "resume_receipt.json", rr)
 
-            print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={len(sorted_bl)}, gl={len(sorted_gl)}")
+            print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={_row_count_from_canonical('baseline')}, gl={_row_count_from_canonical('governed')}")
     except WriterLockError as exc:
         print(f"FAIL: {exc}"); sys.exit(1)
 

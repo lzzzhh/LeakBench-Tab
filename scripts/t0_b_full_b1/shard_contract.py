@@ -27,6 +27,7 @@ class ShardArtifactValidation:
     manifest_schema_valid: bool = False
     provenance_valid: bool = False
     artifact_sha_valid: bool = False
+    fragment_aggregate_valid: bool = False
     row_counts_valid: bool = False
     key_universe_valid: bool = False
     run_id_universe_valid: bool = False
@@ -85,6 +86,108 @@ def fragment_manifest_set_sha256(key_fragment_dirs: list[Path]) -> str:
         msha = hashlib.sha256(mp.read_bytes()).hexdigest()
         entries.append(f"{cid}\t{msha}")
     return sorted_lines_sha256(entries)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Canonical active-fragment aggregate → deterministic shard ledger bytes
+# ═══════════════════════════════════════════════════════════════════
+
+_SHARD_LEDGER_HEADERS = {
+    "baseline": "run_id,dataset_index,mechanism,strength,training_seed,learner,baseline_type,auc",
+    "governed": "run_id,dataset_index,mechanism,strength,training_seed,governance_seed,learner,policy,contract,budget_bp,strict_auc,full_auc,governed_auc,legacy_sdr,selection_hash,realized_cost",
+    "selection": "selection_hash,policy,contract,budget_bp,removed_encoded_indices,removed_group_ids,realized_encoded_cost",
+    "failure": "run_id",
+}
+
+
+def _check_common_fragment_file(
+    fragment_dir: Path, cid: str, name: str,
+) -> bytes:
+    """Read a single fragment gzip file. Raises ValueError on any failure."""
+    fp = fragment_dir / f"{name}.csv.gz"
+    if not fp.exists():
+        raise ValueError(f"active key {cid}: {name}.csv.gz missing")
+    if not fp.is_file():
+        raise ValueError(f"active key {cid}: {name}.csv.gz is not a regular file")
+    try:
+        raw_bytes = fp.read_bytes()
+        decompressed = gzip.decompress(raw_bytes)
+    except (gzip.BadGzipFile, EOFError) as exc:
+        raise ValueError(f"active key {cid}: {name}.csv.gz gzip corrupt: {exc}") from exc
+    except OSError as exc:
+        raise ValueError(f"active key {cid}: {name}.csv.gz read error: {exc}") from exc
+    return decompressed
+
+
+def _parse_fragment_csv(
+    fragment_dir: Path, cid: str, name: str, header: str, dtype: dict | None,
+) -> list[str]:
+    """Parse a fragment CSV, validate schema, return data rows as strings."""
+    raw = _check_common_fragment_file(fragment_dir, cid, name)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"active key {cid}: {name}.csv.gz UTF-8 decode error: {exc}") from exc
+
+    lines = text.split("\n")
+    if not lines or lines[0].strip() != header:
+        raise ValueError(
+            f"active key {cid}: {name}.csv.gz header mismatch, "
+            f"expected [{header}]"
+        )
+    # Return data rows (skip header, keep trailing empty line out)
+    data_rows = [line for line in lines[1:] if line != ""]
+    if len(lines) > 0 and lines[-1] == "" and len(lines) >= 2:
+        pass  # trailing newline is OK, we removed the empty last element
+    return data_rows
+
+
+def build_canonical_shard_ledger_bytes(
+    *,
+    output_dir: Path,
+    shard_key_rows: list[dict],
+) -> dict[str, bytes]:
+    """Build deterministic shard ledger bytes from planned active fragment files only.
+
+    Never reads baseline_ledger.csv.gz, governed_ledger.csv.gz, etc.
+    Only reads from key_fragments/<cid>/<name>.csv.gz.
+    """
+    if not isinstance(shard_key_rows, list):
+        raise ValueError("shard_key_rows must be a list")
+    if not shard_key_rows:
+        raise ValueError("shard_key_rows is empty")
+
+    cids = []
+    for kp in shard_key_rows:
+        cid = kp.get("canonical_key_id")
+        if not cid or not isinstance(cid, str) or cid.strip() == "":
+            raise ValueError(f"invalid canonical_key_id: {cid!r}")
+        cids.append(cid)
+    if len(set(cids)) != len(cids):
+        raise ValueError("duplicate canonical_key_ids in shard_key_rows")
+
+    # Collect data rows from each active fragment
+    collected: dict[str, list[str]] = {name: [] for name in _SHARD_LEDGER_HEADERS}
+    fragment_dir = Path(output_dir) / "key_fragments"
+
+    for cid in sorted(cids):
+        kdir = fragment_dir / cid
+        if not kdir.exists() or not kdir.is_dir():
+            raise ValueError(f"active key {cid}: key_fragments directory missing")
+
+        for name, header in _SHARD_LEDGER_HEADERS.items():
+            dtype = {"selection_hash": str, "run_id": str} if name in ("governed", "selection", "baseline") else None
+            rows = _parse_fragment_csv(kdir, cid, name, header, dtype)
+            collected[name].extend(rows)
+
+    # Sort and build canonical text
+    result = {}
+    for name, header in _SHARD_LEDGER_HEADERS.items():
+        rows = sorted(collected[name])
+        content = header + "\n" + "\n".join(rows) + ("\n" if rows else "\n")
+        result[name] = gzip.compress(content.encode("utf-8"), mtime=0)
+
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -350,9 +453,37 @@ def validate_shard_artifacts(
         return result
     result.fragment_manifest_set_valid = True
 
+    # ── H. Active-fragment aggregate byte-level closure ──
+    try:
+        expected_bytes = build_canonical_shard_ledger_bytes(
+            output_dir=output_dir,
+            shard_key_rows=shard_key_rows,
+        )
+    except ValueError as exc:
+        errors.append(str(exc))
+        return result
+
+    for name in ["baseline", "governed", "selection", "failure"]:
+        disk_path = out / f"{name}_ledger.csv.gz"
+        if not disk_path.exists():
+            continue  # Already caught by artifact_sha_valid
+        disk_bytes = disk_path.read_bytes()
+        expected = expected_bytes[name]
+        if disk_bytes != expected:
+            disk_sha = hashlib.sha256(disk_bytes).hexdigest()
+            exp_sha = hashlib.sha256(expected).hexdigest()
+            errors.append(
+                f"{name} shard ledger does not match canonical active-fragment "
+                f"aggregate (expected_sha256={exp_sha}, actual_sha256={disk_sha})"
+            )
+    if errors:
+        return result
+    result.fragment_aggregate_valid = True
+
     result.is_valid = (
         result.manifest_schema_valid and result.provenance_valid
-        and result.artifact_sha_valid and result.row_counts_valid
+        and result.artifact_sha_valid and result.fragment_aggregate_valid
+        and result.row_counts_valid
         and result.key_universe_valid and result.run_id_universe_valid
         and result.selection_multiset_valid and result.fragment_manifest_set_valid
     )
