@@ -20,6 +20,9 @@ from scripts.t0_b_full_b1.fragment_contract import (
     ProductionGuard, SyntheticCallCounter,
     build_fragment_manifest, validate_completed_key,
 )
+from scripts.t0_b_full_b1.resume_contract import (
+    classify_completed_key_failure, quarantine_invalid_key, ResumeReasonCode,
+)
 from scripts.t0_b_full_b1.run_key_contract import (
     baseline_lookup_key, governed_lookup_key, build_run_id_lookup,
 )
@@ -176,7 +179,37 @@ def execute_key(kp, deps, run_ids):
 # (validate_completed_key is now imported from fragment_contract)
 
 
+def validate_all_shard_keys(
+    *,
+    shard_keys: list[dict],
+    planned_ids: dict[str, set[str]],
+    output_dir: Path,
+    plan_manifest_sha: str,
+    deps: ExecutionDependencies,
+) -> dict[str, CompletedKeyValidation]:
+    """Validate every planned key in the shard using the full fragment contract.
 
+    Returns {canonical_key_id: CompletedKeyValidation} for every key.
+    Used for both resume preflight and post-repair re-validation.
+    """
+    results = {}
+    for kp in shard_keys:
+        cid = kp["canonical_key_id"]
+        fdir = output_dir / "key_fragments" / cid
+        planned_for_key = sorted(planned_ids.get(cid, set()))
+        pol_info = deps.mapping_loader(
+            "policy_group_mapping_v3.jsonl.gz",
+            (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]),
+        )
+        sem_info = deps.mapping_loader(
+            "semantic_evaluation_mapping_v3.jsonl.gz",
+            (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]),
+        )
+        result = validate_completed_key(
+            kp, planned_for_key, fdir, plan_manifest_sha, pol_info, sem_info,
+        )
+        results[cid] = result
+    return results
 
 
 def _write_gz(path, df, cols):
@@ -334,20 +367,27 @@ def main():
             synth_start = SyntheticCallCounter(**deps.synthetic_call_counter.snapshot())
             prod_start = ProductionGuard(**deps.production_guard.snapshot())
 
-            complete_ids = set(); recomputed = 0; invalid_results = {}
+            complete_ids = set(); recomputed = 0; skipped_ids = set()
             plan_manifest_sha = hashlib.sha256(Path(args.plan_manifest).read_bytes()).hexdigest()
             # Snapshot counters at shard start
+            pre_validation = {}
+            quarantined = {}
+            classified = {}
+            repairable_key_ids = set()
+            unsupported_key_ids = set()
+
             if args.resume:
-                for kp in shard_keys:
-                    cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
-                    planned_for_key = sorted(planned_ids.get(cid, set()))
-                    pol_info = deps.mapping_loader("policy_group_mapping_v3.jsonl.gz", (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]))
-                    sem_info = deps.mapping_loader("semantic_evaluation_mapping_v3.jsonl.gz", (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]))
-                    result = validate_completed_key(kp, planned_for_key, fdir, plan_manifest_sha, pol_info, sem_info)
-                    if result.is_complete:
-                        complete_ids.add(cid)
-                    else:
-                        invalid_results[cid] = result
+                # ─── Preflight: validate all keys via unified helper ───
+                pre_validation = validate_all_shard_keys(
+                    shard_keys=shard_keys,
+                    planned_ids=planned_ids,
+                    output_dir=out,
+                    plan_manifest_sha=plan_manifest_sha,
+                    deps=deps,
+                )
+                complete_ids = {cid for cid, r in pre_validation.items() if r.is_complete}
+                invalid_results = {cid: r for cid, r in pre_validation.items() if not r.is_complete}
+
                 # Handle invalid keys
                 if invalid_results:
                     if not args.repair_invalid:
@@ -355,10 +395,7 @@ def main():
                         for cid, r in invalid_results.items():
                             print(f"  {cid[:16]}: {r.errors[:3]}")
                         sys.exit(1)
-                    # Repair path: classify, check repairability, quarantine, recompute
-                    from scripts.t0_b_full_b1.resume_contract import (
-                        classify_completed_key_failure, quarantine_invalid_key, ResumeReasonCode,
-                    )
+                    # Repair path: classify, check repairability, quarantine all repairable
                     classified = {cid: classify_completed_key_failure(cid, r) for cid, r in invalid_results.items()}
                     unrepairable = {cid: c for cid, c in classified.items() if not c.repairable}
                     if unrepairable:
@@ -368,16 +405,18 @@ def main():
                             print(f"  {cid[:16]}: {c.reason_code.value} — {list(c.validation_errors)[:3]}")
                         sys.exit(1)
                     # Quarantine all repairable keys
-                    quarantined = {}
                     for cid, cf in classified.items():
                         rec = quarantine_invalid_key(out, cid, cf.reason_code, cf.validation_errors)
                         quarantined[cid] = rec
+                        repairable_key_ids.add(cid)
                         print(f"  Quarantined {cid[:16]} → {rec.quarantine_directory.relative_to(out)}")
 
             all_bl, all_gl, all_sl = [], [], []; new_keys = 0
+            new_bl_count, new_gl_count, new_sl_count, new_fl_count = 0, 0, 0, 0
             for kp in shard_keys:
                 cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
                 if cid in complete_ids:
+                    skipped_ids.add(cid)
                     for name, lst in [("baseline", all_bl), ("governed", all_gl), ("selection", all_sl)]:
                         data = gzip.decompress((fdir / f"{name}.csv.gz").read_bytes()).decode("utf-8")
                         for line in data.strip().split("\n")[1:]:
@@ -392,6 +431,10 @@ def main():
                 key_synth_delta = deps.synthetic_call_counter.delta(key_synth_before)
                 key_prod_delta = deps.production_guard.delta(key_prod_before)
                 new_keys += 1; recomputed += 1
+                new_bl_count += len(result["baseline_rows"])
+                new_gl_count += len(result["governed_rows"])
+                new_sl_count += len(result["selection_rows"])
+                new_fl_count += 0  # failure.csv.gz always empty on success
 
                 for name, rows, cols in [
                     ("baseline", result["baseline_rows"], ["run_id","dataset_index","mechanism","strength","training_seed","learner","baseline_type","auc"]),
@@ -479,19 +522,120 @@ def main():
                 "production_guard_delta": deps.production_guard.delta(prod_start)}
             atomic_write_json(out / "shard_execution_receipt.json", shard_exec)
 
+            # ─── Post-repair re-validation (all keys) ───
+            final_validation = pre_validation.copy()
+            post_repair_all_keys_valid = None
+            if args.resume and args.repair_invalid and recomputed > 0:
+                post_validation = validate_all_shard_keys(
+                    shard_keys=shard_keys,
+                    planned_ids=planned_ids,
+                    output_dir=out,
+                    plan_manifest_sha=plan_manifest_sha,
+                    deps=deps,
+                )
+                final_validation = post_validation.copy()
+                if not all(r.is_complete for r in post_validation.values()):
+                    print("PARTIAL_REPAIR_POST_VALIDATION_FAIL")
+                    for cid, r in post_validation.items():
+                        if not r.is_complete:
+                            print(f"  {cid[:16]}: {r.errors}")
+                    sys.exit(1)
+                post_repair_all_keys_valid = True
+
             if args.resume:
+                # ─── Construct truthful resume receipt ───
+                pre_valid_ids = sorted(cid for cid, r in pre_validation.items() if r.is_complete)
+                pre_invalid_ids = sorted(cid for cid, r in pre_validation.items() if not r.is_complete)
+                quarantined_ids = sorted(quarantined.keys())
+                recomputed_ids = sorted(repairable_key_ids) if recomputed > 0 else []
+                skipped_ids_list = sorted(skipped_ids)
+
+                # Determine post_repair_all_keys_valid from real validation
+                if post_repair_all_keys_valid is None:
+                    post_repair_all_keys_valid = all(r.is_complete for r in pre_validation.values())
+
+                # Build reason codes and quarantine paths
+                reason_codes = {
+                    cid: cf.reason_code.value
+                    for cid, cf in classified.items()
+                }
+                quarantine_paths = {
+                    cid: str(rec.quarantine_directory.relative_to(out))
+                    for cid, rec in quarantined.items()
+                }
+
+                # Build final validation results snapshot
+                final_validation_dict = {
+                    cid: {"is_complete": r.is_complete, "errors": list(r.errors)}
+                    for cid, r in final_validation.items()
+                }
+
                 rr = {
                     "schema_version": 1,
                     "mode": "partial_repair" if (args.repair_invalid and recomputed > 0) else "complete_resume",
                     "shard_id": args.shard_id,
-                    "validated_complete": len(complete_ids), "recomputed": recomputed, "skipped": len(complete_ids),
-                    "new_keys": new_keys,
+                    "validation_phase": "post_repair" if (args.repair_invalid and recomputed > 0) else "pre_resume",
+
+                    # Count fields (derived from ID lists)
+                    "validated_complete": len(pre_valid_ids),
+                    "invalid": len(pre_invalid_ids),
+                    "repairable_invalid": len(repairable_key_ids),
+                    "unsupported_invalid": len(unsupported_key_ids),
+                    "recomputed": recomputed,
+                    "skipped": len(skipped_ids_list),
+                    "quarantined": len(quarantined_ids),
+
+                    # Key ID lists (sorted)
+                    "validated_complete_key_ids": pre_valid_ids,
+                    "invalid_key_ids": pre_invalid_ids,
+                    "repairable_invalid_key_ids": sorted(repairable_key_ids),
+                    "unsupported_invalid_key_ids": sorted(unsupported_key_ids),
+                    "recomputed_key_ids": recomputed_ids,
+                    "skipped_key_ids": skipped_ids_list,
+                    "quarantined_key_ids": quarantined_ids,
+
+                    # Reason codes and quarantine paths
+                    "reason_codes": reason_codes,
+                    "quarantine_paths": quarantine_paths,
+
+                    # Counter deltas
                     "synthetic_call_counter_delta": deps.synthetic_call_counter.delta(synth_start),
                     "production_guard_delta": deps.production_guard.delta(prod_start),
-                    "new_rows": {"baseline": new_keys * 2, "governed": new_keys * 144, "selection": new_keys * 144, "failure": 0},
-                    "final_rows": {"baseline": len(sorted_bl), "governed": len(sorted_gl), "selection": len(sorted_sl), "failure": 0},
-                    "post_repair_all_keys_valid": len(complete_ids) + new_keys == len(shard_keys),
+
+                    # Actual row counts (not hardcoded)
+                    "new_rows": {
+                        "baseline": new_bl_count,
+                        "governed": new_gl_count,
+                        "selection": new_sl_count,
+                        "failure": new_fl_count,
+                    },
+                    "final_rows": {
+                        "baseline": len(sorted_bl),
+                        "governed": len(sorted_gl),
+                        "selection": len(sorted_sl),
+                        "failure": len(all_frag_fl),
+                    },
+
+                    # Final validation results (all keys)
+                    "final_validation_results": final_validation_dict,
+                    "post_repair_all_keys_valid": post_repair_all_keys_valid,
                 }
+
+                # ─── Internal consistency verification ───
+                count_checks = [
+                    ("validated_complete", rr["validated_complete"], len(rr["validated_complete_key_ids"])),
+                    ("invalid", rr["invalid"], len(rr["invalid_key_ids"])),
+                    ("repairable_invalid", rr["repairable_invalid"], len(rr["repairable_invalid_key_ids"])),
+                    ("unsupported_invalid", rr["unsupported_invalid"], len(rr["unsupported_invalid_key_ids"])),
+                    ("recomputed", rr["recomputed"], len(rr["recomputed_key_ids"])),
+                    ("skipped", rr["skipped"], len(rr["skipped_key_ids"])),
+                    ("quarantined", rr["quarantined"], len(rr["quarantined_key_ids"])),
+                ]
+                for field, count, list_len in count_checks:
+                    if count != list_len:
+                        print(f"RESUME_RECEIPT_INTERNAL_INCONSISTENCY: {field}={count}, list_len={list_len}")
+                        sys.exit(1)
+
                 atomic_write_json(out / "resume_receipt.json", rr)
 
             print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={sm['bl']}, gl={sm['gl']}")
