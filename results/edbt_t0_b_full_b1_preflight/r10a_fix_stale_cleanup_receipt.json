@@ -1,0 +1,9 @@
+{
+  "young_tmp_preserved": true,
+  "live_pid_tmp_preserved": true,
+  "current_pid_tmp_preserved": true,
+  "old_dead_pid_tmp_removed": true,
+  "writer_lock_preserved": true,
+  "normal_file_preserved": true,
+  "pass": true
+}

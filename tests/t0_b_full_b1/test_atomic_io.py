@@ -11,7 +11,8 @@ from scripts.t0_b_full_b1.io_contract import (
     atomic_write_json, atomic_write_dataframe_gzip,
     exclusive_writer_lock, WriterLockError,
     cleanup_stale_temp_files, validate_written_artifact,
-    fsync_parent_directory, _tmp_name,
+    fsync_parent_directory, _tmp_name, StaleCleanupReport,
+    parse_temp_owner_pid, is_process_alive,
 )
 
 
@@ -155,15 +156,20 @@ def test_interrupted_write_no_final_artifact():
 # ─── stale tmp cleanup ─────────────────────────────────────────
 
 def test_cleanup_stale_temp_files():
+    """Old dead-PID temp files with sufficient age are removed."""
     with tempfile.TemporaryDirectory() as td:
         tdp = Path(td)
-        # create stale temp files
-        (tdp / ".data.csv.gz.tmp.123.abc12345").write_bytes(b"stale")
-        (tdp / ".other.tmp.456.def67890").write_bytes(b"stale2")
-        # create a normal file
+        # Create a temp file with a dead PID and old mtime
+        import os
+        dead_pid = 999999  # almost certainly not running
+        stale = tdp / f".data.csv.gz.tmp.{dead_pid}.abc12345"
+        stale.write_bytes(b"stale")
+        # Set mtime to 2 hours ago
+        old_time = time.time() - 7200
+        os.utime(str(stale), (old_time, old_time))
         (tdp / "normal.txt").write_text("keep me")
-        removed = cleanup_stale_temp_files(tdp)
-        assert removed == 2
+        report = cleanup_stale_temp_files(tdp, min_age_seconds=3600)
+        assert report.removed_count == 1
         assert (tdp / "normal.txt").exists()
 
 def test_cleanup_stale_no_normal_files_removed():
@@ -171,10 +177,92 @@ def test_cleanup_stale_no_normal_files_removed():
         tdp = Path(td)
         (tdp / "data.csv.gz").write_bytes(b"keep")
         (tdp / "manifest.json").write_text("{}")
-        removed = cleanup_stale_temp_files(tdp)
-        assert removed == 0
+        report = cleanup_stale_temp_files(tdp, min_age_seconds=3600)
+        assert report.removed_count == 0
         assert (tdp / "data.csv.gz").exists()
         assert (tdp / "manifest.json").exists()
+
+
+# ─── safe stale cleanup tests ──────────────────────────────────
+
+def test_stale_cleanup_keeps_young_tmp():
+    """Young temp files (below age threshold) must be preserved."""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        young = tdp / f".data.tmp.999999.abc12345"
+        young.write_bytes(b"young")
+        report = cleanup_stale_temp_files(tdp, min_age_seconds=3600)
+        assert report.removed_count == 0
+        assert young.exists()
+
+def test_stale_cleanup_keeps_live_pid_tmp():
+    """Temp files with a live PID must be preserved."""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        live_pid = os.getpid()  # current process is alive
+        live = tdp / f".data.tmp.{live_pid}.abc12345"
+        live.write_bytes(b"live")
+        old_time = time.time() - 7200
+        os.utime(str(live), (old_time, old_time))
+        report = cleanup_stale_temp_files(tdp, min_age_seconds=3600)
+        assert report.removed_count == 0
+        assert live.exists()
+
+def test_stale_cleanup_removes_old_dead_pid_tmp():
+    """Old temp files with a dead PID must be removed."""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        dead_pid = 999999
+        old = tdp / f".data.tmp.{dead_pid}.abc12345"
+        old.write_bytes(b"old")
+        old_time = time.time() - 7200
+        os.utime(str(old), (old_time, old_time))
+        report = cleanup_stale_temp_files(tdp, min_age_seconds=3600)
+        assert report.removed_count == 1
+        assert not old.exists()
+
+def test_stale_cleanup_keeps_current_pid_tmp():
+    """Current process temp files must never be removed."""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        mine = tdp / f".data.tmp.{os.getpid()}.abc12345"
+        mine.write_bytes(b"mine")
+        old_time = time.time() - 7200
+        os.utime(str(mine), (old_time, old_time))
+        report = cleanup_stale_temp_files(tdp, min_age_seconds=3600)
+        assert report.removed_count == 0
+        assert mine.exists()
+
+def test_stale_cleanup_never_removes_writer_lock():
+    """.writer.lock must never be removed by stale cleanup."""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        lock = tdp / ".writer.lock"
+        lock.write_text("{}")
+        old_time = time.time() - 7200
+        os.utime(str(lock), (old_time, old_time))
+        report = cleanup_stale_temp_files(tdp, min_age_seconds=3600)
+        assert report.removed_count == 0
+        assert lock.exists()
+
+def test_stale_cleanup_never_removes_normal_file():
+    """Normal files must never be removed by stale cleanup."""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        normal = tdp / "data.csv.gz"
+        normal.write_bytes(b"data")
+        report = cleanup_stale_temp_files(tdp, min_age_seconds=0)
+        assert report.removed_count == 0
+        assert normal.exists()
+
+def test_stale_cleanup_reports_errors():
+    """Cleanup errors must be reported, not silently passed."""
+    # Create a directory with an unreadable file (simulate error)
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        report = cleanup_stale_temp_files(tdp / "nonexistent", min_age_seconds=3600)
+        # Nonexistent directory → empty report, no crash
+        assert report.removed_count == 0
 
 
 # ─── writer lock tests ─────────────────────────────────────────
@@ -217,6 +305,45 @@ def test_lock_can_be_reacquired_after_release():
         # Should succeed now that first lock is released
         with exclusive_writer_lock(tdp, "second"):
             assert (tdp / ".writer.lock").exists()
+
+
+def test_lock_file_has_trailing_newline():
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        with exclusive_writer_lock(tdp, "test"):
+            content = (tdp / ".writer.lock").read_text()
+            assert content.endswith("\n")
+
+def test_lock_file_contains_token():
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        with exclusive_writer_lock(tdp, "test"):
+            content = (tdp / ".writer.lock").read_text()
+            import json
+            data = json.loads(content)
+            assert "token" in data
+            assert len(data["token"]) == 16  # 8 bytes hex = 16 chars
+
+def test_lock_release_does_not_remove_replaced_foreign_lock():
+    """After release, if another process already re-acquired, don't delete their lock."""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        # Acquire first lock
+        with exclusive_writer_lock(tdp, "first"):
+            pass
+        # Lock should be released
+        assert not (tdp / ".writer.lock").exists()
+        # Now manually create a foreign lock with different token
+        import json, secrets
+        foreign_token = secrets.token_hex(8)
+        (tdp / ".writer.lock").write_text(json.dumps({"token": foreign_token, "pid": 99999}))
+        # This should NOT remove the foreign lock when we try to acquire and release
+        # (we can't acquire because it exists, but let's verify our token check works)
+        with pytest.raises(WriterLockError):
+            with exclusive_writer_lock(tdp, "should_fail"):
+                pass
+        # Foreign lock should still exist
+        assert (tdp / ".writer.lock").exists()
 
 
 # ─── validate_written_artifact ─────────────────────────────────

@@ -1,0 +1,23 @@
+{
+  "checkpoint_parent_sha": "badd73d0486d390a2b66362be5ca03811d7b0609",
+  "commands": [
+    "PYTHONPATH=. pytest tests/t0_b_full_b1 -q",
+    "PYTHONPATH=. pytest -q"
+  ],
+  "targeted_passed": 82,
+  "targeted_failed": 0,
+  "targeted_skipped": 0,
+  "repository_passed": 507,
+  "repository_failed": 0,
+  "repository_skipped": 0,
+  "wall_clock_s": 28.03,
+  "python_version": "3.13.5",
+  "numpy_version": "2.1.3",
+  "pandas_version": "2.2.3",
+  "scikit_learn_version": "1.6.1",
+  "platform": "macOS-15.6-arm64-arm-64bit-Mach-O",
+  "physical_cpu_count": 10,
+  "timestamp_utc": "2026-07-21T03:20:50.658808+00:00",
+  "validation_scope": "LOCAL_TEST_RECEIPT_ONLY",
+  "remote_ci": "ABSENT"
+}

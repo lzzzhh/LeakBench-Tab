@@ -54,6 +54,8 @@ def main():
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--synthetic-fixture", default="")
+    ap.add_argument("--output-dir", default=str(ROOT / "results/edbt_t0_b_full_b1"))
+    ap.add_argument("--expected-not-executed-ok", action="store_true")
     args, _ = ap.parse_known_args()
 
     # Check synthetic fixture first
@@ -71,7 +73,7 @@ def main():
             for e in errors: print(f"FAIL: {e}"); sys.exit(1)
         print("PASS"); sys.exit(0)
 
-    out = ROOT / "results/edbt_t0_b_full_b1"
+    out = Path(args.output_dir)
     shards = out / "shards"
     if not shards.exists() or not list(shards.iterdir()):
         print("EXPECTED_NOT_EXECUTED"); sys.exit(42)

@@ -46,7 +46,8 @@ def main():
                 for line in data.strip().split("\n")[1:]:
                     if line: lst.append(line)
 
-    # Check for duplicates BEFORE sorting — NO silent dedup
+    # Check for duplicates — baseline and governed run IDs only
+    # (selection hashes can legitimately repeat across P2 seeds)
     bl_ids = [l.split(",")[0] for l in all_bl]
     gl_ids = [l.split(",")[0] for l in all_gl]
     bl_dups = _find_duplicates(bl_ids)

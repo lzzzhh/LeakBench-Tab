@@ -1,0 +1,7 @@
+{
+  "runner_duplicate_governed_exit": 1,
+  "merge_duplicate_governed_exit": 1,
+  "selection_duplicate_removed": true,
+  "note": "selection hashes can legitimately repeat across P2 seeds; duplicate checks apply to run IDs only",
+  "pass": true
+}

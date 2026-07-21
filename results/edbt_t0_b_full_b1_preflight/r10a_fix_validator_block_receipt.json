@@ -1,0 +1,8 @@
+{
+  "no_result_exit": 42,
+  "partial_result_exit": 1,
+  "formal_result_exit": 2,
+  "formal_result_stdout": "NOT_IMPLEMENTED_FULL_VALIDATOR_R10D",
+  "false_pass_removed": true,
+  "pass": true
+}

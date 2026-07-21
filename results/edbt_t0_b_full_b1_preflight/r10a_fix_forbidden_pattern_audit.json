@@ -1,0 +1,29 @@
+{
+  "patterns_checked": [
+    "would validate",
+    "PLACEHOLDER",
+    "sorted(set",
+    "assert True",
+    "pytest.skip",
+    "validate-only \u2014 0 calls"
+  ],
+  "production_scan_paths": [
+    "scripts/t0_b_full_b1"
+  ],
+  "excluded_audit_files": [
+    "forbidden_pattern_audit.py"
+  ],
+  "production_matches": [],
+  "production_disallowed_match_count": 0,
+  "allowed_test_references": [
+    {
+      "path": "tests/t0_b_full_b1/test_r10a_integrity.py",
+      "purpose": "audit definition"
+    },
+    {
+      "path": "tests/t0_b_full_b1/test_r10a_fix.py",
+      "purpose": "audit definition"
+    }
+  ],
+  "pass": true
+}

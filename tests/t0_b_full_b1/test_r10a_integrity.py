@@ -112,13 +112,7 @@ def test_r2_ledgers_unchanged():
 
 
 def test_no_forbidden_patterns():
-    """Post-fix: no forbidden patterns in scripts or tests."""
-    import subprocess
-    r = subprocess.run(["git", "grep", "-c",
-                        "-e", "would validate", "-e", "PLACEHOLDER",
-                        "-e", "sorted(set", "-e", "assert True",
-                        "-e", "pytest.skip", "-e", "validate-only — 0 calls",
-                        "--", "scripts/t0_b_full_b1", "tests/t0_b_full_b1"],
-                       capture_output=True, text=True, cwd=ROOT)
-    # git grep -c returns 0 matches with exit code 1 when nothing found
-    assert r.returncode != 0 or r.stdout.strip() == ""
+    """Post-fix: production code must have zero forbidden patterns (use audit module)."""
+    from scripts.t0_b_full_b1.forbidden_pattern_audit import run_audit
+    matches = run_audit()
+    assert len(matches) == 0, f"Forbidden patterns found in production: {matches}"

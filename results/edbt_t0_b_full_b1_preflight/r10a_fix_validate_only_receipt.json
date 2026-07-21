@@ -1,0 +1,8 @@
+{
+  "valid_plan_exit": 0,
+  "duplicate_run_id_exit": 1,
+  "real_bundle_loads": 0,
+  "real_model_calls": 0,
+  "real_selector_calls": 0,
+  "pass": true
+}
