@@ -27,6 +27,9 @@ from scripts.t0_b_full_b1.resume_contract import (
 from scripts.t0_b_full_b1.fragment_contract import (
     validate_missing_receipt_candidate,
 )
+from scripts.t0_b_full_b1.shard_contract import (
+    build_shard_manifest, validate_shard_artifacts,
+)
 from scripts.t0_b_full_b1.run_key_contract import (
     baseline_lookup_key, governed_lookup_key, build_run_id_lookup,
 )
@@ -609,6 +612,7 @@ def main():
             gl_cols = "run_id,dataset_index,mechanism,strength,training_seed,governance_seed,learner,policy,contract,budget_bp,strict_auc,full_auc,governed_auc,legacy_sdr,selection_hash,realized_cost"
             sl_cols = "selection_hash,policy,contract,budget_bp,removed_encoded_indices,removed_group_ids,realized_encoded_cost"
 
+            # ─── Write four deterministic ledgers ───
             for name, lines, hdr in [
                 ("baseline_ledger", sorted_bl, bl_cols),
                 ("governed_ledger", sorted_gl, gl_cols),
@@ -618,11 +622,34 @@ def main():
                 atomic_write_gzip_text(out / f"{name}.csv.gz", content)
             atomic_write_gzip_text(out / "failure_ledger.csv.gz", "run_id\n")
 
-            sm = {"shard_id": args.shard_id, "keys": len(shard_keys), "new_keys": new_keys, "complete_keys": len(complete_ids),
-                  "bl": len(sorted_bl), "gl": len(sorted_gl), "sl": len(sorted_sl)}
-            atomic_write_json(out / "shard_manifest.json", sm)
+            # ─── Build and validate deterministic shard manifest ───
+            plan_manifest_full = json.loads(Path(args.plan_manifest).read_text())
+            shard_manifest = build_shard_manifest(
+                mode="synthetic" if args.synthetic else "production",
+                shard_id=args.shard_id,
+                plan_manifest=plan_manifest_full,
+                plan_manifest_sha256=plan_manifest_sha,
+                shard_key_rows=shard_keys,
+                shard_run_rows=shard_runs,
+                output_dir=out,
+            )
+            atomic_write_json(out / "shard_manifest.json", shard_manifest)
 
-            # Shard execution receipt (dynamic, not deterministic manifest)
+            # Validate shard artifacts immediately after write
+            shard_val = validate_shard_artifacts(
+                output_dir=out,
+                plan_manifest=plan_manifest_full,
+                plan_manifest_sha256=plan_manifest_sha,
+                shard_key_rows=shard_keys,
+                shard_run_rows=shard_runs,
+            )
+            if not shard_val.is_valid:
+                print("SHARD_ARTIFACT_VALIDATION_FAIL")
+                for e in shard_val.errors:
+                    print(f"  {e}")
+                sys.exit(1)
+
+            # ─── Dynamic receipts (after deterministic manifest validates) ───
             shard_exec = {"schema_version": 1, "shard_id": args.shard_id, "new_keys": new_keys,
                 "synthetic_call_counter_delta": deps.synthetic_call_counter.delta(synth_start),
                 "production_guard_delta": deps.production_guard.delta(prod_start)}
@@ -724,7 +751,7 @@ def main():
 
                 atomic_write_json(out / "resume_receipt.json", rr)
 
-            print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={sm['bl']}, gl={sm['gl']}")
+            print(f"Shard {args.shard_id}: {new_keys} new, {len(complete_ids)} complete, bl={len(sorted_bl)}, gl={len(sorted_gl)}")
     except WriterLockError as exc:
         print(f"FAIL: {exc}"); sys.exit(1)
 
