@@ -16,7 +16,10 @@ from scripts.t0_b_full_b1.io_contract import (
     atomic_write_gzip_text, atomic_write_json, atomic_write_dataframe_gzip,
     exclusive_writer_lock, WriterLockError, cleanup_stale_temp_files,
 )
-from scripts.t0_b_full_b1.run_key_contract import baseline_lookup_key, governed_lookup_key, build_run_id_lookup
+from scripts.t0_b_full_b1.fragment_contract import (
+    ProductionGuard, SyntheticCallCounter,
+    build_fragment_manifest, validate_completed_key,
+)
 
 # ======================================================================
 # Dependency injection
