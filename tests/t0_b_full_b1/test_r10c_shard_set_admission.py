@@ -340,3 +340,78 @@ def test_failure_rows_nonzero_declaration_fails():
         assert r.returncode != 0
         assert 'STRICT_SHARD_SET_ADMISSION_FAIL' in r.stdout
         assert 'failure_rows must equal 0' in r.stdout
+
+
+def test_bool_shard_manifest_id_does_not_equal_integer_one():
+    """True does not pass as integer shard_id 1."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f"{td}/shards"
+        _generate_all_shards(shard_root)
+        sm = json.loads((Path(shard_root) / "shard_1" / "shard_manifest.json").read_text())
+        sm["shard_id"] = True
+        (Path(shard_root) / "shard_1" / "shard_manifest.json").write_text(json.dumps(sm))
+        r = subprocess.run([sys.executable, ADMIT_CLI, "--plan-manifest", SYNTH_PLAN,
+            "--shard-root", shard_root, "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
+        assert "shard_id" in r.stdout and "bool" in r.stdout.lower()
+
+
+def test_float_shard_key_count_is_not_accepted_as_integer():
+    """4.0 does not pass as integer key_count."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f"{td}/shards"
+        _generate_all_shards(shard_root)
+        sm = json.loads((Path(shard_root) / "shard_0" / "shard_manifest.json").read_text())
+        sm["key_count"] = 4.0
+        (Path(shard_root) / "shard_0" / "shard_manifest.json").write_text(json.dumps(sm))
+        r = subprocess.run([sys.executable, ADMIT_CLI, "--plan-manifest", SYNTH_PLAN,
+            "--shard-root", shard_root, "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
+        assert "key_count" in r.stdout and "float" in r.stdout.lower()
+
+
+@pytest.mark.parametrize("field,value", [
+    ("baseline_rows", True),
+    ("governed_rows", 576.0),
+    ("failure_rows", False),
+])
+def test_bool_or_float_shard_row_count_is_rejected(field, value):
+    """Bool/float shard manifest row counts are rejected at strict schema."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f"{td}/shards"
+        _generate_all_shards(shard_root)
+        sm = json.loads((Path(shard_root) / "shard_0" / "shard_manifest.json").read_text())
+        sm[field] = value
+        (Path(shard_root) / "shard_0" / "shard_manifest.json").write_text(json.dumps(sm))
+        r = subprocess.run([sys.executable, ADMIT_CLI, "--plan-manifest", SYNTH_PLAN,
+            "--shard-root", shard_root, "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0, f"expected fail for {field}={value!r}, got pass"
+        assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
+        assert field in r.stdout
+
+
+def test_self_consistent_corrupt_shard_ledger_is_structured_validator_failure():
+    """Corrupt gzip with self-consistent manifest SHA produces structured failure."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f"{td}/shards"
+        _generate_all_shards(shard_root)
+        # Replace governed ledger with non-gzip bytes
+        gl_path = Path(shard_root) / "shard_0" / "governed_ledger.csv.gz"
+        bad_bytes = b"not-a-gzip-file"
+        gl_path.write_bytes(bad_bytes)
+        # Update manifest governed_sha256 to match
+        sm = json.loads((Path(shard_root) / "shard_0" / "shard_manifest.json").read_text())
+        sm["governed_sha256"] = hashlib.sha256(bad_bytes).hexdigest()
+        (Path(shard_root) / "shard_0" / "shard_manifest.json").write_text(json.dumps(sm))
+        r = subprocess.run([sys.executable, ADMIT_CLI, "--plan-manifest", SYNTH_PLAN,
+            "--shard-root", shard_root, "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
+        assert "validator data error" in r.stdout
+        assert "Traceback" not in r.stderr

@@ -1,7 +1,7 @@
 """T0-B R10c Merge Contract — plan validation, scope closure, shard-set admission."""
 from __future__ import annotations
 from dataclasses import dataclass, field
-import gzip, hashlib, json, re
+import gzip, hashlib, json, re, zlib
 from pathlib import Path
 
 from scripts.t0_b_full_b1.fragment_contract import (
@@ -361,6 +361,110 @@ def validate_shard_directory_universe(
     return errors
 
 
+def validate_admitted_shard_manifest_schema(
+    shard_manifest: dict,
+    planned_shard_id: int,
+    planned_key_count: int,
+    plan_mode: str,
+    plan_sha: str,
+) -> list[str]:
+    """Strict R10c shard-manifest admission schema. Returns per-field errors."""
+    errors = []
+    sid = planned_shard_id  # for error messages
+
+    # Required fields
+    required_fields = [
+        "schema_version", "mode", "shard_id", "key_count",
+        "baseline_rows", "governed_rows", "selection_rows",
+        "failure_rows", "downstream_rows",
+        "scientific_freeze_sha", "execution_contract_version",
+        "plan_manifest_sha256",
+    ]
+    for field in required_fields:
+        if field not in shard_manifest:
+            errors.append(f"shard {sid}: shard manifest missing required field: {field}")
+    if errors:
+        return errors
+
+    # shard_id: strict integer, no bool, match planned
+    manifest_sid = shard_manifest["shard_id"]
+    if isinstance(manifest_sid, bool) or not isinstance(manifest_sid, int):
+        errors.append(
+            f"shard {sid}: shard manifest shard_id must be a non-negative integer, "
+            f"got {type(manifest_sid).__name__} ({manifest_sid!r})"
+        )
+    elif manifest_sid < 0:
+        errors.append(f"shard {sid}: shard manifest shard_id must be non-negative, got {manifest_sid}")
+    elif manifest_sid != sid:
+        errors.append(
+            f"shard identity mismatch: directory={sid}, manifest={manifest_sid}, planned={sid}"
+        )
+
+    # mode
+    if shard_manifest["mode"] != plan_mode:
+        errors.append(
+            f"shard {sid}: mode mismatch: manifest={shard_manifest['mode']}, plan={plan_mode}"
+        )
+
+    # Provenance
+    if shard_manifest.get("scientific_freeze_sha") != SCIENTIFIC_FREEZE_SHA:
+        errors.append(f"shard {sid}: shard manifest scientific_freeze_sha mismatch")
+    if shard_manifest.get("execution_contract_version") != EXECUTION_CONTRACT_VERSION:
+        errors.append(f"shard {sid}: shard manifest execution_contract_version mismatch")
+    if shard_manifest.get("plan_manifest_sha256") != plan_sha:
+        errors.append(f"shard {sid}: shard manifest plan_manifest_sha256 mismatch")
+    if shard_manifest.get("schema_version") != 1:
+        errors.append(f"shard {sid}: shard manifest schema_version must be 1")
+
+    # Count fields: strict integer
+    count_fields = [
+        ("key_count", True, planned_key_count),  # (field, positive, expected)
+        ("baseline_rows", False, None),
+        ("governed_rows", False, None),
+        ("selection_rows", False, None),
+        ("failure_rows", False, 0),
+        ("downstream_rows", False, None),
+    ]
+    count_values = {}
+    for field, positive, expected in count_fields:
+        val = shard_manifest[field]
+        if isinstance(val, bool) or not isinstance(val, int):
+            errors.append(
+                f"shard {sid}: shard manifest {field} must be a non-negative integer, "
+                f"got {type(val).__name__} ({val!r})"
+            )
+            continue
+        if val < 0:
+            errors.append(f"shard {sid}: shard manifest {field} must be non-negative, got {val}")
+            continue
+        if positive and val <= 0:
+            errors.append(f"shard {sid}: shard manifest {field} must be positive, got {val}")
+            continue
+        count_values[field] = val
+        if expected is not None and val != expected:
+            errors.append(
+                f"shard {sid}: shard manifest {field} mismatch: "
+                f"manifest={val}, expected={expected}"
+            )
+
+    # failure_rows must be 0
+    if "failure_rows" in count_values and count_values["failure_rows"] != 0:
+        errors.append(f"shard {sid}: shard manifest failure_rows must equal 0")
+
+    # downstream invariant
+    if all(k in count_values for k in ("downstream_rows", "baseline_rows", "governed_rows")):
+        dr = count_values["downstream_rows"]
+        br = count_values["baseline_rows"]
+        gr = count_values["governed_rows"]
+        if dr != br + gr:
+            errors.append(
+                f"shard {sid}: shard manifest downstream_rows mismatch: "
+                f"declared={dr}, baseline_plus_governed={br + gr}"
+            )
+
+    return errors
+
+
 def validate_shard_set(
     *,
     plan_manifest: dict,
@@ -437,36 +541,74 @@ def validate_shard_set(
             result.errors.append(f"shard {sid}: shard_manifest.json is not a JSON object")
             all_valid = False; continue
 
-        # Identity closure
-        if sm.get("shard_id") != sid:
-            result.errors.append(
-                f"shard identity mismatch: directory={sid}, manifest={sm.get('shard_id')}, planned={sid}"
-            )
-            all_valid = False; continue
-        if sm.get("mode") != plan_manifest.get("mode"):
-            result.errors.append(
-                f"shard {sid}: mode mismatch: manifest={sm.get('mode')}, plan={plan_manifest.get('mode')}"
-            )
+        # Strict shard-manifest admission schema
+        schema_errors = validate_admitted_shard_manifest_schema(
+            shard_manifest=sm,
+            planned_shard_id=sid,
+            planned_key_count=len(shard_keys[sid]),
+            plan_mode=plan_manifest["mode"],
+            plan_sha=plan_manifest_sha256,
+        )
+        if schema_errors:
+            result.errors.extend(schema_errors)
             all_valid = False; continue
 
-        # Real shard validation
-        val = validate_shard_artifacts(
-            output_dir=sdir,
-            plan_manifest=plan_manifest,
-            plan_manifest_sha256=plan_manifest_sha256,
-            shard_key_rows=shard_keys[sid],
-            shard_run_rows=shard_runs[sid],
-        )
+        # Real shard validation with structured exception containment
+        try:
+            val = validate_shard_artifacts(
+                output_dir=sdir,
+                plan_manifest=plan_manifest,
+                plan_manifest_sha256=plan_manifest_sha256,
+                shard_key_rows=shard_keys[sid],
+                shard_run_rows=shard_runs[sid],
+            )
+        except (OSError, EOFError, UnicodeDecodeError, ValueError,
+                gzip.BadGzipFile, zlib.error) as exc:
+            result.errors.append(
+                f"shard {sid} validator data error: {type(exc).__name__}: {exc}"
+            )
+            all_valid = False; continue
         if not val.is_valid:
             result.errors.append(f"shard {sid} validation failed:")
             for e in val.errors:
                 result.errors.append(f"  {e}")
             all_valid = False; continue
 
+        # Per-shard actual count closure
+        if sm["key_count"] != len(shard_keys[sid]):
+            result.errors.append(
+                f"shard {sid}: key_count mismatch: manifest={sm['key_count']}, planned={len(shard_keys[sid])}"
+            )
+            all_valid = False; continue
+        if sm["baseline_rows"] != val.baseline_rows:
+            result.errors.append(
+                f"shard {sid}: baseline_rows mismatch: manifest={sm['baseline_rows']}, actual={val.baseline_rows}"
+            )
+            all_valid = False; continue
+        if sm["governed_rows"] != val.governed_rows:
+            result.errors.append(
+                f"shard {sid}: governed_rows mismatch: manifest={sm['governed_rows']}, actual={val.governed_rows}"
+            )
+            all_valid = False; continue
+        if sm["selection_rows"] != val.selection_rows:
+            result.errors.append(
+                f"shard {sid}: selection_rows mismatch: manifest={sm['selection_rows']}, actual={val.selection_rows}"
+            )
+            all_valid = False; continue
+        if sm["failure_rows"] != val.failure_rows:
+            result.errors.append(
+                f"shard {sid}: failure_rows mismatch: manifest={sm['failure_rows']}, actual={val.failure_rows}"
+            )
+            all_valid = False; continue
+        if sm["downstream_rows"] != val.baseline_rows + val.governed_rows:
+            result.errors.append(
+                f"shard {sid}: downstream_rows mismatch: manifest={sm['downstream_rows']}, actual={val.baseline_rows + val.governed_rows}"
+            )
+            all_valid = False; continue
+
         result.validated_shard_ids.append(sid)
 
-        # Accumulate global counts
-        result.canonical_keys += sm.get("key_count", len(shard_keys[sid]))
+        # Accumulate global counts (from validator, not manifest)
         result.baseline_rows += val.baseline_rows
         result.governed_rows += val.governed_rows
         result.selection_rows += val.selection_rows
@@ -475,6 +617,8 @@ def validate_shard_set(
 
     if all_valid:
         result.all_shards_valid = True
+        # Canonical keys from global plan, not shard manifests
+        result.canonical_keys = len(loaded_keys)
 
     # ── Global count closure (mandatory, no silent skip) ──
     if result.all_shards_valid:
