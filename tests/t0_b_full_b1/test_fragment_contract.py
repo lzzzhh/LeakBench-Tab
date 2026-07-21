@@ -46,7 +46,7 @@ def _make_fixture(tmpdir, cid="test_key_001", bl_run_ids=None, gl_run_ids=None, 
         _write_gz(fdir / f"{name}.csv.gz", df)
     planned_ids = bl_ids_used + gl_ids_used
     produced_ids = bl_ids_used + gl_ids_used
-    manifest = build_fragment_manifest(cid, {"canonical_key_id": cid}, planned_ids,
+    manifest = build_fragment_manifest(cid, {"canonical_key_id": cid, "n_total_columns": 15}, planned_ids,
         produced_ids, fdir/"baseline.csv.gz", fdir/"governed.csv.gz", fdir/"selection.csv.gz", fdir/"failure.csv.gz", "plan_sha")
     with open(fdir / "fragment_manifest.json", "w") as f: json.dump(manifest, f, sort_keys=True, indent=2)
     receipt = {"schema_version": 1, "canonical_key_id": cid, "status": "complete",

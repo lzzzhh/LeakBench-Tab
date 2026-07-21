@@ -1,6 +1,6 @@
 """R10b-4 Missing-completion-receipt repair tests — CLI-level quarantine and single-key recompute."""
 import gzip, hashlib, io, json, os, subprocess, sys, tempfile
-from pathlib import Path; import pytest
+from pathlib import Path; import pandas as pd; import pytest
 
 ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
 RUNNER = str(ROOT/"scripts/t0_b_full_b1/run_full_b1_shard.py")
@@ -246,38 +246,82 @@ def test_missing_receipt_plus_fragment_sha_mismatch_is_unsupported():
 
 
 def test_missing_receipt_plus_deep_cost_error_is_unsupported():
-    """Missing receipt + deep cost error (SHA/digest self-consistent) = unsupported."""
+    """Missing receipt + real SHA/digest closure on cost mutation = unsupported."""
+    from scripts.t0_b_full_b1.fragment_contract import (
+        normalize_selection_payload, canonical_selection_payload_json,
+        build_fragment_manifest,
+    )
     with tempfile.TemporaryDirectory() as td:
         out = f"{td}/shard_0"
         _first_exec(out)
         frags = Path(out) / "key_fragments"
         first_key = sorted(frags.iterdir())[0]
+        cid = first_key.name
         (first_key / "completion_receipt.json").unlink()
-        # Modify a selection row's realized cost, keep SHA/digest consistent
-        spath = first_key / "selection.csv.gz"
-        raw = gzip.decompress(spath.read_bytes()).decode("utf-8")
-        lines = raw.strip().split("\n")
-        # Change a cost value in the first data row
-        parts = lines[1].split(",")
-        old_cost = int(parts[-1])
-        parts[-1] = str(old_cost + 1)
-        lines[1] = ",".join(parts)
-        new_raw = "\n".join(lines) + "\n"
-        new_bytes = gzip.compress(new_raw.encode())
-        new_sha = hashlib.sha256(new_bytes).hexdigest()
-        spath.write_bytes(new_bytes)
-        # Update manifest
-        manifest = json.loads((first_key / "fragment_manifest.json").read_text())
-        manifest["selection_sha256"] = new_sha
-        (first_key / "fragment_manifest.json").write_text(json.dumps(manifest))
-        # Also update payload digest to match
-        # (We don't need perfect consistency — the test just needs to show cost error
-        # is caught even when SHA matches manifest)
+
+        # Load selection, modify cost
+        sl_path = first_key / "selection.csv.gz"
+        sl_df = pd.read_csv(sl_path)
+        sl_df.loc[0, "realized_encoded_cost"] = int(sl_df.loc[0, "realized_encoded_cost"]) + 1
+        buf = io.StringIO(); sl_df.to_csv(buf, index=False, header=True)
+        sl_path.write_bytes(gzip.compress(buf.getvalue().encode(), mtime=0))
+
+        # Load key plan row
+        plan_dir = Path(SYNTH_PLAN).parent
+        key_data = gzip.decompress(
+            (plan_dir / "full_b1_key_plan.jsonl.gz").read_bytes()
+        ).decode("utf-8")
+        kp = None
+        for line in key_data.strip().split("\n"):
+            rk = json.loads(line)
+            if rk["canonical_key_id"] == cid: kp = rk; break
+        assert kp is not None
+
+        # Rebuild manifest with correct SHAs and digests for modified files
+        bl_path = first_key / "baseline.csv.gz"
+        gl_path = first_key / "governed.csv.gz"
+        fl_path = first_key / "failure.csv.gz"
+        plan_sha = hashlib.sha256(Path(SYNTH_PLAN).read_bytes()).hexdigest()
+        run_data = gzip.decompress(
+            (plan_dir / "full_b1_run_plan.jsonl.gz").read_bytes()
+        ).decode("utf-8")
+        planned = sorted({
+            json.loads(line)["run_id"]
+            for line in run_data.strip().split("\n")
+            if json.loads(line).get("canonical_key_id") == cid
+        })
+        manifest = build_fragment_manifest(
+            cid, kp, planned, planned,
+            bl_path, gl_path, sl_path, fl_path, plan_sha,
+        )
+        with open(first_key / "fragment_manifest.json", "w") as f:
+            json.dump(manifest, f)
+
+        # Verify SHA and digest closure
+        assert hashlib.sha256(sl_path.read_bytes()).hexdigest() == manifest["selection_sha256"]
+        sel_hashes = sorted(sl_df["selection_hash"].tolist())
+        actual_multiset = hashlib.sha256(
+            ("\n".join(sel_hashes) + "\n").encode()
+        ).hexdigest()
+        assert actual_multiset == manifest["selection_hash_multiset_sha256"]
+        payloads = [normalize_selection_payload(row) for _, row in sl_df.iterrows()]
+        canon_payloads = [canonical_selection_payload_json(p) for p in payloads]
+        actual_digest = hashlib.sha256(
+            ("\n".join(sorted(canon_payloads)) + "\n").encode()
+        ).hexdigest()
+        assert actual_digest == manifest["selection_payload_digest_sha256"]
+
+        # Run repair: must be unsupported with cost error, not SHA/digest error
         r = subprocess.run([sys.executable, RUNNER, "--plan-manifest", SYNTH_PLAN,
             "--shard-id", "0", "--output-dir", out, "--synthetic", "--resume", "--repair-invalid"],
             capture_output=True, text=True, cwd=ROOT)
         assert r.returncode != 0
         assert "RESUME_REPAIR_UNSUPPORTED" in r.stdout
+        assert "cost" in (r.stdout + r.stderr).lower()
+        assert "SHA mismatch" not in (r.stdout + r.stderr)
+        assert "digest mismatch" not in (r.stdout + r.stderr)
+        # Verify no quarantine
+        assert not (Path(out) / "quarantine").exists()
 
 
 def test_receipt_corrupt_remains_unsupported():
