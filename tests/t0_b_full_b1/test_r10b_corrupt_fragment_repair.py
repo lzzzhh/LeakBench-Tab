@@ -378,3 +378,190 @@ def test_complete_resume_receipt_uses_real_validation_results():
         nr = rr["new_rows"]
         assert nr["baseline"] == 0; assert nr["governed"] == 0
         assert nr["selection"] == 0; assert nr["failure"] == 0
+
+
+# ═══════════════════════════════════════════════════════════════════
+# R10b-3-Fix-3 TESTS — validation barrier, failure row accounting
+# ═══════════════════════════════════════════════════════════════════
+
+
+def test_count_execute_result_rows_uses_actual_failure_rows():
+    from scripts.t0_b_full_b1.run_full_b1_shard import count_execute_result_rows
+    result = {
+        "baseline_rows": [{}, {}],
+        "governed_rows": [{}] * 4,
+        "selection_rows": [{}] * 4,
+        "failure_rows": [{"run_id": "f1"}, {"run_id": "f2"}],
+    }
+    rc = count_execute_result_rows(result)
+    assert rc["baseline"] == 2
+    assert rc["governed"] == 4
+    assert rc["selection"] == 4
+    assert rc["failure"] == 2
+
+
+def test_count_execute_result_rows_rejects_missing_failure_rows():
+    from scripts.t0_b_full_b1.run_full_b1_shard import count_execute_result_rows
+    result = {
+        "baseline_rows": [{}, {}],
+        "governed_rows": [{}],
+        "selection_rows": [{}],
+    }
+    with pytest.raises(RuntimeError, match="failure_rows"):
+        count_execute_result_rows(result)
+
+
+def test_runner_has_no_hardcoded_new_failure_zero():
+    """Source-level: no `new_fl_count += 0` in runner."""
+    runner_src = Path(ROOT / "scripts/t0_b_full_b1/run_full_b1_shard.py").read_text()
+    assert "new_fl_count += 0" not in runner_src, "found hardcoded new_fl_count += 0"
+
+
+def test_post_repair_validation_failure_does_not_publish_shard_artifacts():
+    """When post-repair validation fails, shard-level artifacts remain unchanged."""
+    from scripts.t0_b_full_b1 import run_full_b1_shard as runner_mod
+    from scripts.t0_b_full_b1.fragment_contract import CompletedKeyValidation
+
+    with tempfile.TemporaryDirectory() as td:
+        out = f"{td}/shard_0"
+        _first_exec(out)
+
+        # Record old shard-level artifact SHAs
+        old_shard_shas = {}
+        for fname in ["baseline_ledger.csv.gz", "governed_ledger.csv.gz",
+                       "selection_ledger.csv.gz", "failure_ledger.csv.gz",
+                       "shard_manifest.json", "shard_execution_receipt.json"]:
+            fp = Path(out) / fname
+            old_shard_shas[fname] = hashlib.sha256(fp.read_bytes()).hexdigest()
+
+        # Corrupt first key's governed
+        frags = Path(out) / "key_fragments"
+        corrupt_key = sorted(frags.iterdir())[0]
+        gpath = corrupt_key / "governed.csv.gz"
+        data = bytearray(gpath.read_bytes())
+        data[len(data)//2] ^= 0x01
+        gpath.write_bytes(bytes(data))
+
+        # Monkeypatch: inject a post-repair failure on 2nd call
+        original_validate = runner_mod.validate_all_shard_keys
+        call_count = [0]
+
+        def inject_failure(**kwargs):
+            call_count[0] += 1
+            result = original_validate(**kwargs)
+            if call_count[0] == 2:
+                # On 2nd call (post-repair), corrupt one result
+                first_cid = list(result.keys())[0]
+                result[first_cid] = CompletedKeyValidation(
+                    is_complete=False,
+                    errors=["injected post-repair validation failure"],
+                )
+            return result
+
+        runner_mod.validate_all_shard_keys = inject_failure
+
+        # Patch sys.argv and run
+        old_argv = sys.argv[:]
+        sys.argv = [
+            "run_full_b1_shard.py",
+            "--plan-manifest", SYNTH_PLAN,
+            "--shard-id", "0",
+            "--output-dir", out,
+            "--synthetic",
+            "--resume",
+            "--repair-invalid",
+        ]
+        try:
+            with pytest.raises(SystemExit) as exc_info:
+                runner_mod.main()
+            assert exc_info.value.code != 0, "expected non-zero exit"
+        finally:
+            sys.argv = old_argv
+            runner_mod.validate_all_shard_keys = original_validate
+
+        # Verify shard artifacts unchanged
+        for fname in ["baseline_ledger.csv.gz", "governed_ledger.csv.gz",
+                       "selection_ledger.csv.gz", "failure_ledger.csv.gz",
+                       "shard_manifest.json", "shard_execution_receipt.json"]:
+            fp = Path(out) / fname
+            after = hashlib.sha256(fp.read_bytes()).hexdigest()
+            assert old_shard_shas[fname] == after, f"{fname} changed during failed repair!"
+
+        # Resume receipt must not exist (never written)
+        assert not (Path(out) / "resume_receipt.json").exists(), "resume_receipt should not be written on failure"
+
+        # Quarantine must exist (fragment was quarantined before repair attempt)
+        assert (Path(out) / "quarantine").exists(), "quarantine should exist"
+
+        # New key fragment must exist for the repaired key
+        new_corrupt_frag = Path(out) / "key_fragments" / corrupt_key.name
+        assert new_corrupt_frag.exists(), "repaired key fragment should exist for investigation"
+
+
+def test_post_repair_validation_precedes_shard_publication():
+    """Verify that post-validation happens before any shard-level artifact write."""
+    from scripts.t0_b_full_b1 import run_full_b1_shard as runner_mod
+
+    events = []
+    original_vask = runner_mod.validate_all_shard_keys
+    original_awgt = runner_mod.atomic_write_gzip_text
+    original_awj = runner_mod.atomic_write_json
+
+    def tracking_vask(**kwargs):
+        events.append("validate_all_shard_keys")
+        return original_vask(**kwargs)
+
+    def tracking_awgt(path, content, expected_sha=None):
+        p = Path(path)
+        pname = p.name
+        if pname.startswith("baseline_ledger"): events.append("write_baseline_ledger")
+        elif pname.startswith("governed_ledger"): events.append("write_governed_ledger")
+        elif pname.startswith("selection_ledger"): events.append("write_selection_ledger")
+        elif pname.startswith("failure_ledger"): events.append("write_failure_ledger")
+        return original_awgt(path, content, expected_sha)
+
+    def tracking_awj(path, data):
+        p = Path(path)
+        if p.name in ("shard_manifest.json", "shard_execution_receipt.json", "resume_receipt.json"):
+            events.append(f"write_{p.stem}")
+        original_awj(path, data)
+
+    runner_mod.validate_all_shard_keys = tracking_vask
+    runner_mod.atomic_write_gzip_text = tracking_awgt
+    runner_mod.atomic_write_json = tracking_awj
+
+    with tempfile.TemporaryDirectory() as td:
+        out = f"{td}/shard_0"
+        _first_exec(out)
+        # Corrupt and repair
+        frags = Path(out) / "key_fragments"
+        corrupt_key = sorted(frags.iterdir())[0]
+        gpath = corrupt_key / "governed.csv.gz"
+        data = bytearray(gpath.read_bytes())
+        data[len(data)//2] ^= 0x01
+        gpath.write_bytes(bytes(data))
+
+        old_argv = sys.argv[:]
+        sys.argv = [
+            "run_full_b1_shard.py",
+            "--plan-manifest", SYNTH_PLAN,
+            "--shard-id", "0",
+            "--output-dir", out,
+            "--synthetic",
+            "--resume",
+            "--repair-invalid",
+        ]
+        try:
+            runner_mod.main()
+        finally:
+            sys.argv = old_argv
+            runner_mod.validate_all_shard_keys = original_vask
+            runner_mod.atomic_write_gzip_text = original_awgt
+            runner_mod.atomic_write_json = original_awj
+
+    # Find indices
+    post_val_idx = events.index("validate_all_shard_keys", events.index("validate_all_shard_keys") + 1)
+    ledger_idx = events.index("write_baseline_ledger")
+    manifest_idx = events.index("write_shard_manifest")
+    assert post_val_idx < ledger_idx, f"post-validation ({post_val_idx}) not before ledgers ({ledger_idx}): {events}"
+    assert post_val_idx < manifest_idx, f"post-validation ({post_val_idx}) not before manifest ({manifest_idx}): {events}"

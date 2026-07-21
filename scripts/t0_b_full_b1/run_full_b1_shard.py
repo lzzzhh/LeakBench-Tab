@@ -174,7 +174,26 @@ def execute_key(kp, deps, run_ids):
                                "contract": ct, "budget_bp": bp, "strict_auc": sa, "full_auc": fa,
                                "governed_auc": ga, "legacy_sdr": abs(fa - sa) - abs(ga - sa),
                                "selection_hash": sh, "realized_cost": len(rc)})
-    return {"baseline_rows": bl, "governed_rows": gl, "selection_rows": sl}
+    return {"baseline_rows": bl, "governed_rows": gl, "selection_rows": sl, "failure_rows": []}
+
+
+def count_execute_result_rows(
+    result: dict,
+) -> dict[str, int]:
+    """Count rows from an execute_key result dict. Fails on missing or non-list fields."""
+    required = ["baseline_rows", "governed_rows", "selection_rows", "failure_rows"]
+    for field in required:
+        if field not in result:
+            raise RuntimeError(f"execute_key result missing required field: {field}")
+        if not isinstance(result[field], list):
+            raise RuntimeError(f"execute_key result field {field} is not a list")
+    return {
+        "baseline": len(result["baseline_rows"]),
+        "governed": len(result["governed_rows"]),
+        "selection": len(result["selection_rows"]),
+        "failure": len(result["failure_rows"]),
+    }
+
 
 # (validate_completed_key is now imported from fragment_contract)
 
@@ -431,10 +450,11 @@ def main():
                 key_synth_delta = deps.synthetic_call_counter.delta(key_synth_before)
                 key_prod_delta = deps.production_guard.delta(key_prod_before)
                 new_keys += 1; recomputed += 1
-                new_bl_count += len(result["baseline_rows"])
-                new_gl_count += len(result["governed_rows"])
-                new_sl_count += len(result["selection_rows"])
-                new_fl_count += 0  # failure.csv.gz always empty on success
+                rc = count_execute_result_rows(result)
+                new_bl_count += rc["baseline"]
+                new_gl_count += rc["governed"]
+                new_sl_count += rc["selection"]
+                new_fl_count += rc["failure"]
 
                 for name, rows, cols in [
                     ("baseline", result["baseline_rows"], ["run_id","dataset_index","mechanism","strength","training_seed","learner","baseline_type","auc"]),
@@ -442,7 +462,7 @@ def main():
                     ("selection", result["selection_rows"], ["selection_hash","policy","contract","budget_bp","removed_encoded_indices","removed_group_ids","realized_encoded_cost"]),
                 ]:
                     atomic_write_dataframe_gzip(fdir / f"{name}.csv.gz", pd.DataFrame(rows, columns=cols), cols)
-                atomic_write_dataframe_gzip(fdir / "failure.csv.gz", pd.DataFrame(columns=["run_id"]), ["run_id"])
+                atomic_write_dataframe_gzip(fdir / "failure.csv.gz", pd.DataFrame(result["failure_rows"], columns=["run_id"]), ["run_id"])
 
                 # Build fragment manifest
                 produced_ids = [r["run_id"] for r in result["baseline_rows"]] + [r["run_id"] for r in result["governed_rows"]]
@@ -458,7 +478,7 @@ def main():
                     "execution_contract_version": "v1", "plan_manifest_sha256": plan_manifest_sha,
                     "fragment_manifest_sha256": manifest_sha,
                     "baseline_rows": len(result["baseline_rows"]), "governed_rows": len(result["governed_rows"]),
-                    "selection_rows": len(result["selection_rows"]), "failure_rows": 0,
+                    "selection_rows": len(result["selection_rows"]), "failure_rows": len(result["failure_rows"]),
                     "synthetic_call_counter_delta": key_synth_delta,
                     "production_guard_delta": key_prod_delta,
                     "completed_utc": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()}
@@ -474,6 +494,43 @@ def main():
                 for row in result["baseline_rows"]: all_bl.append(json.dumps(row))
                 for row in result["governed_rows"]: all_gl.append(json.dumps(row))
                 for row in result["selection_rows"]: all_sl.append(json.dumps(row))
+
+            # ─── Validation barrier: post-repair re-validation BEFORE shard publication ───
+            final_validation = pre_validation.copy()
+            post_repair_all_keys_valid = None
+            validation_barrier_passed = False
+
+            if args.resume and args.repair_invalid and recomputed > 0:
+                post_validation = validate_all_shard_keys(
+                    shard_keys=shard_keys,
+                    planned_ids=planned_ids,
+                    output_dir=out,
+                    plan_manifest_sha=plan_manifest_sha,
+                    deps=deps,
+                )
+                final_validation = post_validation.copy()
+                if len(post_validation) != len(shard_keys):
+                    print(f"PARTIAL_REPAIR_POST_VALIDATION_FAIL: expected {len(shard_keys)} keys, got {len(post_validation)}")
+                    sys.exit(1)
+                if not all(r.is_complete for r in post_validation.values()):
+                    print("PARTIAL_REPAIR_POST_VALIDATION_FAIL")
+                    for cid, r in post_validation.items():
+                        if not r.is_complete:
+                            print(f"  {cid[:16]}: {r.errors}")
+                    sys.exit(1)
+                post_repair_all_keys_valid = True
+                validation_barrier_passed = True
+            elif args.resume:
+                # Complete resume: preflight validation already proved all 4 keys valid
+                if all(r.is_complete for r in pre_validation.values()):
+                    validation_barrier_passed = True
+            else:
+                # Fresh execution: write-then-validate per-key already guaranteed all passed
+                validation_barrier_passed = True
+
+            if not validation_barrier_passed:
+                print("SHARD_PUBLICATION_BLOCKED_BY_VALIDATION")
+                sys.exit(1)
 
             # Rebuild shard ledgers — structured duplicate detection
             all_frag_bl = []; all_frag_gl = []; all_frag_sl = []; all_frag_fl = []
@@ -521,26 +578,6 @@ def main():
                 "synthetic_call_counter_delta": deps.synthetic_call_counter.delta(synth_start),
                 "production_guard_delta": deps.production_guard.delta(prod_start)}
             atomic_write_json(out / "shard_execution_receipt.json", shard_exec)
-
-            # ─── Post-repair re-validation (all keys) ───
-            final_validation = pre_validation.copy()
-            post_repair_all_keys_valid = None
-            if args.resume and args.repair_invalid and recomputed > 0:
-                post_validation = validate_all_shard_keys(
-                    shard_keys=shard_keys,
-                    planned_ids=planned_ids,
-                    output_dir=out,
-                    plan_manifest_sha=plan_manifest_sha,
-                    deps=deps,
-                )
-                final_validation = post_validation.copy()
-                if not all(r.is_complete for r in post_validation.values()):
-                    print("PARTIAL_REPAIR_POST_VALIDATION_FAIL")
-                    for cid, r in post_validation.items():
-                        if not r.is_complete:
-                            print(f"  {cid[:16]}: {r.errors}")
-                    sys.exit(1)
-                post_repair_all_keys_valid = True
 
             if args.resume:
                 # ─── Construct truthful resume receipt ───
