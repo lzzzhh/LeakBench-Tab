@@ -413,8 +413,17 @@ def validate_admitted_shard_manifest_schema(
         errors.append(f"shard {sid}: shard manifest execution_contract_version mismatch")
     if shard_manifest.get("plan_manifest_sha256") != plan_sha:
         errors.append(f"shard {sid}: shard manifest plan_manifest_sha256 mismatch")
-    if shard_manifest.get("schema_version") != 1:
-        errors.append(f"shard {sid}: shard manifest schema_version must be 1")
+    # schema_version: strict integer 1
+    sv = shard_manifest.get("schema_version")
+    if isinstance(sv, bool) or not isinstance(sv, int):
+        errors.append(
+            f"shard {sid}: shard manifest schema_version must be integer 1, "
+            f"got {type(sv).__name__} ({sv!r})"
+        )
+    elif sv != 1:
+        errors.append(
+            f"shard {sid}: shard manifest schema_version must equal 1, got {sv}"
+        )
 
     # Count fields: strict integer
     count_fields = [
@@ -563,7 +572,7 @@ def validate_shard_set(
                 shard_run_rows=shard_runs[sid],
             )
         except (OSError, EOFError, UnicodeDecodeError, ValueError,
-                gzip.BadGzipFile, zlib.error) as exc:
+                KeyError, gzip.BadGzipFile, zlib.error) as exc:
             result.errors.append(
                 f"shard {sid} validator data error: {type(exc).__name__}: {exc}"
             )

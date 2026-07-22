@@ -415,3 +415,78 @@ def test_self_consistent_corrupt_shard_ledger_is_structured_validator_failure():
         assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
         assert "validator data error" in r.stdout
         assert "Traceback" not in r.stderr
+
+
+@pytest.mark.parametrize("value", [
+    True,
+    1.0,
+    "1",
+    None,
+])
+def test_non_integer_shard_schema_version_is_rejected(value):
+    """Bool, float, string, None schema_version values are rejected."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f"{td}/shards"
+        _generate_all_shards(shard_root)
+        sm = json.loads((Path(shard_root) / "shard_0" / "shard_manifest.json").read_text())
+        sm["schema_version"] = value
+        (Path(shard_root) / "shard_0" / "shard_manifest.json").write_text(json.dumps(sm))
+        r = subprocess.run([sys.executable, ADMIT_CLI, "--plan-manifest", SYNTH_PLAN,
+            "--shard-root", shard_root, "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0, f"expected fail for schema_version={value!r}"
+        assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
+        assert "schema_version" in r.stdout and "integer 1" in r.stdout
+
+
+def test_wrong_integer_shard_schema_version_is_rejected():
+    """schema_version=2 is rejected."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f"{td}/shards"
+        _generate_all_shards(shard_root)
+        sm = json.loads((Path(shard_root) / "shard_0" / "shard_manifest.json").read_text())
+        sm["schema_version"] = 2
+        (Path(shard_root) / "shard_0" / "shard_manifest.json").write_text(json.dumps(sm))
+        r = subprocess.run([sys.executable, ADMIT_CLI, "--plan-manifest", SYNTH_PLAN,
+            "--shard-root", shard_root, "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
+        assert "schema_version must equal 1" in r.stdout
+
+
+def test_self_consistent_missing_run_id_column_is_structured_validator_failure():
+    """Valid gzip/CSV but missing run_id column → KeyError containment."""
+    with tempfile.TemporaryDirectory() as td:
+        shard_root = f"{td}/shards"
+        _generate_all_shards(shard_root)
+        # Read baseline ledger, remove run_id column
+        bl_path = Path(shard_root) / "shard_0" / "baseline_ledger.csv.gz"
+        raw = gzip.decompress(bl_path.read_bytes()).decode("utf-8")
+        lines = raw.split("\n")
+        header_parts = lines[0].split(",")
+        # Find and remove run_id
+        rid_idx = header_parts.index("run_id")
+        new_header = [h for h in header_parts if h != "run_id"]
+        new_data = []
+        for line in lines[1:]:
+            if line == "":
+                continue
+            parts = line.split(",")
+            new_parts = [p for i, p in enumerate(parts) if i != rid_idx]
+            new_data.append(",".join(new_parts))
+        new_text = ",".join(new_header) + "\n" + "\n".join(new_data) + "\n"
+        new_bytes = gzip.compress(new_text.encode("utf-8"), mtime=0)
+        bl_path.write_bytes(new_bytes)
+        # Update manifest SHA
+        sm = json.loads((Path(shard_root) / "shard_0" / "shard_manifest.json").read_text())
+        sm["baseline_sha256"] = hashlib.sha256(new_bytes).hexdigest()
+        (Path(shard_root) / "shard_0" / "shard_manifest.json").write_text(json.dumps(sm))
+        r = subprocess.run([sys.executable, ADMIT_CLI, "--plan-manifest", SYNTH_PLAN,
+            "--shard-root", shard_root, "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode != 0
+        assert "STRICT_SHARD_SET_ADMISSION_FAIL" in r.stdout
+        assert "validator data error" in r.stdout
+        assert "KeyError" in r.stdout
+        assert "Traceback" not in r.stderr
