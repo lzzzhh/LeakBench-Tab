@@ -12,6 +12,10 @@ failure rows, and 64 shards (85-86 keys each).
 - Strict plan validation: `PASS`
 - Shared preflight validator: `PASS` (`Errors: 0`)
 - Production runner validate-only, shard 0: `PASS`
+- One-key production canary: `PASS` (146/146 planned runs)
+- Canary shard admission: `PASS`
+- Canary strict global merge: `PASS`
+- Canary R10d full-result validation: `PASS`
 
 The execution-tool seal points to the code-only declared-input and runtime-
 binding closure commit. The plan and receipt were regenerated afterwards and

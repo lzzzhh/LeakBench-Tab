@@ -154,19 +154,19 @@ def test_validator_no_result_exits_42():
     assert r.returncode == 42
     assert "EXPECTED_NOT_EXECUTED" in r.stdout
 
-def test_validator_formal_result_hits_r10d_block():
-    """Formal result path must hit NOT_IMPLEMENTED_FULL_VALIDATOR_R10D and exit 2."""
+def test_validator_partial_result_fails_closed():
+    """A shard directory without merged publication must fail closed."""
     with tempfile.TemporaryDirectory() as td:
         tdp = Path(td)
         shards = tdp / "shards" / "shard_0"
         shards.mkdir(parents=True)
         (shards / "dummy").write_text("x")
-        (tdp / "full_b1_manifest.json").write_text("{}")
         r = subprocess.run([sys.executable, VALIDATOR, "--output-dir", str(tdp)],
                            capture_output=True, text=True, cwd=ROOT)
-        assert r.returncode == 2
-        assert "NOT_IMPLEMENTED_FULL_VALIDATOR_R10D" in r.stdout
-        assert "PASS" not in r.stdout
+        assert r.returncode == 1
+        assert "FULL_B1_RESULT_VALIDATION_FAIL" in r.stdout
+        assert "merged output missing" in r.stdout
+        assert "FULL_B1_RESULT_VALIDATION_PASS" not in r.stdout
 
 def test_validator_partial_result_exits_nonzero():
     """Partial results (shards exist but no manifest) must exit nonzero."""

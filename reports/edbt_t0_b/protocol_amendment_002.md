@@ -1,6 +1,6 @@
 # T0-B Protocol Amendment 002 — Full-B1 Production Contract Closure
 
-**Status:** PRE_OUTCOME_INFRASTRUCTURE_CORRECTIVE  
+**Status:** PRODUCTION_CANARY_PASS
 **Date:** 2026-07-22  
 **Scientific design modified:** No  
 **Full-B1 outcomes observed:** No
@@ -51,3 +51,12 @@ admitted or merged.
 
 This amendment authorizes validation and canary execution only after the
 regenerated production plan passes every shared preflight gate.
+
+## Production Canary
+
+A one-key canary retained the complete 146-run policy/budget/contract universe
+for formal key `(0, M01, S1, 13)`. It used one real bundle load, 146 real model
+fits, and four real selector calls, with zero synthetic calls. Shard admission,
+strict global merge, and the R10d full-result validator passed with two baseline
+rows, 144 governed rows, 144 selection rows, and zero failure rows. The canary
+receipt is `results/edbt_t0_b_full_b1_preflight/production_canary_receipt.json`.

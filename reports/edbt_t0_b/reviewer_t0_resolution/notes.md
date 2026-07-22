@@ -60,6 +60,9 @@ inadmissible plan because it does not reuse the R10c plan and global-scope gates
 - Post-closure Full-B1 suite: 305 passed; repository suite: 718 passed.
 - The formal plan was resealed to the post-closure runner without changing the
   key plan or run plan; preflight and production shard-0 validate-only pass.
+- One-key production canary passed with 1 real bundle load, 146 real model
+  calls, 4 real selector calls, and zero synthetic calls. Strict admission,
+  merge, and the implemented R10d validator all passed.
 
 ## Outcome Boundary
 
