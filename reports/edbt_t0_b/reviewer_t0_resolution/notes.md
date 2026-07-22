@@ -47,6 +47,15 @@ inadmissible plan because it does not reuse the R10c plan and global-scope gates
 - Focused strict merge suite: 23 passed.
 - Pre-regeneration targeted suite: 255 passed, 3 legacy-mode tests failed;
   those tests omitted the now-required `--synthetic` flag and were updated.
+- Contract-closure code commit: `156b6e887bc97d0099ec0a700e748ae5cf561f6d`.
+- Regenerated production plan: 5,500 keys, 803,000 runs, 64 shards.
+- Shared formal-plan validation: PASS.
+- Full preflight validator: PASS with zero errors.
+- Production runner validate-only on formal shard 0: PASS.
+- Final targeted Full-B1 suite: 260 passed, 0 failed, 0 skipped.
+- Final repository suite: 673 passed, 0 failed, 0 skipped.
+- R10c receipt binds implementation checkpoint, formal plan, run plan,
+  environment, commands, and both test runs.
 
 ## Outcome Boundary
 

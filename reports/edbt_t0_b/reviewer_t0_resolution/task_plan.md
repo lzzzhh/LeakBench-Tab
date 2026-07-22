@@ -7,8 +7,8 @@ the EDBT manuscript and reproducible source package without overstating results.
 
 ## Acceptance Phases
 - [x] Phase 1: Inventory the current RC1/RC3/RC2 evidence and identify blocking contract gaps.
-- [ ] Phase 2: Close the Full-B1 production plan, runner, shard-admission, merge, and physical-CSV contracts.
-- [ ] Phase 3: Add fail-closed negative tests, bind validation receipts to the implementation, and pass a production canary.
+- [x] Phase 2: Close the Full-B1 production plan, runner, shard-admission, merge, and physical-CSV contracts.
+- [ ] Phase 3: Add fail-closed negative tests, bind validation receipts to the implementation, and pass a production canary. (tests and receipt complete; canary pending)
 - [ ] Phase 4: Execute, merge, freeze, and analyze RC3 Full-B1.
 - [ ] Phase 5: Execute and analyze RC2 RF/LightGBM confirmation.
 - [ ] Phase 6: Synthesize RC1 construct-validity evidence and update the manuscript/package.
@@ -40,4 +40,4 @@ the EDBT manuscript and reproducible source package without overstating results.
   canonical `run_id\n` representation.
 
 ## Status
-**Currently in Phase 2** — repairing the shared production contract before any scientific execution.
+**Currently in Phase 3** — freezing validation evidence and preparing a real-data production canary before Full-B1.
