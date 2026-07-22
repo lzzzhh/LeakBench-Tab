@@ -6,6 +6,21 @@ ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
 RUNNER = str(ROOT/"scripts/t0_b_full_b1/run_full_b1_shard.py")
 ADMIT_CLI = str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_shard_set.py")
 SYNTH_PLAN = str(ROOT/"results/edbt_t0_b_full_b1_preflight/synthetic_full_contract/full_b1_plan_manifest.json")
+SYNTH_PLAN_DIR = Path(SYNTH_PLAN).parent
+
+
+def _copy_complete_synthetic_plan_fixture(destination):
+    destination.mkdir(parents=True, exist_ok=True)
+    for name in [
+        "full_b1_plan_manifest.json",
+        "full_b1_key_plan.jsonl.gz",
+        "full_b1_run_plan.jsonl.gz",
+        "full_b1_shard_plan.json",
+        "synthetic_policy_group_mapping.jsonl.gz",
+        "synthetic_semantic_evaluation_mapping.jsonl.gz",
+    ]:
+        shutil.copy2(SYNTH_PLAN_DIR / name, destination / name)
+    return destination / "full_b1_plan_manifest.json"
 
 
 def _generate_all_shards(shard_root, plan_path=SYNTH_PLAN):
@@ -128,21 +143,15 @@ def test_invalid_shard_blocks_set():
 def test_global_count_mismatch_fails():
     """Global row-count mismatch blocks admission."""
     with tempfile.TemporaryDirectory() as td:
+        plan_path = _copy_complete_synthetic_plan_fixture(Path(td) / "plan")
         shard_root = f"{td}/shards"
         _generate_all_shards(shard_root)
         # Modify the plan's baseline_rows but keep all SHA bindings matching original
-        plan = json.loads(Path(SYNTH_PLAN).read_text())
+        plan = json.loads(plan_path.read_text())
         original_plan_sha = hashlib.sha256(Path(SYNTH_PLAN).read_bytes()).hexdigest()
         plan["baseline_rows"] = 999  # only change the count, keep downstream consistent for schema
         plan["downstream_rows"] = 999 + plan["governed_rows"]
-        tmp_plan = Path(td) / "modified_plan.json"
-        tmp_plan.write_text(json.dumps(plan))
-        # Copy key/run plans for CLI to find
-        plan_dir = Path(SYNTH_PLAN).parent
-        shutil.copy(plan_dir / "full_b1_key_plan.jsonl.gz", Path(td) / "full_b1_key_plan.jsonl.gz")
-        shutil.copy(plan_dir / "full_b1_run_plan.jsonl.gz", Path(td) / "full_b1_run_plan.jsonl.gz")
-        plan["key_plan_sha256"] = hashlib.sha256((Path(td) / "full_b1_key_plan.jsonl.gz").read_bytes()).hexdigest()
-        plan["run_plan_sha256"] = hashlib.sha256((Path(td) / "full_b1_run_plan.jsonl.gz").read_bytes()).hexdigest()
+        tmp_plan = plan_path
         tmp_plan.write_text(json.dumps(plan))
         # Update shard manifests and fragment manifests to bind the new plan SHA
         new_plan_sha = hashlib.sha256(tmp_plan.read_bytes()).hexdigest()
@@ -243,10 +252,8 @@ def test_bool_global_count_is_not_accepted_as_integer():
 def test_bool_run_shard_id_does_not_equal_integer_zero():
     """False is not accepted as integer 0 for shard_id."""
     with tempfile.TemporaryDirectory() as td:
-        plan_d = Path(td)
-        plan_dir = Path(SYNTH_PLAN).parent
-        shutil.copy(plan_dir / 'full_b1_key_plan.jsonl.gz', plan_d / 'full_b1_key_plan.jsonl.gz')
-        shutil.copy(plan_dir / 'full_b1_run_plan.jsonl.gz', plan_d / 'full_b1_run_plan.jsonl.gz')
+        plan_d = Path(td) / "plan"
+        tmp_plan = _copy_complete_synthetic_plan_fixture(plan_d)
         # Load and modify run plan
         raw = gzip.decompress((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).decode('utf-8')
         lines = [l for l in raw.split("\n") if l != ""]
@@ -262,7 +269,6 @@ def test_bool_run_shard_id_does_not_equal_integer_zero():
         plan = json.loads(Path(SYNTH_PLAN).read_text())
         plan['key_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_key_plan.jsonl.gz').read_bytes()).hexdigest()
         plan['run_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).hexdigest()
-        tmp_plan = plan_d / 'modified_plan.json'
         tmp_plan.write_text(json.dumps(plan))
         r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(tmp_plan),
             '--shard-root', plan_d, '--synthetic'],
@@ -288,16 +294,14 @@ def test_corrupt_plan_manifest_is_structured_cli_failure():
 def test_corrupt_run_plan_jsonl_is_structured_failure():
     """Malformed JSONL in run plan produces structured failure with line number."""
     with tempfile.TemporaryDirectory() as td:
-        plan_d = Path(td)
-        plan_dir = Path(SYNTH_PLAN).parent
-        shutil.copy(plan_dir / 'full_b1_key_plan.jsonl.gz', plan_d / 'full_b1_key_plan.jsonl.gz')
+        plan_d = Path(td) / "plan"
+        tmp_plan = _copy_complete_synthetic_plan_fixture(plan_d)
         # Create valid gzip but malformed JSONL
         corrupt_text = "valid_line\n" + '{"broken"\n'
         (plan_d / "full_b1_run_plan.jsonl.gz").write_bytes(gzip.compress(corrupt_text.encode("utf-8"), mtime=0))
         plan = json.loads(Path(SYNTH_PLAN).read_text())
         plan['key_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_key_plan.jsonl.gz').read_bytes()).hexdigest()
         plan['run_plan_sha256'] = hashlib.sha256((plan_d / 'full_b1_run_plan.jsonl.gz').read_bytes()).hexdigest()
-        tmp_plan = plan_d / 'modified_plan.json'
         tmp_plan.write_text(json.dumps(plan))
         r = subprocess.run([sys.executable, ADMIT_CLI, '--plan-manifest', str(tmp_plan),
             '--shard-root', td, '--synthetic'],

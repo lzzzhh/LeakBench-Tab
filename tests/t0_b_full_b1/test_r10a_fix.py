@@ -1,5 +1,5 @@
 """T0-B1I-R10a-Fix tests — writer lock CLI, selection duplicate, validate-only audit, stale cleanup, validator."""
-import gzip, hashlib, io, json, os, subprocess, sys, tempfile, time
+import gzip, hashlib, io, json, os, shutil, subprocess, sys, tempfile, time
 from pathlib import Path; import pandas as pd, pytest
 
 ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
@@ -97,15 +97,21 @@ def test_validate_only_duplicate_run_id_fails():
         tdp = Path(td)
         # Copy synthetic plan but inject a duplicate run_id
         synth_dir = ROOT / "results/edbt_t0_b_full_b1_preflight/synthetic_full_contract"
-        keys_data = gzip.decompress((synth_dir / "full_b1_key_plan.jsonl.gz").read_bytes()).decode()
+        for name in [
+            "full_b1_plan_manifest.json",
+            "full_b1_key_plan.jsonl.gz",
+            "full_b1_run_plan.jsonl.gz",
+            "full_b1_shard_plan.json",
+            "synthetic_policy_group_mapping.jsonl.gz",
+            "synthetic_semantic_evaluation_mapping.jsonl.gz",
+        ]:
+            shutil.copy2(synth_dir / name, tdp / name)
         runs_lines = [json.loads(l) for l in gzip.decompress((synth_dir / "full_b1_run_plan.jsonl.gz").read_bytes()).decode().strip().split("\n")]
         # Duplicate first run_id
         runs_lines[1]["run_id"] = runs_lines[0]["run_id"]
         runs_data = "\n".join(json.dumps(r) for r in runs_lines) + "\n"
-        (tdp / "full_b1_key_plan.jsonl.gz").write_bytes(gzip.compress(keys_data.encode(), mtime=0))
         (tdp / "full_b1_run_plan.jsonl.gz").write_bytes(gzip.compress(runs_data.encode(), mtime=0))
         pm = json.load(open(synth_dir / "full_b1_plan_manifest.json"))
-        pm["key_plan_sha256"] = hashlib.sha256((tdp / "full_b1_key_plan.jsonl.gz").read_bytes()).hexdigest()
         pm["run_plan_sha256"] = hashlib.sha256((tdp / "full_b1_run_plan.jsonl.gz").read_bytes()).hexdigest()
         with open(tdp / "full_b1_plan_manifest.json", "w") as f: json.dump(pm, f)
         r = subprocess.run([sys.executable, RUNNER,
@@ -115,6 +121,13 @@ def test_validate_only_duplicate_run_id_fails():
         assert r.returncode != 0
         assert "VALIDATION_FAIL" in r.stdout
         assert "duplicate" in r.stdout.lower()
+        assert "shard plan file missing" not in r.stdout
+        assert "policy mapping file missing" not in r.stdout
+        assert "semantic mapping file missing" not in r.stdout
+        assert "key plan SHA mismatch" not in r.stdout
+        assert "shard plan SHA mismatch" not in r.stdout
+        assert "policy mapping SHA mismatch" not in r.stdout
+        assert "semantic mapping SHA mismatch" not in r.stdout
 
 
 # ─── Forbidden pattern audit test ──────────────────────────────

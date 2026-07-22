@@ -21,6 +21,69 @@ def _generate_all_shards(shard_root):
         assert r.returncode == 0, f"shard {sid} failed: {r.stderr[:300]}"
 
 
+@pytest.fixture(scope="module")
+def valid_merged_context(tmp_path_factory):
+    from scripts.t0_b_full_b1.merge_contract import build_source_shard_snapshot
+
+    root = tmp_path_factory.mktemp("r10c2d-valid-merge")
+    shard_root = root / "shards"
+    merged_out = root / "merged"
+    _generate_all_shards(shard_root)
+    merge = subprocess.run(
+        [
+            sys.executable, MERGE_CLI,
+            "--plan-manifest", SYNTH_PLAN,
+            "--shard-root", str(shard_root),
+            "--output-dir", str(merged_out),
+            "--synthetic",
+        ],
+        capture_output=True, text=True, cwd=ROOT,
+    )
+    assert merge.returncode == 0, merge.stdout
+
+    plan_path = Path(SYNTH_PLAN)
+    plan = json.loads(plan_path.read_text())
+    plan_dir = plan_path.parent
+    keys = [json.loads(line) for line in gzip.decompress(
+        (plan_dir / "full_b1_key_plan.jsonl.gz").read_bytes()
+    ).decode().strip().split("\n")]
+    runs = [json.loads(line) for line in gzip.decompress(
+        (plan_dir / "full_b1_run_plan.jsonl.gz").read_bytes()
+    ).decode().strip().split("\n")]
+    planned_ids = sorted({key["shard_id"] for key in keys})
+    snapshot = build_source_shard_snapshot(shard_root, planned_ids)
+    source_ledger_shas = {
+        str(path.relative_to(shard_root)): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in shard_root.glob("shard_*/*_ledger.csv.gz")
+    }
+    return {
+        "root": root,
+        "shard_root": shard_root,
+        "merged_out": merged_out,
+        "plan": plan,
+        "plan_sha": hashlib.sha256(plan_path.read_bytes()).hexdigest(),
+        "keys": keys,
+        "runs": runs,
+        "planned_ids": planned_ids,
+        "snapshot": snapshot,
+        "source_ledger_shas": source_ledger_shas,
+    }
+
+
+def _validate_candidate(context, merged_dir):
+    from scripts.t0_b_full_b1.merge_contract import validate_global_merge_candidate
+    return validate_global_merge_candidate(
+        merged_dir=Path(merged_dir),
+        plan_manifest=context["plan"],
+        plan_manifest_sha256=context["plan_sha"],
+        planned_shard_ids=context["planned_ids"],
+        snapshot=context["snapshot"],
+        shard_root=context["shard_root"],
+        run_rows=context["runs"],
+        key_rows=context["keys"],
+    )
+
+
 def _five_shas(d):
     d = Path(d)
     return {f"{n}_ledger.csv.gz": hashlib.sha256((d / f"{n}_ledger.csv.gz").read_bytes()).hexdigest()
@@ -268,7 +331,9 @@ def _copy_plan_fixture(destination):
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=True)
     for name in ["full_b1_plan_manifest.json", "full_b1_key_plan.jsonl.gz",
-                 "full_b1_run_plan.jsonl.gz", "full_b1_shard_plan.json"]:
+                 "full_b1_run_plan.jsonl.gz", "full_b1_shard_plan.json",
+                 "synthetic_policy_group_mapping.jsonl.gz",
+                 "synthetic_semantic_evaluation_mapping.jsonl.gz"]:
         shutil.copy2(source / name, destination / name)
     return destination / "full_b1_plan_manifest.json"
 
@@ -394,3 +459,102 @@ def test_fsync_failure_cleans_staging_and_never_publishes(monkeypatch):
         assert exc.value.code == 1
         assert not output.exists()
         assert not list(root.glob(".merged.staging.*"))
+
+
+@pytest.mark.parametrize("field", ["canonical_keys", "shard_count"])
+def test_merge_manifest_cardinality_tamper_is_rejected(
+    field, valid_merged_context,
+):
+    context = valid_merged_context
+    candidate = context["root"] / f"candidate-{field}"
+    shutil.copytree(context["merged_out"], candidate)
+    manifest_path = candidate / "merge_manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    digest_fields = {
+        name: manifest[name]
+        for name in ["completed_key_ids_sha256", "planned_shard_ids_sha256"]
+    }
+    manifest[field] += 1
+    manifest_path.write_text(json.dumps(manifest))
+
+    result = _validate_candidate(context, candidate)
+
+    assert result.is_valid is False
+    assert any(f"{field} mismatch" in error for error in result.errors)
+    assert not any("artifact" in error.lower() and "sha" in error.lower()
+                   for error in result.errors)
+    for ledger_name in ["baseline", "governed", "selection", "failure"]:
+        ledger = candidate / f"{ledger_name}_ledger.csv.gz"
+        assert hashlib.sha256(ledger.read_bytes()).hexdigest() == manifest[
+            f"{ledger_name}_sha256"
+        ]
+    for name, value in digest_fields.items():
+        assert manifest[name] == value
+    current_source_shas = {
+        str(path.relative_to(context["shard_root"])):
+            hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in context["shard_root"].glob("shard_*/*_ledger.csv.gz")
+    }
+    assert current_source_shas == context["source_ledger_shas"]
+
+
+@pytest.mark.parametrize(
+    ("field", "mutated_value", "expected_error"),
+    [
+        ("canonical_keys", True, "canonical_keys"),
+        ("shard_count", 2.0, "shard_count"),
+        ("failure_rows", False, "failure_rows"),
+        ("downstream_rows", 1169, "downstream_rows"),
+    ],
+)
+def test_merge_manifest_count_type_and_invariant_mutation(
+    field, mutated_value, expected_error, valid_merged_context,
+):
+    context = valid_merged_context
+    candidate = context["root"] / f"candidate-count-{field}"
+    shutil.copytree(context["merged_out"], candidate)
+    manifest_path = candidate / "merge_manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest[field] = mutated_value
+    manifest_path.write_text(json.dumps(manifest))
+
+    result = _validate_candidate(context, candidate)
+
+    assert result.is_valid is False
+    assert any(expected_error in error for error in result.errors)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "plan_manifest_sha256",
+        "baseline_sha256",
+        "governed_sha256",
+        "selection_sha256",
+        "failure_sha256",
+        "completed_key_ids_sha256",
+        "planned_run_ids_sha256",
+        "produced_run_ids_sha256",
+        "selection_hash_multiset_sha256",
+        "planned_shard_ids_sha256",
+        "source_shard_manifest_set_sha256",
+    ],
+)
+def test_merge_manifest_sha_schema_rejects_non_lowercase_hex64(
+    field, valid_merged_context,
+):
+    context = valid_merged_context
+    candidate = context["root"] / f"candidate-sha-{field}"
+    shutil.copytree(context["merged_out"], candidate)
+    manifest_path = candidate / "merge_manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest[field] = "A" * 64
+    manifest_path.write_text(json.dumps(manifest))
+
+    result = _validate_candidate(context, candidate)
+
+    assert result.is_valid is False
+    assert any(
+        f"merge manifest {field} must be a 64-char hex string" in error
+        for error in result.errors
+    )

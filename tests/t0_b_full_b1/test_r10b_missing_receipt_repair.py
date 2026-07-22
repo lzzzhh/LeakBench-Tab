@@ -56,8 +56,20 @@ def test_missing_receipt_candidate_validates_all_nonreceipt_contracts():
         ).decode("utf-8").strip().split("\n")]
         kp = next(k for k in keys if k["canonical_key_id"] == cid)
 
+        from scripts.t0_b_full_b1.merge_contract import resolve_declared_input_paths
         from scripts.t0_b_full_b1.run_full_b1_shard import ExecutionDependencies
-        deps = ExecutionDependencies(mode="synthetic")
+        plan_manifest = json.loads(Path(SYNTH_PLAN).read_text())
+        declared_paths = resolve_declared_input_paths(
+            plan_manifest=plan_manifest,
+            plan_dir=Path(SYNTH_PLAN).parent,
+        )
+        deps = ExecutionDependencies(
+            mode="synthetic",
+            mapping_paths={
+                "policy_mapping": declared_paths["policy_mapping"],
+                "semantic_mapping": declared_paths["semantic_mapping"],
+            },
+        )
         pol_info = deps.mapping_loader("policy_group_mapping_v3.jsonl.gz",
             (kp["dataset_index"], kp["mechanism"], kp["strength"], kp["training_seed"]))
         sem_info = deps.mapping_loader("semantic_evaluation_mapping_v3.jsonl.gz",
@@ -68,7 +80,6 @@ def test_missing_receipt_candidate_validates_all_nonreceipt_contracts():
         ).decode("utf-8").strip().split("\n")]
         planned = sorted({r["run_id"] for r in runs if r["canonical_key_id"] == cid})
 
-        plan_manifest = json.loads(Path(SYNTH_PLAN).read_text())
         plan_sha = hashlib.sha256(Path(SYNTH_PLAN).read_bytes()).hexdigest()
 
         result = validate_missing_receipt_candidate(

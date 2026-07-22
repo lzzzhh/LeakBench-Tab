@@ -11,9 +11,32 @@ from scripts.t0_b_full_b1.shard_contract import (
     validate_shard_artifacts, ShardArtifactValidation,
 )
 
+ROOT = Path(__file__).resolve().parents[2]
 _SHARD_DIR_RE = re.compile(r"^shard_(0|[1-9][0-9]*)$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
+
+_DECLARED_PLAN_SHA_FIELDS = (
+    "key_plan_sha256",
+    "run_plan_sha256",
+    "shard_plan_sha256",
+    "policy_mapping_sha256",
+    "semantic_mapping_sha256",
+)
+
+_MERGE_MANIFEST_SHA_FIELDS = (
+    "plan_manifest_sha256",
+    "baseline_sha256",
+    "governed_sha256",
+    "selection_sha256",
+    "failure_sha256",
+    "completed_key_ids_sha256",
+    "planned_run_ids_sha256",
+    "produced_run_ids_sha256",
+    "selection_hash_multiset_sha256",
+    "planned_shard_ids_sha256",
+    "source_shard_manifest_set_sha256",
+)
 
 _LEDGER_HEADERS = {
     "baseline": "run_id,dataset_index,mechanism,strength,training_seed,learner,baseline_type,auc",
@@ -139,10 +162,13 @@ def validate_plan_schema(plan_manifest: dict, expected_mode: str | None) -> list
     if plan_manifest.get("execution_contract_version") != EXECUTION_CONTRACT_VERSION:
         errors.append("plan manifest execution_contract_version mismatch")
 
-    # SHA fields (must be 64-char hex)
-    for sha_field in ["key_plan_sha256", "run_plan_sha256"]:
+    # Every declared input SHA is mandatory and exact lowercase hex64.
+    for sha_field in _DECLARED_PLAN_SHA_FIELDS:
+        if sha_field not in plan_manifest:
+            errors.append(f"plan manifest missing required field: {sha_field}")
+            continue
         try:
-            _require_hex64(plan_manifest.get(sha_field), sha_field, "plan manifest")
+            _require_hex64(plan_manifest[sha_field], sha_field, "plan manifest")
         except ValueError as exc:
             errors.append(str(exc))
 
@@ -200,6 +226,56 @@ def validate_plan_schema(plan_manifest: dict, expected_mode: str | None) -> list
     return errors
 
 
+def _validate_declared_plan_file(
+    *,
+    path: Path,
+    expected_sha256: str | None,
+    label: str,
+) -> list[str]:
+    """Bind one manifest-declared input to an exact regular on-disk file."""
+    errors = []
+    if not path.exists():
+        return [f"{label} file missing"]
+    if path.is_symlink():
+        return [f"{label} file is a symlink"]
+    if not path.is_file():
+        return [f"{label} path is not a regular file"]
+    try:
+        actual_sha256 = _sha256_file(path)
+    except OSError as exc:
+        return [f"{label} read error: {exc}"]
+    if actual_sha256 != expected_sha256:
+        errors.append(f"{label} SHA mismatch")
+    return errors
+
+
+def resolve_declared_input_paths(
+    *,
+    plan_manifest: dict,
+    plan_dir: Path,
+) -> dict[str, Path]:
+    """Resolve the exact files bound by a plan without existence fallbacks."""
+    mode = plan_manifest.get("mode")
+    common = {
+        "key_plan": plan_dir / "full_b1_key_plan.jsonl.gz",
+        "run_plan": plan_dir / "full_b1_run_plan.jsonl.gz",
+        "shard_plan": plan_dir / "full_b1_shard_plan.json",
+    }
+    if mode == "production":
+        return {
+            **common,
+            "policy_mapping": ROOT / "results/edbt_t0_b/policy_group_mapping_v3.jsonl.gz",
+            "semantic_mapping": ROOT / "results/edbt_t0_b/semantic_evaluation_mapping_v3.jsonl.gz",
+        }
+    if mode == "synthetic":
+        return {
+            **common,
+            "policy_mapping": plan_dir / "synthetic_policy_group_mapping.jsonl.gz",
+            "semantic_mapping": plan_dir / "synthetic_semantic_evaluation_mapping.jsonl.gz",
+        }
+    raise ValueError(f"declared input path resolution requires valid mode, got {mode!r}")
+
+
 def validate_plan(
     plan_manifest: dict,
     plan_dir: Path,
@@ -209,33 +285,57 @@ def validate_plan(
     keys = []
     runs = []
 
-    # Plan SHA validation happens first
-    kp_path = plan_dir / "full_b1_key_plan.jsonl.gz"
-    rp_path = plan_dir / "full_b1_run_plan.jsonl.gz"
+    # Declared-input binding happens before any JSONL is loaded.
+    try:
+        declared_paths = resolve_declared_input_paths(
+            plan_manifest=plan_manifest,
+            plan_dir=plan_dir,
+        )
+    except ValueError as exc:
+        errors.append(str(exc))
+        return errors, keys, runs
 
-    if not kp_path.exists() or not kp_path.is_file():
-        errors.append("key plan file missing")
-    else:
-        actual_kp_sha = _sha256_file(kp_path)
-        if actual_kp_sha != plan_manifest["key_plan_sha256"]:
-            errors.append("key plan SHA mismatch")
-        else:
-            try:
-                keys = _load_jsonl_gzip_strict(kp_path, "key plan")
-            except ValueError as exc:
-                errors.append(str(exc))
+    kp_path = declared_paths["key_plan"]
+    rp_path = declared_paths["run_plan"]
 
-    if not rp_path.exists() or not rp_path.is_file():
-        errors.append("run plan file missing")
-    else:
-        actual_rp_sha = _sha256_file(rp_path)
-        if actual_rp_sha != plan_manifest["run_plan_sha256"]:
-            errors.append("run plan SHA mismatch")
-        else:
-            try:
-                runs = _load_jsonl_gzip_strict(rp_path, "run plan")
-            except ValueError as exc:
-                errors.append(str(exc))
+    key_errors = _validate_declared_plan_file(
+        path=kp_path,
+        expected_sha256=plan_manifest.get("key_plan_sha256"),
+        label="key plan",
+    )
+    run_errors = _validate_declared_plan_file(
+        path=rp_path,
+        expected_sha256=plan_manifest.get("run_plan_sha256"),
+        label="run plan",
+    )
+    errors.extend(key_errors)
+    errors.extend(run_errors)
+    errors.extend(_validate_declared_plan_file(
+        path=declared_paths["shard_plan"],
+        expected_sha256=plan_manifest.get("shard_plan_sha256"),
+        label="shard plan",
+    ))
+    errors.extend(_validate_declared_plan_file(
+        path=declared_paths["policy_mapping"],
+        expected_sha256=plan_manifest.get("policy_mapping_sha256"),
+        label="policy mapping",
+    ))
+    errors.extend(_validate_declared_plan_file(
+        path=declared_paths["semantic_mapping"],
+        expected_sha256=plan_manifest.get("semantic_mapping_sha256"),
+        label="semantic mapping",
+    ))
+
+    if not key_errors:
+        try:
+            keys = _load_jsonl_gzip_strict(kp_path, "key plan")
+        except ValueError as exc:
+            errors.append(str(exc))
+    if not run_errors:
+        try:
+            runs = _load_jsonl_gzip_strict(rp_path, "run plan")
+        except ValueError as exc:
+            errors.append(str(exc))
 
     return errors, keys, runs
 
@@ -909,6 +1009,11 @@ def validate_global_merge_candidate(
         errors.append("merge manifest scientific_freeze_sha mismatch")
     if mm["execution_contract_version"] != EXECUTION_CONTRACT_VERSION:
         errors.append("merge manifest execution_contract_version mismatch")
+    for sha_field in _MERGE_MANIFEST_SHA_FIELDS:
+        try:
+            _require_hex64(mm[sha_field], sha_field, "merge manifest")
+        except ValueError as exc:
+            errors.append(str(exc))
     if mm["plan_manifest_sha256"] != plan_manifest_sha256:
         errors.append("merge manifest plan_manifest_sha256 mismatch")
     tool_seal = plan_manifest.get("tool_seal_sha", "")
@@ -919,12 +1024,85 @@ def validate_global_merge_candidate(
     if not isinstance(mm["plan_declared_tool_seal_sha"], str) or _HEX40_RE.fullmatch(mm["plan_declared_tool_seal_sha"]) is None:
         errors.append("merge manifest plan_declared_tool_seal_sha invalid")
 
-    # Counts must be strict integers
-    for field in ["shard_count", "canonical_keys", "baseline_rows", "governed_rows",
-                   "selection_rows", "failure_rows", "downstream_rows"]:
-        val = mm[field]
-        if isinstance(val, bool) or not isinstance(val, int):
-            errors.append(f"merge manifest {field} must be integer")
+    # Counts and cardinalities must close against both the plan and real universe.
+    count_fields = [
+        "shard_count", "canonical_keys", "baseline_rows", "governed_rows",
+        "selection_rows", "failure_rows", "downstream_rows",
+    ]
+    merge_counts = {}
+    plan_counts = {}
+    for field in count_fields:
+        try:
+            merge_counts[field] = _require_strict_integer(mm[field], field, "merge manifest")
+        except ValueError as exc:
+            errors.append(str(exc))
+        try:
+            plan_counts[field] = _require_strict_integer(
+                plan_manifest.get(field), field, "plan manifest"
+            )
+        except ValueError as exc:
+            errors.append(str(exc))
+
+    if len(planned_shard_ids) != len(set(planned_shard_ids)):
+        errors.append("planned_shard_ids contains duplicates")
+    if any(isinstance(sid, bool) or not isinstance(sid, int) for sid in planned_shard_ids):
+        errors.append("planned_shard_ids must contain strict integers")
+
+    canonical_key_ids = [row.get("canonical_key_id") for row in key_rows]
+    if len(canonical_key_ids) != len(set(canonical_key_ids)):
+        errors.append("key_rows contains duplicate canonical_key_id")
+
+    if "shard_count" in merge_counts and "shard_count" in plan_counts:
+        manifest_count = merge_counts["shard_count"]
+        actual_count = len(planned_shard_ids)
+        plan_count = plan_counts["shard_count"]
+        if manifest_count <= 0:
+            errors.append("merge manifest shard_count must be > 0")
+        if manifest_count != actual_count or actual_count != plan_count:
+            errors.append(
+                "merge manifest shard_count mismatch: "
+                f"manifest={manifest_count}, actual={actual_count}, plan={plan_count}"
+            )
+
+    if "canonical_keys" in merge_counts and "canonical_keys" in plan_counts:
+        manifest_count = merge_counts["canonical_keys"]
+        actual_count = len(key_rows)
+        plan_count = plan_counts["canonical_keys"]
+        if manifest_count <= 0:
+            errors.append("merge manifest canonical_keys must be > 0")
+        if manifest_count != actual_count or actual_count != plan_count:
+            errors.append(
+                "merge manifest canonical_keys mismatch: "
+                f"manifest={manifest_count}, actual={actual_count}, plan={plan_count}"
+            )
+
+    row_fields = [
+        "baseline_rows", "governed_rows", "selection_rows", "failure_rows",
+        "downstream_rows",
+    ]
+    for field in row_fields:
+        if field in merge_counts and merge_counts[field] < 0:
+            errors.append(f"merge manifest {field} must be non-negative")
+        if field in merge_counts and field in plan_counts:
+            if merge_counts[field] != plan_counts[field]:
+                errors.append(
+                    f"merge manifest {field} mismatch: "
+                    f"manifest={merge_counts[field]}, plan={plan_counts[field]}"
+                )
+    if merge_counts.get("failure_rows") != 0:
+        errors.append("merge manifest failure_rows must equal 0")
+    if all(field in merge_counts for field in (
+        "downstream_rows", "baseline_rows", "governed_rows"
+    )):
+        expected_downstream = (
+            merge_counts["baseline_rows"] + merge_counts["governed_rows"]
+        )
+        if merge_counts["downstream_rows"] != expected_downstream:
+            errors.append(
+                "merge manifest downstream_rows invariant mismatch: "
+                f"declared={merge_counts['downstream_rows']}, "
+                f"baseline_plus_governed={expected_downstream}"
+            )
     if errors:
         return result
     result.manifest_valid = True
@@ -965,21 +1143,27 @@ def validate_global_merge_candidate(
     result.downstream_rows = result.baseline_rows + result.governed_rows
     if result.failure_rows != 0:
         errors.append("failure rows present")
-    for label, actual, key in [
-        ("baseline_rows", result.baseline_rows, "baseline_rows"),
-        ("governed_rows", result.governed_rows, "governed_rows"),
-        ("selection_rows", result.selection_rows, "selection_rows"),
-        ("failure_rows", result.failure_rows, "failure_rows"),
-        ("downstream_rows", result.downstream_rows, "downstream_rows"),
-    ]:
-        if actual != mm[key]:
-            errors.append(f"merge manifest {key} mismatch: actual={actual}, manifest={mm[key]}")
+    actual_counts = {
+        "baseline_rows": result.baseline_rows,
+        "governed_rows": result.governed_rows,
+        "selection_rows": result.selection_rows,
+        "failure_rows": result.failure_rows,
+        "downstream_rows": result.downstream_rows,
+    }
+    for field, actual in actual_counts.items():
+        manifest_count = merge_counts[field]
+        plan_count = plan_counts[field]
+        if actual != manifest_count or manifest_count != plan_count:
+            errors.append(
+                f"merge manifest {field} count mismatch: "
+                f"actual={actual}, manifest={manifest_count}, plan={plan_count}"
+            )
     if errors:
         return result
     result.row_counts_valid = True
 
     # ── Digest closure ──
-    cids = sorted(k["canonical_key_id"] for k in key_rows)
+    cids = sorted(canonical_key_ids)
     expected_key_digest = _ids_digest(cids)
     if mm["completed_key_ids_sha256"] != expected_key_digest:
         errors.append("merge manifest completed_key_ids_sha256 mismatch")

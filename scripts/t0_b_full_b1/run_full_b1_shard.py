@@ -35,7 +35,8 @@ from scripts.t0_b_full_b1.run_key_contract import (
     baseline_lookup_key, governed_lookup_key, build_run_id_lookup,
 )
 from scripts.t0_b_full_b1.merge_contract import (
-    validate_plan_schema, validate_plan, validate_global_scope,
+    resolve_declared_input_paths, validate_plan_schema, validate_plan,
+    validate_global_scope,
 )
 
 # ======================================================================
@@ -44,8 +45,12 @@ from scripts.t0_b_full_b1.merge_contract import (
 @dataclass
 class ExecutionDependencies:
     mode: str = "production"
+    mapping_paths: dict[str, Path] | None = None
     synthetic_call_counter: SyntheticCallCounter = field(default_factory=SyntheticCallCounter)
     production_guard: ProductionGuard = field(default_factory=ProductionGuard)
+    _mapping_cache: dict[str, dict[tuple, dict]] = field(
+        default_factory=dict, init=False, repr=False,
+    )
 
     def bundle_loader(self, kp):
         if self.mode == "synthetic":
@@ -94,17 +99,68 @@ class ExecutionDependencies:
         from scripts.t0_b_v3.policy_selectors import score_rf_permutation; return score_rf_permutation(Xtr, ytr)
 
     def mapping_loader(self, gz_name, key_tuple):
-        if self.mode == "synthetic":
-            synth_name = "synthetic_policy_group_mapping.jsonl.gz" if "policy" in gz_name else "synthetic_semantic_evaluation_mapping.jsonl.gz"
-            path = ROOT / "results/edbt_t0_b_full_b1_preflight/synthetic_full_contract" / synth_name
-        else:
-            path = ROOT / "results/edbt_t0_b" / gz_name
-        data = gzip.decompress(path.read_bytes()).decode("utf-8")
-        for line in data.strip().split("\n"):
-            r = json.loads(line)
-            if (r["dataset_index"], r["mechanism"], r["strength"], r["training_seed"]) == key_tuple:
-                return r
-        raise KeyError(f"Mapping not found for {key_tuple}")
+        mapping_names = {
+            "policy_group_mapping_v3.jsonl.gz": "policy_mapping",
+            "semantic_evaluation_mapping_v3.jsonl.gz": "semantic_mapping",
+        }
+        kind = mapping_names.get(gz_name)
+        if kind is None:
+            raise DeclaredMappingError("unknown", None, key_tuple, f"unsupported mapping request: {gz_name}")
+        if self.mapping_paths is None or kind not in self.mapping_paths:
+            raise DeclaredMappingError(kind, None, key_tuple, "mapping path is not configured")
+        path = self.mapping_paths[kind]
+        if kind not in self._mapping_cache:
+            try:
+                raw = gzip.decompress(path.read_bytes()).decode("utf-8")
+            except (OSError, gzip.BadGzipFile, UnicodeDecodeError, EOFError) as exc:
+                raise DeclaredMappingError(kind, path, key_tuple, f"mapping read error: {exc}") from exc
+            rows = {}
+            for line_number, line in enumerate(raw.splitlines(), start=1):
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                    row_key = (
+                        row["dataset_index"], row["mechanism"],
+                        row["strength"], row["training_seed"],
+                    )
+                except (json.JSONDecodeError, KeyError, TypeError) as exc:
+                    raise DeclaredMappingError(
+                        kind, path, key_tuple,
+                        f"mapping JSONL error at line {line_number}: {exc}",
+                    ) from exc
+                rows[row_key] = row
+            self._mapping_cache[kind] = rows
+        try:
+            return self._mapping_cache[kind][key_tuple]
+        except KeyError as exc:
+            raise DeclaredMappingError(kind, path, key_tuple, "target key is missing") from exc
+
+
+class DeclaredMappingError(ValueError):
+    def __init__(self, kind, path, key_tuple, reason):
+        self.kind = kind.replace("_mapping", "")
+        self.path = path
+        self.key_tuple = key_tuple
+        self.reason = reason
+        super().__init__(
+            f"{self.kind}; path={path}; key={key_tuple}; reason={reason}"
+        )
+
+
+def validate_declared_mapping_coverage(shard_keys, deps):
+    """Resolve both declared mappings for every key before any execution writes."""
+    requests = (
+        "policy_group_mapping_v3.jsonl.gz",
+        "semantic_evaluation_mapping_v3.jsonl.gz",
+    )
+    for kp in shard_keys:
+        key_tuple = (
+            kp["dataset_index"], kp["mechanism"],
+            kp["strength"], kp["training_seed"],
+        )
+        for mapping_name in requests:
+            deps.mapping_loader(mapping_name, key_tuple)
 
 
 def execute_key(kp, deps, run_ids):
@@ -383,7 +439,6 @@ def main():
             print("VALIDATION_FAIL: " + "; ".join(errors[:5])); sys.exit(1)
         print("VALIDATION_PASS"); return
 
-    deps = ExecutionDependencies(mode="synthetic" if args.synthetic else "production")
     shard_keys = [k for k in keys if k.get("shard_id") == args.shard_id]
     shard_runs = [r for r in runs if r.get("shard_id") == args.shard_id]
     # Scope guard: reject empty/unplanned shards
@@ -392,6 +447,24 @@ def main():
         sys.exit(1)
     if not shard_runs:
         print(f"NO_PLANNED_RUNS_FOR_SHARD: shard_id={args.shard_id}")
+        sys.exit(1)
+
+    declared_paths = resolve_declared_input_paths(
+        plan_manifest=pm,
+        plan_dir=plan_dir,
+    )
+    deps = ExecutionDependencies(
+        mode="synthetic" if args.synthetic else "production",
+        mapping_paths={
+            "policy_mapping": declared_paths["policy_mapping"],
+            "semantic_mapping": declared_paths["semantic_mapping"],
+        },
+    )
+    try:
+        validate_declared_mapping_coverage(shard_keys, deps)
+    except DeclaredMappingError as exc:
+        print("SHARD_DECLARED_MAPPING_FAIL")
+        print(f"  {exc}")
         sys.exit(1)
 
     rid_lookup = build_run_id_lookup(shard_runs)

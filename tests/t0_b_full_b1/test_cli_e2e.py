@@ -1,10 +1,27 @@
 """T0-B CLI E2E — full contract: plan→execute→complete-resume→merge→validate."""
-import gzip, hashlib, io, json, os, subprocess, sys, tempfile
+import gzip, hashlib, io, json, os, shutil, subprocess, sys, tempfile
 from pathlib import Path; import numpy as np, pytest
 ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
 RUNNER = str(ROOT/"scripts/t0_b_full_b1/run_full_b1_shard.py")
 MERGER = str(ROOT/"scripts/t0_b_full_b1/merge_full_b1_shards.py")
 from scripts.t0_b_full_b1.run_key_contract import baseline_lookup_key, governed_lookup_key
+
+SYNTHETIC_PLAN_DIR = ROOT / "results/edbt_t0_b_full_b1_preflight/synthetic_full_contract"
+DECLARED_PLAN_FILES = [
+    "full_b1_plan_manifest.json",
+    "full_b1_key_plan.jsonl.gz",
+    "full_b1_run_plan.jsonl.gz",
+    "full_b1_shard_plan.json",
+    "synthetic_policy_group_mapping.jsonl.gz",
+    "synthetic_semantic_evaluation_mapping.jsonl.gz",
+]
+
+
+def _copy_complete_synthetic_plan(destination):
+    destination.mkdir(parents=True, exist_ok=True)
+    for name in DECLARED_PLAN_FILES:
+        shutil.copy2(SYNTHETIC_PLAN_DIR / name, destination / name)
+    return destination / "full_b1_plan_manifest.json"
 
 def build_synthetic_plan(out_dir):
     """8 keys, full contract."""
@@ -42,6 +59,15 @@ def build_synthetic_plan(out_dir):
             "\n".join(json.dumps(r) for r in data).encode() + b"\n", mtime=0))
     kp_path = out_dir / "full_b1_key_plan.jsonl.gz"
     rp_path = out_dir / "full_b1_run_plan.jsonl.gz"
+    sp_path = out_dir / "full_b1_shard_plan.json"
+    sp_path.write_text(json.dumps({
+        "shard_count": 2,
+        "shard_stats": {"0": {"count": 4}, "1": {"count": 4}},
+    }, sort_keys=True, indent=2) + "\n")
+    policy_path = out_dir / "synthetic_policy_group_mapping.jsonl.gz"
+    semantic_path = out_dir / "synthetic_semantic_evaluation_mapping.jsonl.gz"
+    shutil.copy2(SYNTHETIC_PLAN_DIR / policy_path.name, policy_path)
+    shutil.copy2(SYNTHETIC_PLAN_DIR / semantic_path.name, semantic_path)
     kp_sha = hashlib.sha256(kp_path.read_bytes()).hexdigest()
     rp_sha = hashlib.sha256(rp_path.read_bytes()).hexdigest()
     pm = {
@@ -51,6 +77,9 @@ def build_synthetic_plan(out_dir):
         "scientific_freeze_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
         "execution_contract_version": "v1",
         "key_plan_sha256": kp_sha, "run_plan_sha256": rp_sha,
+        "shard_plan_sha256": hashlib.sha256(sp_path.read_bytes()).hexdigest(),
+        "policy_mapping_sha256": hashlib.sha256(policy_path.read_bytes()).hexdigest(),
+        "semantic_mapping_sha256": hashlib.sha256(semantic_path.read_bytes()).hexdigest(),
         "tool_seal_sha": "f" * 40,
     }
     with open(out_dir / "full_b1_plan_manifest.json", "w") as f: json.dump(pm, f)
@@ -106,6 +135,48 @@ def test_cli_full_contract():
                 assert sha_a == sha_b, f"{fname}: SHA mismatch"
 
         print("CLI E2E: 16 bl, 1152 gl, resume 0 recomputed, merge deterministic — PASS")
+
+
+@pytest.mark.parametrize(
+    ("mapping_name", "sha_field", "expected_kind"),
+    [
+        ("synthetic_policy_group_mapping.jsonl.gz", "policy_mapping_sha256", "policy"),
+        ("synthetic_semantic_evaluation_mapping.jsonl.gz", "semantic_mapping_sha256", "semantic"),
+    ],
+)
+def test_runner_fails_on_plan_local_mapping_without_shard_key(
+    mapping_name, sha_field, expected_kind,
+):
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        plan_path = _copy_complete_synthetic_plan(root / "plan")
+        mapping_path = plan_path.parent / mapping_name
+        rows = [json.loads(line) for line in gzip.decompress(
+            mapping_path.read_bytes()
+        ).decode("utf-8").splitlines() if line]
+        assert rows
+        rows[0]["dataset_index"] = 999
+        mapping_path.write_bytes(gzip.compress(
+            (json.dumps(rows[0], sort_keys=True) + "\n").encode("utf-8"),
+            mtime=0,
+        ))
+        manifest = json.loads(plan_path.read_text())
+        manifest[sha_field] = hashlib.sha256(mapping_path.read_bytes()).hexdigest()
+        plan_path.write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n")
+        output = root / "output"
+
+        result = subprocess.run(
+            [sys.executable, RUNNER, "--plan-manifest", str(plan_path),
+             "--shard-id", "0", "--output-dir", str(output), "--synthetic"],
+            capture_output=True, text=True, cwd=ROOT,
+        )
+
+        assert result.returncode != 0
+        assert "SHARD_DECLARED_MAPPING_FAIL" in result.stdout
+        assert expected_kind in result.stdout
+        assert "target key is missing" in result.stdout
+        assert "SHARD_EXECUTION_PASS" not in result.stdout
+        assert not output.exists()
 
 def test_validator_not_executed():
     r = subprocess.run([sys.executable, str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py")],
