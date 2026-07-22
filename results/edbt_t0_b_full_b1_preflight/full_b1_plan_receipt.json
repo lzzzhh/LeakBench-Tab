@@ -2,12 +2,12 @@
   "canonical_keys": 5500,
   "downstream_rows": 803000,
   "pass": true,
-  "plan_manifest_sha256": "b36551fe7cce614204a8417f11ae55079339b4638c42dadd6ba7b81ac938f2f1",
+  "plan_manifest_sha256": "b5581c6b26238ff792ed746d04d78f464b55a2a8a2007ab6a9acdf6813945812",
   "run_ids_unique": 803000,
   "schema_version": 1,
   "shard_count": 64,
   "shard_key_max": 86,
   "shard_key_min": 85,
-  "tool_seal_sha": "156b6e887bc97d0099ec0a700e748ae5cf561f6d",
-  "wall_clock_s": 60.96
+  "tool_seal_sha": "f33ca0ab194c335eff226002dbffc416d203f254",
+  "wall_clock_s": 38.18
 }

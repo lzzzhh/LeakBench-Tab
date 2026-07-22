@@ -56,6 +56,10 @@ inadmissible plan because it does not reuse the R10c plan and global-scope gates
 - Final repository suite: 673 passed, 0 failed, 0 skipped.
 - R10c receipt binds implementation checkpoint, formal plan, run plan,
   environment, commands, and both test runs.
+- Declared-input/runtime-binding closure commit: `f33ca0ab194c335eff226002dbffc416d203f254`.
+- Post-closure Full-B1 suite: 305 passed; repository suite: 718 passed.
+- The formal plan was resealed to the post-closure runner without changing the
+  key plan or run plan; preflight and production shard-0 validate-only pass.
 
 ## Outcome Boundary
 

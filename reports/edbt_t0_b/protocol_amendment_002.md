@@ -43,9 +43,9 @@ admitted or merged.
 ## Frozen Execution Inputs
 
 - Scientific freeze: `ff347b0657e8faf5d0ec1a4ca283185ffe2f5845`
-- Tool seal: `156b6e887bc97d0099ec0a700e748ae5cf561f6d`
+- Tool seal: `f33ca0ab194c335eff226002dbffc416d203f254`
 - Formal plan manifest SHA-256:
-  `b36551fe7cce614204a8417f11ae55079339b4638c42dadd6ba7b81ac938f2f1`
+  `b5581c6b26238ff792ed746d04d78f464b55a2a8a2007ab6a9acdf6813945812`
 - Formal run plan SHA-256:
   `4fdfe21c3861ef45fcab693d8af6e64de27bd92e972af077bee00d5b84da3aef`
 
