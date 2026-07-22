@@ -179,9 +179,13 @@ def test_runner_fails_on_plan_local_mapping_without_shard_key(
         assert not output.exists()
 
 def test_validator_not_executed():
-    r = subprocess.run([sys.executable, str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py")],
-                       capture_output=True, text=True, cwd=ROOT)
-    assert r.returncode == 42
+    with tempfile.TemporaryDirectory() as td:
+        r = subprocess.run([
+            sys.executable,
+            str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py"),
+            "--output-dir", str(Path(td) / "not_executed"),
+        ], capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 42
 
 def test_config_diff():
     r = subprocess.run(["git", "diff", "--name-only", "ff347b...HEAD", "--",

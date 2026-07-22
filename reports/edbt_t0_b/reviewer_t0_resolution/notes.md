@@ -69,3 +69,24 @@ inadmissible plan because it does not reuse the R10c plan and global-scope gates
 No Full-B1 scientific outcomes have been observed. Infrastructure corrections
 therefore do not select on experimental results and may be recorded as a
 pre-outcome contract amendment.
+
+## 2026-07-22 Formal Full-B1 Outcome
+
+- Windows-native 64-shard execution completed with 5,500/5,500 keys and no
+  failure rows.
+- Strict shard admission, strict global merge, and full-result validation pass.
+- Formal totals: 11,000 baseline, 792,000 governed, 792,000 selection, and
+  803,000 downstream rows.
+- The post-outcome analysis is deterministic across two complete reruns and is
+  bound to the canonical merge and validation receipt.
+- Primary semantic-group 20% claim status is `TRADEOFF` for P3, P4, P5, and P6.
+- RC1 is closed by separating directional repair, semantic localization,
+  overcorrection, retention, and zero-opportunity distortion from legacy SDR.
+- RC3 is closed by integrating 20 P2 seeds within key and covering four learned
+  policies, two cost contracts, and three budgets.
+- RC2 uses the separately frozen R2 three-learner amendment. Its valid scope is
+  encoded-column 20% P3-minus-random legacy SDR; it cannot establish universal
+  learner invariance.
+- After formal results existed, four old tests that assumed the default output
+  path was absent were isolated onto temporary empty paths. Scientific files and
+  validator behavior were not weakened.

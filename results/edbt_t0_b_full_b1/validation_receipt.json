@@ -1,0 +1,16 @@
+{
+  "baseline_rows": 11000,
+  "canonical_keys": 5500,
+  "downstream_rows": 803000,
+  "errors": [],
+  "failure_rows": 0,
+  "governed_rows": 792000,
+  "merge_manifest_sha256": "2c8ea06edb6f52e81f843bb1d94452636385bc7a51b926e5aecc8b972b3baf3d",
+  "mode": "production",
+  "plan_declared_tool_seal_sha": "cb6542f96bf1e2e87f8aefc30f13f8b1bb7210f7",
+  "plan_manifest_sha256": "8172fbef96e90e54f766968954e754b3b390454a8526d1594891b170e9cdec0f",
+  "planned_shards": 64,
+  "schema_version": 1,
+  "selection_rows": 792000,
+  "status": "PASS"
+}

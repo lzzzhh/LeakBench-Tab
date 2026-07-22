@@ -1,0 +1,51 @@
+{
+  "bootstrap_reps": 5000,
+  "bootstrap_seed": 20260722,
+  "canonical_keys": 5500,
+  "governed_rows": 792000,
+  "limitations": [
+    "Full-B1 evaluates LR downstream repair; RF and LightGBM use the separately frozen cross-learner amendment.",
+    "Task-cluster intervals describe the 20-task designed registry and are not population intervals.",
+    "Archetype summaries contain four tasks each and are sensitivity analyses."
+  ],
+  "primary_claim_status": {
+    "P3": "TRADEOFF",
+    "P4": "TRADEOFF",
+    "P5": "TRADEOFF",
+    "P6": "TRADEOFF"
+  },
+  "primary_legacy_sdr": {
+    "P3": {
+      "ci_hi": 0.08412459990626923,
+      "ci_lo": -0.005337295854498463,
+      "mean": 0.042616157318835904,
+      "n_keys": 5500,
+      "n_tasks": 20
+    },
+    "P4": {
+      "ci_hi": 0.05296831691030937,
+      "ci_lo": -0.032812547032852225,
+      "mean": 0.012610118586490027,
+      "n_keys": 5500,
+      "n_tasks": 20
+    },
+    "P5": {
+      "ci_hi": 0.057476845912799245,
+      "ci_lo": -0.02459838765658208,
+      "mean": 0.019234162949484233,
+      "n_keys": 5500,
+      "n_tasks": 20
+    },
+    "P6": {
+      "ci_hi": 0.0679396661914992,
+      "ci_lo": -0.008738887937068899,
+      "mean": 0.03161992343620608,
+      "n_keys": 5500,
+      "n_tasks": 20
+    }
+  },
+  "schema_version": 1,
+  "selection_rows": 792000,
+  "status": "PASS",
+  "unique_selection_hashes": 678809
+}

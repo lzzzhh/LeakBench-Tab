@@ -11,3 +11,7 @@ paper/aaai27/tmp/
 
 # SP5-A: excluded code-drift checkpoints (audit record kept via manifest+EXCLUDED.md)
 artifacts/archive/tabm_confirmatory_code_drift/checkpoints/
+
+# Full-B1 recomputable execution cache; canonical merged ledgers are tracked.
+results/edbt_t0_b_full_b1/shards/
+results/edbt_t0_b_full_b1/logs/

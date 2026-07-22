@@ -149,10 +149,13 @@ def test_audit_allowed_self_references_recorded():
 # ─── Validator formal-path test ────────────────────────────────
 
 def test_validator_no_result_exits_42():
-    r = subprocess.run([sys.executable, VALIDATOR],
-                       capture_output=True, text=True, cwd=ROOT)
-    assert r.returncode == 42
-    assert "EXPECTED_NOT_EXECUTED" in r.stdout
+    with tempfile.TemporaryDirectory() as td:
+        r = subprocess.run([
+            sys.executable, VALIDATOR,
+            "--output-dir", str(Path(td) / "not_executed"),
+        ], capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 42
+        assert "EXPECTED_NOT_EXECUTED" in r.stdout
 
 def test_validator_partial_result_fails_closed():
     """A shard directory without merged publication must fail closed."""

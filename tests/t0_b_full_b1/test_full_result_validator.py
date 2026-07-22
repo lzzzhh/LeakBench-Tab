@@ -5,9 +5,13 @@ ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
 
 def test_not_executed_returns_42():
     import subprocess
-    r = subprocess.run([sys.executable, str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py")],
-                       capture_output=True, text=True, cwd=ROOT)
-    assert r.returncode == 42
+    with tempfile.TemporaryDirectory() as td:
+        r = subprocess.run([
+            sys.executable,
+            str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py"),
+            "--output-dir", str(Path(td) / "not_executed"),
+        ], capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 42
 
 def test_synthetic_fixture_passes():
     """Validator must PASS on a correct synthetic fixture."""

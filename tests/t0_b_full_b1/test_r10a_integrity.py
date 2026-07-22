@@ -27,10 +27,14 @@ def test_find_duplicates_multiple_dups():
 
 
 def test_validator_no_result_exits_42():
-    r = subprocess.run([sys.executable, str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py")],
-                       capture_output=True, text=True, cwd=ROOT)
-    assert r.returncode == 42
-    assert "EXPECTED_NOT_EXECUTED" in r.stdout
+    with tempfile.TemporaryDirectory() as td:
+        r = subprocess.run([
+            sys.executable,
+            str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py"),
+            "--output-dir", str(Path(td) / "not_executed"),
+        ], capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 42
+        assert "EXPECTED_NOT_EXECUTED" in r.stdout
 
 
 def test_validator_formal_result_does_not_false_pass():
@@ -38,12 +42,16 @@ def test_validator_formal_result_does_not_false_pass():
     with tempfile.TemporaryDirectory() as td:
         tdp = Path(td)
         # Create a fake shards dir with a manifest to trigger formal path
-        shards = tdp / "results/edbt_t0_b_full_b1/shards" / "shard_0"
+        output_dir = tdp / "results/edbt_t0_b_full_b1"
+        shards = output_dir / "shards" / "shard_0"
         shards.mkdir(parents=True)
         (shards / "dummy").write_text("x")
-        (tdp / "results/edbt_t0_b_full_b1" / "full_b1_manifest.json").write_text("{}")
-        r = subprocess.run([sys.executable, str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py")],
-                           capture_output=True, text=True, cwd=tdp)
+        (output_dir / "full_b1_manifest.json").write_text("{}")
+        r = subprocess.run([
+            sys.executable,
+            str(ROOT/"scripts/t0_b_full_b1/validate_full_b1_results.py"),
+            "--output-dir", str(output_dir),
+        ], capture_output=True, text=True, cwd=tdp)
         assert r.returncode != 0
         assert "PASS" not in r.stdout
 

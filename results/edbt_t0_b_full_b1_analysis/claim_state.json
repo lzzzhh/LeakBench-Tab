@@ -1,0 +1,383 @@
+{
+  "claims": {
+    "P3": {
+      "allowed_wording": "Under the semantic-group 20% contract, P3 is tradeoff relative to the 20-seed matched-random baseline in the controlled LR registry.",
+      "budget_bp": 2000,
+      "contract": "semantic_group",
+      "evaluable_zero_opportunity": true,
+      "forbidden_wording": "The policy generally solves tabular leakage.",
+      "metrics": {
+        "deletion_precision": {
+          "ci_hi": 0.21891629909484453,
+          "ci_lo": 0.19798090992719403,
+          "mean": 0.208832266824085,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "directional_repair": {
+          "ci_hi": 0.10993028398358604,
+          "ci_lo": 0.07896793341996768,
+          "mean": 0.09477511443769854,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "introduced_distortion": {
+          "ci_hi": 0.0005706109127202448,
+          "ci_lo": 5.036194082436683e-05,
+          "mean": 0.00026835178939791916,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "introduced_distortion_zero_opp": {
+          "ci_hi": 0.09162528832075098,
+          "ci_lo": 0.010238626166675348,
+          "mean": 0.04779007144703283,
+          "n_keys": 30,
+          "n_tasks": 14
+        },
+        "leak_recall": {
+          "ci_hi": 0.5034729545454546,
+          "ci_lo": 0.46152727272727273,
+          "mean": 0.4825636363636365,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "legacy_sdr": {
+          "ci_hi": 0.08412459990626923,
+          "ci_lo": -0.005337295854498463,
+          "mean": 0.042616157318835904,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "legit_retention": {
+          "ci_hi": 0.03060744668297389,
+          "ci_lo": 0.025360832842892405,
+          "mean": 0.02797314575130752,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "overcorrection": {
+          "ci_hi": 0.08532953635415698,
+          "ci_lo": 0.02309560933542759,
+          "mean": 0.051890605329464726,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "partial_group_violation_rate": {
+          "ci_hi": 0.0,
+          "ci_lo": 0.0,
+          "mean": 0.0,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "same_side_residual": {
+          "ci_hi": -0.07863107857434755,
+          "ci_lo": -0.10945838152712056,
+          "mean": -0.09477511443769854,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "semantic_group_recall_any": {
+          "ci_hi": 0.5030638636363637,
+          "ci_lo": 0.46254500000000004,
+          "mean": 0.4825636363636365,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "semantic_group_recall_full": {
+          "ci_hi": 0.5031913636363635,
+          "ci_lo": 0.4618613636363637,
+          "mean": 0.4825636363636365,
+          "n_keys": 5500,
+          "n_tasks": 20
+        }
+      },
+      "status": "TRADEOFF"
+    },
+    "P4": {
+      "allowed_wording": "Under the semantic-group 20% contract, P4 is tradeoff relative to the 20-seed matched-random baseline in the controlled LR registry.",
+      "budget_bp": 2000,
+      "contract": "semantic_group",
+      "evaluable_zero_opportunity": true,
+      "forbidden_wording": "The policy generally solves tabular leakage.",
+      "metrics": {
+        "deletion_precision": {
+          "ci_hi": 0.2315831352813853,
+          "ci_lo": 0.20808259140102325,
+          "mean": 0.22023226682408503,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "directional_repair": {
+          "ci_hi": 0.10328205539257164,
+          "ci_lo": 0.07303201986012815,
+          "mean": 0.08859619593042414,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "introduced_distortion": {
+          "ci_hi": 0.0008112026774548019,
+          "ci_lo": 0.00024421515038662236,
+          "mean": 0.0004922054435730344,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "introduced_distortion_zero_opp": {
+          "ci_hi": 0.12369723767520126,
+          "ci_lo": 0.0542699858637889,
+          "mean": 0.08654682927232289,
+          "n_keys": 30,
+          "n_tasks": 14
+        },
+        "leak_recall": {
+          "ci_hi": 0.5304002272727273,
+          "ci_lo": 0.5084634090909089,
+          "mean": 0.5200181818181818,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "legacy_sdr": {
+          "ci_hi": 0.05296831691030937,
+          "ci_lo": -0.032812547032852225,
+          "mean": 0.012610118586490027,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "legit_retention": {
+          "ci_hi": 0.03338554877255099,
+          "ci_lo": 0.027393728014265147,
+          "mean": 0.030340214564846917,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "overcorrection": {
+          "ci_hi": 0.10704428579523025,
+          "ci_lo": 0.04877388738665539,
+          "mean": 0.07549387190036108,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "partial_group_violation_rate": {
+          "ci_hi": 0.0,
+          "ci_lo": 0.0,
+          "mean": 0.0,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "same_side_residual": {
+          "ci_hi": -0.07351586571760665,
+          "ci_lo": -0.10309606778833885,
+          "mean": -0.08859619593042414,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "semantic_group_recall_any": {
+          "ci_hi": 0.5303363636363636,
+          "ci_lo": 0.5085177272727273,
+          "mean": 0.5200181818181818,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "semantic_group_recall_full": {
+          "ci_hi": 0.5301363636363635,
+          "ci_lo": 0.5086361363636362,
+          "mean": 0.5200181818181818,
+          "n_keys": 5500,
+          "n_tasks": 20
+        }
+      },
+      "status": "TRADEOFF"
+    },
+    "P5": {
+      "allowed_wording": "Under the semantic-group 20% contract, P5 is tradeoff relative to the 20-seed matched-random baseline in the controlled LR registry.",
+      "budget_bp": 2000,
+      "contract": "semantic_group",
+      "evaluable_zero_opportunity": true,
+      "forbidden_wording": "The policy generally solves tabular leakage.",
+      "metrics": {
+        "deletion_precision": {
+          "ci_hi": 0.2279822946674538,
+          "ci_lo": 0.20572493663911845,
+          "mean": 0.217301963793782,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "directional_repair": {
+          "ci_hi": 0.10419145743653058,
+          "ci_lo": 0.07363641523616676,
+          "mean": 0.0892372780914579,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "introduced_distortion": {
+          "ci_hi": 0.0008001821336273577,
+          "ci_lo": 0.00022637213976685203,
+          "mean": 0.0004827513822732017,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "introduced_distortion_zero_opp": {
+          "ci_hi": 0.12158095751808728,
+          "ci_lo": 0.051073325349819246,
+          "mean": 0.08446711600764846,
+          "n_keys": 30,
+          "n_tasks": 14
+        },
+        "leak_recall": {
+          "ci_hi": 0.527136818181818,
+          "ci_lo": 0.4924788636363636,
+          "mean": 0.5107454545454544,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "legacy_sdr": {
+          "ci_hi": 0.057476845912799245,
+          "ci_lo": -0.02459838765658208,
+          "mean": 0.019234162949484233,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "legit_retention": {
+          "ci_hi": 0.03265460873856537,
+          "ci_lo": 0.026940147330977854,
+          "mean": 0.02968718426181662,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "overcorrection": {
+          "ci_hi": 0.09929706543343883,
+          "ci_lo": 0.04322975162800658,
+          "mean": 0.06952036375970047,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "partial_group_violation_rate": {
+          "ci_hi": 0.0,
+          "ci_lo": 0.0,
+          "mean": 0.0,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "same_side_residual": {
+          "ci_hi": -0.07375408577076352,
+          "ci_lo": -0.10409844831193898,
+          "mean": -0.0892372780914579,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "semantic_group_recall_any": {
+          "ci_hi": 0.5274818181818182,
+          "ci_lo": 0.4917179545454547,
+          "mean": 0.5107454545454544,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "semantic_group_recall_full": {
+          "ci_hi": 0.5274199999999999,
+          "ci_lo": 0.491316818181818,
+          "mean": 0.5107454545454544,
+          "n_keys": 5500,
+          "n_tasks": 20
+        }
+      },
+      "status": "TRADEOFF"
+    },
+    "P6": {
+      "allowed_wording": "Under the semantic-group 20% contract, P6 is tradeoff relative to the 20-seed matched-random baseline in the controlled LR registry.",
+      "budget_bp": 2000,
+      "contract": "semantic_group",
+      "evaluable_zero_opportunity": true,
+      "forbidden_wording": "The policy generally solves tabular leakage.",
+      "metrics": {
+        "deletion_precision": {
+          "ci_hi": 0.24885890481109796,
+          "ci_lo": 0.22364011776859508,
+          "mean": 0.23659535222353406,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "directional_repair": {
+          "ci_hi": 0.10598642025484405,
+          "ci_lo": 0.0749874254837993,
+          "mean": 0.09090909581113352,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "introduced_distortion": {
+          "ci_hi": 0.0007242820132552873,
+          "ci_lo": 0.00016539421823038054,
+          "mean": 0.0004140201272212475,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "introduced_distortion_zero_opp": {
+          "ci_hi": 0.1151479981374573,
+          "ci_lo": 0.03982384084150053,
+          "mean": 0.07467205935501045,
+          "n_keys": 30,
+          "n_tasks": 14
+        },
+        "leak_recall": {
+          "ci_hi": 0.6000090909090908,
+          "ci_lo": 0.565645,
+          "mean": 0.5832909090909091,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "legacy_sdr": {
+          "ci_hi": 0.0679396661914992,
+          "ci_lo": -0.008738887937068899,
+          "mean": 0.03161992343620608,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "legit_retention": {
+          "ci_hi": 0.037495469254275146,
+          "ci_lo": 0.030740038426769308,
+          "mean": 0.03401445698908936,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "overcorrection": {
+          "ci_hi": 0.08553483644820738,
+          "ci_lo": 0.036324095017125115,
+          "mean": 0.05887515224770619,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "partial_group_violation_rate": {
+          "ci_hi": 0.0,
+          "ci_lo": 0.0,
+          "mean": 0.0,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "same_side_residual": {
+          "ci_hi": -0.07526812423198738,
+          "ci_lo": -0.10569719413534544,
+          "mean": -0.09090909581113352,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "semantic_group_recall_any": {
+          "ci_hi": 0.5994004545454544,
+          "ci_lo": 0.5651725000000001,
+          "mean": 0.5832909090909091,
+          "n_keys": 5500,
+          "n_tasks": 20
+        },
+        "semantic_group_recall_full": {
+          "ci_hi": 0.6001554545454546,
+          "ci_lo": 0.5654631818181819,
+          "mean": 0.5832909090909091,
+          "n_keys": 5500,
+          "n_tasks": 20
+        }
+      },
+      "status": "TRADEOFF"
+    }
+  },
+  "evidence_tier": "confirmatory",
+  "primary_estimand": "deterministic policy minus within-key mean of 20 matched-random seeds",
+  "schema_version": 1
+}
