@@ -48,6 +48,15 @@ def is_process_alive(pid: int) -> bool:
 # ─── fsync helpers ──────────────────────────────────────────────
 
 def fsync_parent_directory(path: Path) -> None:
+    """Flush the containing directory where the platform supports it.
+
+    Windows does not permit opening a directory through ``os.open``.  The
+    artifact itself has already been flushed before ``os.replace``; keep the
+    POSIX directory durability barrier, and make the unsupported Windows
+    operation an explicit platform contract instead of a write failure.
+    """
+    if os.name == "nt":
+        return
     fd = os.open(str(path.parent), os.O_RDONLY)
     try:
         os.fsync(fd)
@@ -94,8 +103,15 @@ def atomic_write_dataframe_gzip(
     target: Path, df, columns: list[str], expected_sha: str | None = None
 ) -> str:
     import pandas as pd
-    buf = io.StringIO()
-    df.to_csv(buf, columns=columns, index=False, header=True)
+    # Pin LF so gzip payloads are byte-stable on Windows and POSIX.
+    buf = io.StringIO(newline="\n")
+    df.to_csv(
+        buf,
+        columns=columns,
+        index=False,
+        header=True,
+        lineterminator="\n",
+    )
     return atomic_write_gzip_text(target, buf.getvalue(), expected_sha)
 
 

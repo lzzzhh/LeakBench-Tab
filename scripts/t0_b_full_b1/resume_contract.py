@@ -160,6 +160,8 @@ class QuarantineRecord:
 
 def _fsync_directory(path: Path) -> None:
     """Fsync a directory, failing loudly on error. fd is always closed."""
+    if os.name == "nt":
+        return
     fd = None
     try:
         fd = os.open(str(path), os.O_RDONLY)

@@ -163,6 +163,35 @@ def validate_declared_mapping_coverage(shard_keys, deps):
             deps.mapping_loader(mapping_name, key_tuple)
 
 
+def validate_declared_bundle_coverage(shard_keys, mode="production"):
+    """Validate every unique production bundle before any execution write.
+
+    The key plan is the authority for both the relative path and SHA-256.  A
+    shard must fail before acquiring its writer lock if any referenced bundle
+    is absent, has conflicting declarations, or differs from the frozen hash.
+    Synthetic mode intentionally has no on-disk bundle dependency.
+    """
+    if mode == "synthetic":
+        return
+    declared = {}
+    for kp in shard_keys:
+        path = kp["bundle_path"]
+        expected = kp["bundle_sha256"]
+        previous = declared.setdefault(path, expected)
+        if previous != expected:
+            raise RuntimeError(f"conflicting bundle SHA declarations: {path}")
+    for relative_path, expected in sorted(declared.items()):
+        path = ROOT / relative_path
+        if not path.is_file() or path.is_symlink():
+            raise RuntimeError(f"declared bundle missing or invalid: {relative_path}")
+        observed = hashlib.sha256(path.read_bytes()).hexdigest()
+        if observed != expected:
+            raise RuntimeError(
+                f"declared bundle SHA mismatch: {relative_path}: "
+                f"expected {expected}, got {observed}"
+            )
+
+
 def execute_key(kp, deps, run_ids):
     """Unified kernel."""
     from sklearn.metrics import roc_auc_score
@@ -427,18 +456,6 @@ def main():
         print("PLAN_VALIDATION_FAIL: " + "; ".join(errors[:10]))
         sys.exit(1)
 
-    if args.validate_only:
-        # Full run-plan audit — zero model calls
-        shard_keys = [k for k in keys if k.get("shard_id") == args.shard_id]
-        shard_runs = [r for r in runs if r.get("shard_id") == args.shard_id]
-        if not shard_keys:
-            errors.append("no planned keys for shard")
-        # Full lookup universe audit
-        errors.extend(_audit_run_plan_for_shard(shard_runs, shard_keys))
-        if errors:
-            print("VALIDATION_FAIL: " + "; ".join(errors[:5])); sys.exit(1)
-        print("VALIDATION_PASS"); return
-
     shard_keys = [k for k in keys if k.get("shard_id") == args.shard_id]
     shard_runs = [r for r in runs if r.get("shard_id") == args.shard_id]
     # Scope guard: reject empty/unplanned shards
@@ -448,6 +465,20 @@ def main():
     if not shard_runs:
         print(f"NO_PLANNED_RUNS_FOR_SHARD: shard_id={args.shard_id}")
         sys.exit(1)
+
+    try:
+        validate_declared_bundle_coverage(shard_keys, mode=expected_mode)
+    except RuntimeError as exc:
+        print("SHARD_DECLARED_BUNDLE_FAIL")
+        print(f"  {exc}")
+        sys.exit(1)
+
+    if args.validate_only:
+        # Full run-plan and declared-input audit — zero model calls.
+        errors.extend(_audit_run_plan_for_shard(shard_runs, shard_keys))
+        if errors:
+            print("VALIDATION_FAIL: " + "; ".join(errors[:5])); sys.exit(1)
+        print("VALIDATION_PASS"); return
 
     declared_paths = resolve_declared_input_paths(
         plan_manifest=pm,
@@ -497,9 +528,14 @@ def main():
             unsupported_key_ids = set()
 
             if args.resume:
-                # ─── Preflight: validate all keys via unified helper ───
+                # Validate only materialized candidates.  A key with no
+                # fragment directory is pending work, not a corrupt result.
+                materialized_keys = [
+                    kp for kp in shard_keys
+                    if (out / "key_fragments" / kp["canonical_key_id"]).exists()
+                ]
                 pre_validation = validate_all_shard_keys(
-                    shard_keys=shard_keys,
+                    shard_keys=materialized_keys,
                     planned_ids=planned_ids,
                     output_dir=out,
                     plan_manifest_sha=plan_manifest_sha,
@@ -577,6 +613,7 @@ def main():
                         print(f"  Quarantined {cid[:16]} → {rec.quarantine_directory.relative_to(out)}")
 
             all_bl, all_gl, all_sl = [], [], []; new_keys = 0
+            executed_ids = set()
             new_bl_count, new_gl_count, new_sl_count, new_fl_count = 0, 0, 0, 0
             for kp in shard_keys:
                 cid = kp["canonical_key_id"]; fdir = out / "key_fragments" / cid
@@ -593,6 +630,7 @@ def main():
                 key_synth_before = SyntheticCallCounter(**deps.synthetic_call_counter.snapshot())
                 key_prod_before = ProductionGuard(**deps.production_guard.snapshot())
                 result = execute_key(kp, deps, rid_lookup.get(cid, {}))
+                executed_ids.add(cid)
                 key_synth_delta = deps.synthetic_call_counter.delta(key_synth_before)
                 key_prod_delta = deps.production_guard.delta(key_prod_before)
                 new_keys += 1; recomputed += 1
@@ -646,7 +684,7 @@ def main():
             post_repair_all_keys_valid = None
             validation_barrier_passed = False
 
-            if args.resume and args.repair_invalid and recomputed > 0:
+            if args.resume and recomputed > 0:
                 post_validation = validate_all_shard_keys(
                     shard_keys=shard_keys,
                     planned_ids=planned_ids,
@@ -740,7 +778,7 @@ def main():
                 pre_valid_ids = sorted(cid for cid, r in pre_validation.items() if r.is_complete)
                 pre_invalid_ids = sorted(cid for cid, r in pre_validation.items() if not r.is_complete)
                 quarantined_ids = sorted(quarantined.keys())
-                recomputed_ids = sorted(repairable_key_ids) if recomputed > 0 else []
+                recomputed_ids = sorted(executed_ids)
                 skipped_ids_list = sorted(skipped_ids)
 
                 # Determine post_repair_all_keys_valid from real validation
@@ -765,9 +803,17 @@ def main():
 
                 rr = {
                     "schema_version": 1,
-                    "mode": "partial_repair" if (args.repair_invalid and recomputed > 0) else "complete_resume",
+                    "mode": (
+                        "partial_repair" if (args.repair_invalid and recomputed > 0)
+                        else "partial_resume" if recomputed > 0
+                        else "complete_resume"
+                    ),
                     "shard_id": args.shard_id,
-                    "validation_phase": "post_repair" if (args.repair_invalid and recomputed > 0) else "pre_resume",
+                    "validation_phase": (
+                        "post_repair" if (args.repair_invalid and recomputed > 0)
+                        else "post_resume" if recomputed > 0
+                        else "pre_resume"
+                    ),
 
                     # Count fields (derived from ID lists)
                     "validated_complete": len(pre_valid_ids),
