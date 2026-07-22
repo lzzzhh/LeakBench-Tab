@@ -1,7 +1,7 @@
 """T0-B R10c Merge Contract — plan validation, scope closure, shard-set admission."""
 from __future__ import annotations
 from dataclasses import dataclass, field
-import gzip, hashlib, json, re, zlib
+import contextlib, gzip, hashlib, json, re, zlib
 from pathlib import Path
 
 from scripts.t0_b_full_b1.fragment_contract import (
@@ -684,6 +684,58 @@ def _sorted_digest(values: list[str]) -> str:
 
 def _ids_digest(values: list[str]) -> str:
     return _sorted_digest(values)
+
+
+@contextlib.contextmanager
+def open_strict_sorted_ledger_rows(
+    path: Path,
+    expected_header: str,
+    label: str,
+):
+    """Context manager yielding a lazy iterator of sorted, validated data rows.
+
+    Never reads the entire file into memory. Validates header, sortedness,
+    rejects blank rows/CR/missing newlines. Yields raw physical row strings.
+    """
+    import contextlib as _cl
+    if not path.exists() or not path.is_file() or path.is_symlink():
+        raise ValueError(f"{label}: path invalid")
+    with gzip.open(path, "rt", encoding="utf-8", newline="") as gf:
+        header_line = gf.readline()
+        if not header_line.endswith("\n"):
+            raise ValueError(f"{label}: header missing trailing newline")
+        header = header_line[:-1]
+        if header != expected_header:
+            raise ValueError(f"{label}: header mismatch")
+
+        prev = None
+        row_n = 0
+        first = True
+
+        def row_iterator():
+            nonlocal prev, row_n, first
+            for line in gf:
+                if not line.endswith("\n"):
+                    raise ValueError(f"{label}: missing trailing newline at row {row_n}")
+                row = line[:-1]
+                if first and row == "":
+                    first = False
+                    peek = gf.readline()
+                    if peek == "":
+                        return  # trailing newline after header-only file
+                    raise ValueError(f"{label}: blank physical row at row {row_n}")
+                first = False
+                if row == "":
+                    raise ValueError(f"{label}: blank physical row at row {row_n}")
+                if "\r" in row:
+                    raise ValueError(f"{label}: contains CR at row {row_n}")
+                if prev is not None and row < prev:
+                    raise ValueError(f"{label}: ledger is not sorted at row {row_n}")
+                prev = row
+                row_n += 1
+                yield row
+
+        yield row_iterator()
 
 
 @dataclass

@@ -40,7 +40,19 @@ def build_synthetic_plan(out_dir):
     for name, data in [("full_b1_key_plan", keys), ("full_b1_run_plan", runs)]:
         (out_dir / f"{name}.jsonl.gz").write_bytes(gzip.compress(
             "\n".join(json.dumps(r) for r in data).encode() + b"\n", mtime=0))
-    pm = {"canonical_keys": len(keys), "baseline_rows": 16, "governed_rows": 1152, "shard_count": 2}
+    kp_path = out_dir / "full_b1_key_plan.jsonl.gz"
+    rp_path = out_dir / "full_b1_run_plan.jsonl.gz"
+    kp_sha = hashlib.sha256(kp_path.read_bytes()).hexdigest()
+    rp_sha = hashlib.sha256(rp_path.read_bytes()).hexdigest()
+    pm = {
+        "canonical_keys": len(keys), "baseline_rows": 16, "governed_rows": 1152,
+        "selection_rows": 1152, "failure_rows": 0, "downstream_rows": 1168,
+        "shard_count": 2, "mode": "synthetic",
+        "scientific_freeze_sha": "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845",
+        "execution_contract_version": "v1",
+        "key_plan_sha256": kp_sha, "run_plan_sha256": rp_sha,
+        "tool_seal_sha": "f" * 40,
+    }
     with open(out_dir / "full_b1_plan_manifest.json", "w") as f: json.dump(pm, f)
     return pm
 
@@ -77,18 +89,20 @@ def test_cli_full_contract():
                 with open(rr_path) as f: rr = json.load(f)
                 assert rr["recomputed"] == 0, f"Shard {sid} recomputed_keys={rr['recomputed']}"
 
-        # Merge
-        for suffix in ["a", "b"]:
-            r = subprocess.run([sys.executable, MERGER, "--plan-manifest", str(plan_dir/"full_b1_plan_manifest.json"),
-                "--shard-root", str(tdp), "--output-dir", str(tdp/f"merged_{suffix}")],
-                capture_output=True, text=True, cwd=ROOT)
-            assert r.returncode == 0
+        # Merge (output outside shard-root: use tempfile for output parent)
+        import tempfile as _tf
+        with _tf.TemporaryDirectory() as out_root:
+            for suffix in ["a", "b"]:
+                r = subprocess.run([sys.executable, MERGER, "--plan-manifest", str(plan_dir/"full_b1_plan_manifest.json"),
+                    "--shard-root", str(tdp), "--output-dir", str(Path(out_root)/f"merged_{suffix}")],
+                    capture_output=True, text=True, cwd=ROOT)
+                assert r.returncode == 0, f"Merge {suffix}: {r.stdout[:200]}\n{r.stderr[:200]}"
 
-        # Verify byte-identical merge
-        for fname in ["baseline_ledger.csv.gz", "governed_ledger.csv.gz"]:
-            sha_a = hashlib.sha256((tdp/"merged_a"/fname).read_bytes()).hexdigest()
-            sha_b = hashlib.sha256((tdp/"merged_b"/fname).read_bytes()).hexdigest()
-            assert sha_a == sha_b, f"{fname}: SHA mismatch"
+            # Verify byte-identical merge
+            for fname in ["baseline_ledger.csv.gz", "governed_ledger.csv.gz"]:
+                sha_a = hashlib.sha256((Path(out_root)/"merged_a"/fname).read_bytes()).hexdigest()
+                sha_b = hashlib.sha256((Path(out_root)/"merged_b"/fname).read_bytes()).hexdigest()
+                assert sha_a == sha_b, f"{fname}: SHA mismatch"
 
         print("CLI E2E: 16 bl, 1152 gl, resume 0 recomputed, merge deterministic — PASS")
 

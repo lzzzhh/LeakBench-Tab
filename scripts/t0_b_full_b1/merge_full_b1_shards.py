@@ -13,7 +13,7 @@ from scripts.t0_b_full_b1.merge_contract import (
     validate_shard_set, build_source_shard_snapshot,
     build_merge_manifest, validate_global_merge_candidate,
     planned_shard_ids_digest, source_shard_manifest_set_sha256,
-    _sorted_digest, _ids_digest,
+    _sorted_digest, _ids_digest, open_strict_sorted_ledger_rows,
 )
 from scripts.t0_b_full_b1.fragment_contract import SCIENTIFIC_FREEZE_SHA, EXECUTION_CONTRACT_VERSION
 
@@ -33,38 +33,11 @@ def _fatal(*lines):
     sys.exit(1)
 
 
-@contextlib.contextmanager
-def _open_sorted_ledger_rows(path: Path, expected_header: str, shard_label: str):
-    """Yield an iterator of sorted data rows from a shard ledger file."""
-    text = gzip.decompress(path.read_bytes()).decode("utf-8")
-    lines = text.split("\n")
-    if len(lines) < 1:
-        raise ValueError(f"{shard_label} is empty")
-    # Remove trailing empty from final \\n
-    if lines[-1] == "":
-        lines = lines[:-1]
-    header = lines[0]
-    if header != expected_header:
-        raise ValueError(f"{shard_label} header mismatch: expected [{expected_header[:50]}...]")
-    data = lines[1:]
-    # Handle empty ledger: file is header\\n\\n → data = [""]
-    if len(data) == 1 and data[0] == "":
-        data = []
-    # Check sortedness
-    prev = None
-    for i, row in enumerate(data, start=1):
-        if row == "":
-            raise ValueError(f"{shard_label} blank row at row {i}")
-        if "\\r" in row:
-            raise ValueError(f"{shard_label} contains CR at row {i}")
-        if prev is not None and row < prev:
-            raise ValueError(f"{shard_label} ledger is not sorted at row {i}")
-        prev = row
-    yield iter(data)
+
 
 
 def _streaming_merge_write(name, shard_root, planned_ids, staging_dir):
-    """K-way streaming merge with sortedness check, returning row count."""
+    """K-way streaming merge using shared lazy reader. Returns row count."""
     header = _SHARD_LEDGER_HEADERS[name]
     count = 0
     out_path = staging_dir / f"{name}_ledger.csv.gz"
@@ -75,8 +48,9 @@ def _streaming_merge_write(name, shard_root, planned_ids, staging_dir):
                 iterators = []
                 for sid in sorted(planned_ids):
                     fp = shard_root / f"shard_{sid}" / f"{name}_ledger.csv.gz"
-                    ctx = _open_sorted_ledger_rows(fp, header, f"source shard_{sid} {name}")
-                    iterators.append(stack.enter_context(ctx))
+                    it = stack.enter_context(open_strict_sorted_ledger_rows(
+                        fp, header, f"source shard_{sid} {name}"))
+                    iterators.append(it)
                 for row in heapq.merge(*iterators):
                     gf.write((row + "\n").encode("utf-8"))
                     count += 1
@@ -119,12 +93,11 @@ def _compute_digests(planned_ids, loaded_keys, loaded_runs, staging_dir):
 
 
 def _fsync_path(p: Path):
+    fd = os.open(str(p), os.O_RDONLY)
     try:
-        fd = os.open(str(p), os.O_RDONLY)
         os.fsync(fd)
+    finally:
         os.close(fd)
-    except OSError as exc:
-        raise RuntimeError(f"fsync failed for {p}: {exc}") from exc
 
 
 def main():

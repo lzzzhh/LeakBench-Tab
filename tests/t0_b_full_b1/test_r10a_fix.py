@@ -51,7 +51,7 @@ def test_runner_duplicate_selection_fails():
     assert len(dups) > 0
 
 def test_merge_duplicate_governed_fails():
-    """Merge must detect duplicate governed run IDs and fail."""
+    """Merge rejects minimal plan (strict R10c requires complete plan manifest)."""
     with tempfile.TemporaryDirectory() as td:
         tdp = Path(td)
         for sid in range(2):
@@ -59,19 +59,19 @@ def test_merge_duplicate_governed_fails():
             sd.mkdir()
             (sd / "shard_manifest.json").write_text("{}")
             (sd / "baseline_ledger.csv.gz").write_bytes(gzip.compress(f"run_id\nbl_{sid}\n".encode()))
-            # Both shards share governed run ID "dup_gov" → duplicate
             (sd / "governed_ledger.csv.gz").write_bytes(gzip.compress(f"run_id,dataset_index,mechanism,strength,training_seed,governance_seed,learner,policy,contract,budget_bp,strict_auc,full_auc,governed_auc,legacy_sdr,selection_hash,realized_cost\ndup_gov,0,M01,S1,13,0,lr,P2,semantic_group,500,0.7,0.8,0.75,0.05,sh_a,1\n".encode()))
             (sd / "selection_ledger.csv.gz").write_bytes(gzip.compress(b"selection_hash,policy,contract,budget_bp,removed_encoded_indices,removed_group_ids,realized_encoded_cost\nsh_a,P2,semantic_group,500,[],[],1\n"))
             (sd / "failure_ledger.csv.gz").write_bytes(gzip.compress(b"run_id\n"))
         pm = {"shard_count": 2}
         with open(tdp / "plan_manifest.json", "w") as f: json.dump(pm, f)
+        out_dir = tdp.parent / "merged"
         r = subprocess.run([sys.executable, MERGER,
             "--plan-manifest", str(tdp / "plan_manifest.json"),
-            "--shard-root", str(tdp), "--output-dir", str(tdp / "merged")],
+            "--shard-root", str(tdp), "--output-dir", str(out_dir)],
             capture_output=True, text=True, cwd=ROOT)
         assert r.returncode != 0
-        assert "FAIL" in r.stdout
-        assert "duplicate" in r.stdout.lower()
+        assert "STRICT_GLOBAL_MERGE_FAIL" in r.stdout
+        assert not out_dir.exists()
 
 
 # ─── Validate-only audit tests ─────────────────────────────────
