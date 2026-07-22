@@ -1,5 +1,10 @@
 *.npz
 __pycache__/
+tmp/
+*.blg
+paper/edbt_eab/figures/generated/governance_tradeoff.png
+paper/edbt_eab/figures/generated/governance_tradeoff.svg
+paper/edbt_eab/figures/generated/governance_tradeoff.tiff
 data/raw/lending_club/*.csv.gz
 data/nyc311/*.csv
 data/chicago_food/*.csv

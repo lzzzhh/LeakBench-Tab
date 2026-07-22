@@ -15,8 +15,7 @@ def test_source_package_contains_every_direct_compile_input():
         PurePosixPath("generated/table_natural.tex"),
         PurePosixPath("generated/table_governance.tex"),
         PurePosixPath("figures/generated/cdx_profiles.pdf"),
-        PurePosixPath("figures/generated/governance_budget.pdf"),
-        PurePosixPath("figures/generated/governance_by_category.pdf"),
+        PurePosixPath("figures/generated/governance_tradeoff.pdf"),
     }
     assert expected.issubset(set(builder.SOURCE_FILES))
 

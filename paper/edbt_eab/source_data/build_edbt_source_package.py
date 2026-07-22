@@ -31,8 +31,7 @@ SOURCE_FILES = tuple(
         "generated/table_natural.tex",
         "generated/table_governance.tex",
         "figures/generated/cdx_profiles.pdf",
-        "figures/generated/governance_budget.pdf",
-        "figures/generated/governance_by_category.pdf",
+        "figures/generated/governance_tradeoff.pdf",
     )
 )
 
@@ -56,7 +55,7 @@ def _validate_sources() -> None:
 
 
 def _write_readme() -> None:
-    readme = """# LeakBench-Tab EDBT 2027 LaTeX source
+    readme = """# CDXR / LeakBench-Tab EDBT 2027 LaTeX source
 
 This directory is a self-contained compilation package. It includes the EDBT
 2027 template, bibliography, generated tables/macros, figure PDFs, and the local
@@ -65,7 +64,7 @@ Libertinus Math font needed by Tectonic's XeTeX path.
 Compile with:
 
 ```bash
-tectonic -X compile main.tex --outdir output
+tectonic -X compile main.tex
 ```
 
 The current source contains placeholder author metadata. Replace the author,

@@ -11,8 +11,8 @@ the EDBT manuscript and reproducible source package without overstating results.
 - [x] Phase 3: Add fail-closed negative tests, bind validation receipts to the implementation, and pass a production canary.
 - [x] Phase 4: Execute, merge, freeze, and analyze RC3 Full-B1.
 - [x] Phase 5: Execute and analyze RC2 RF/LightGBM confirmation.
-- [ ] Phase 6: Synthesize RC1 construct-validity evidence and update the manuscript/package.
-- [ ] Phase 7: Audit every reviewer requirement against authoritative artifacts.
+- [x] Phase 6: Synthesize RC1 construct-validity evidence and update the manuscript/package.
+- [x] Phase 7: Audit every reviewer requirement against authoritative artifacts.
 
 ## Reviewer Acceptance Questions
 1. Does the repair estimand track removable leakage distortion rather than deletion volume, noise, or threshold artifacts?
@@ -40,7 +40,7 @@ the EDBT manuscript and reproducible source package without overstating results.
   canonical `run_id\n` representation.
 
 ## Status
-**Currently in Phase 6** — the formal 64-shard Full-B1 result and separately
-frozen cross-learner amendment are validated. The evidence now supports a
-tradeoff, rather than general repair, interpretation and is ready for manuscript
-integration.
+**Complete** — the formal 64-shard Full-B1 result and separately frozen
+cross-learner amendment are validated, the manuscript uses the tradeoff
+interpretation, and both EDBT-only release packages compile from their governed
+assets.

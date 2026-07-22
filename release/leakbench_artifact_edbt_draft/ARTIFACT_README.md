@@ -2,10 +2,10 @@
 
 Status: `EDBT_DRAFT` -- not a final submission package.
 
-This package deliberately contains only the EDBT manuscript, the three compact
-paper-facing CSVs, and their allowlisted evidence chain. It excludes pilots,
-superseded snapshots, excluded smoke runs, and the non-redistributable Lending
-Club source file.
+This package deliberately contains only the EDBT manuscript, compact
+paper-facing tables, the Full-B1 claim state, and their allowlisted evidence
+chain. It excludes pilots, per-shard execution cache, superseded snapshots,
+excluded smoke runs, and the non-redistributable Lending Club source file.
 
 The remaining submission blocker is author front matter: replace the pending
 author, affiliation, email, and ORCID fields before creating a final package.

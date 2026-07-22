@@ -5,18 +5,26 @@ workspace and the repository's only active manuscript tree.
 
 ## Argument
 
-In budget-constrained tabular evaluation, LeakBench-Tab shows that blind
-training-side mutual-information removal outperforms matched random removal in
-a logistic-regression panel, with gains concentrated in simple and boundary
-contamination and no reliable advantage for structured contamination.
+CDXR is a contract-grounded evaluation architecture for leakage repair. It
+separates construction validity, blind detectability, learner exploitability,
+and repair through explicit information, access, cost, and falsification
+interfaces. Full-B1 shows why this matters: P3--P6 improve directional repair
+and complete-group localization over 20-seed matched random removal, but also
+increase overcorrection. The primary semantic-group status is therefore
+`TRADEOFF`, not general repair.
 
 ## Build inputs
 
-Only these governed CSV files provide numeric paper results:
+The legacy measurement figures and tables use these governed CSV files:
 
 - `source_data/generated/main_results.csv`
 - `source_data/generated/governance_results.csv`
 - `source_data/generated/natural_cases.csv`
+
+The governance revision is additionally bound to
+`results/edbt_t0_b_full_b1_analysis/claim_state.json` and its three compact
+paper tables. Their hashes are recorded in `analysis_manifest.json`; canonical
+ledgers are bound by `results/edbt_t0_b_full_b1/validation_receipt.json`.
 
 Regenerate macros, tables, and figures with:
 
@@ -67,7 +75,10 @@ python paper/edbt_eab/source_data/build_edbt_source_package.py
 | model exploitability (X) | Permissive-minus-strict paired AUROC harm |
 | strict-distance reduction (SDR) | Movement of governed AUROC toward the strict reference |
 | P2 matched random removal | Random policy removing the same number of fields as P3 |
-| P3 blind MI removal | Training-side mutual-information ranking without mask access |
+| P3--P6 blind policies | Training-side association rankers without mask access |
+| semantic-group cost | One charged unit per opaque semantic group |
+| repair vector | SDR, direction, group recall, recall, retention, overcorrection, zero-opportunity distortion |
+| tradeoff | Localization/direction improve, but the joint repair gate fails |
 | bootstrap superiority probability | Fraction of bootstrap differences above zero; not a p-value |
 | no reliable advantage | Interval crosses zero; not an equivalence claim |
 

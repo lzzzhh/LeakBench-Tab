@@ -8,12 +8,12 @@
     "raw_lending_club_source": true,
     "superseded_snapshots": true
   },
-  "file_count": 45,
+  "file_count": 53,
   "files": [
     {
-      "bytes": 752,
+      "bytes": 796,
       "path": "ARTIFACT_README.md",
-      "sha256": "dc7bce5a4e7d7cbdde43aad83e755b39b00194bbec2abe0515c6ea766e877888"
+      "sha256": "caa1f556212e99c0e2d6996d99bb0005141cc924ac44cabdf1c3960c01808d56"
     },
     {
       "bytes": 14727,
@@ -51,9 +51,9 @@
       "sha256": "a9f66287ef90d08b22344a20963b170faec86e26df1553f50b05cbb90fb545f3"
     },
     {
-      "bytes": 2935,
+      "bytes": 3125,
       "path": "paper/edbt_eab/ASSET_GOVERNANCE.md",
-      "sha256": "188da176ee89b7b52a0412cf03a47607621be170cf65850b3d1e16c95300f6bf"
+      "sha256": "688a1432003c6033e7f14684be5e473ec350995019b3291ef350422d384591bb"
     },
     {
       "bytes": 4426,
@@ -61,9 +61,9 @@
       "sha256": "9aeecc8107c489ec1ec0068b0313e531a760edf3493705b32ab8ab8215a8794e"
     },
     {
-      "bytes": 3179,
+      "bytes": 3913,
       "path": "paper/edbt_eab/README.md",
-      "sha256": "579daf5aca7148143b476f376b11cddb94b5c1c7b158243f7a7419cf6c761d92"
+      "sha256": "30e471915c34ded2218b341f64a53e3310a09b94c517e82234583def8ed3f320"
     },
     {
       "bytes": 119755,
@@ -81,29 +81,24 @@
       "sha256": "75d2f37a6b5f5bd71cdb47ec019b65fb52444e9fdf872c167f49f19bc31c4c4c"
     },
     {
-      "bytes": 24802,
-      "path": "paper/edbt_eab/figures/generated/governance_budget.pdf",
-      "sha256": "d5bb3f2827b565ae460497c58da66ee179a3a800f9c01805afef6616dd879255"
+      "bytes": 21021,
+      "path": "paper/edbt_eab/figures/generated/governance_tradeoff.pdf",
+      "sha256": "77fab6dade663fa0b56156799d5d05e41ae091a7f1f2cf4d78a246504cae266f"
     },
     {
-      "bytes": 21496,
-      "path": "paper/edbt_eab/figures/generated/governance_by_category.pdf",
-      "sha256": "232e23b3a5223b65fd7680181f588759bbc35b0dc8c830c7ca2783cd528ebd3e"
-    },
-    {
-      "bytes": 2770,
+      "bytes": 1957,
       "path": "paper/edbt_eab/generated/paper_artifact_manifest.json",
-      "sha256": "611182dd2457f938061e64f273f2aeeaeeacec58849c5e059fd60e4fb5dcf162"
+      "sha256": "4a3cef2105c06bf784231a9e2cf163b8ebc8e8249cf564f544c24090589c3e55"
     },
     {
-      "bytes": 993,
+      "bytes": 1622,
       "path": "paper/edbt_eab/generated/result_macros.tex",
-      "sha256": "9d9c1bef5c4089cf4817d5feff9b07b7c6489d15b3f151fff6023244895a1cbb"
+      "sha256": "02f4a0c243735527d8a4d599db650dee331980caecd4826d47d41d4ac2051209"
     },
     {
-      "bytes": 1041,
+      "bytes": 1619,
       "path": "paper/edbt_eab/generated/table_governance.tex",
-      "sha256": "85dad61536928f094e11e1926605a1b860ba3fff1934ebf3532d2c40a0e834c2"
+      "sha256": "dd3860c08f1e1f2f82a2cde2b359479370c56abd534003e0da84617b5b9482b4"
     },
     {
       "bytes": 1378,
@@ -121,14 +116,14 @@
       "sha256": "ded714b0d3808af527438ed7a85f16933133f66a12104c4a83db4cc248888011"
     },
     {
-      "bytes": 56866,
+      "bytes": 63503,
       "path": "paper/edbt_eab/main.tex",
-      "sha256": "3fb913f1bbca5a12a4973db3d52396da5c5651c0834f7b728eee6eec933a9150"
+      "sha256": "fe20010ac4629a426e1beb09d508037dde6981ac5dee0bab0def6ffd2a2ff38b"
     },
     {
-      "bytes": 231490,
+      "bytes": 223898,
       "path": "paper/edbt_eab/output/official/main.pdf",
-      "sha256": "57d81849c4f5d1ed4deb603b4fbd606f1c728b31f2027a3d25cee745c0711af1"
+      "sha256": "c2a9af1916d5417c0ab0f65e774d1339a9e601711ded541edf35bb85419759ea"
     },
     {
       "bytes": 6388,
@@ -141,9 +136,9 @@
       "sha256": "a4b17dc14e4e3b7065422458f6a358e2eaa4d22b6ec36e2662dc479752996b28"
     },
     {
-      "bytes": 15822,
+      "bytes": 15619,
       "path": "paper/edbt_eab/source_data/generate_paper_artifacts.py",
-      "sha256": "1ca72afbbfcdbc9059088c7532d1c27e3b5e2fda2c94c79c08fd748a4314c596"
+      "sha256": "a844109355e1e62347bebcf2951b659ad0f04ff326f732d0c7b686a798f9c9ec"
     },
     {
       "bytes": 1005,
@@ -224,6 +219,51 @@
       "bytes": 2272,
       "path": "results/corrected_v2/statistics/strength_dose_response.csv",
       "sha256": "544dc28f57c3f49eec35ab7d9f97a3c5c95f670db38aec06f1793f895a99588a"
+    },
+    {
+      "bytes": 1463,
+      "path": "results/edbt_t0_b_full_b1/merged/merge_manifest.json",
+      "sha256": "2c8ea06edb6f52e81f843bb1d94452636385bc7a51b926e5aecc8b972b3baf3d"
+    },
+    {
+      "bytes": 533,
+      "path": "results/edbt_t0_b_full_b1/validation_receipt.json",
+      "sha256": "4eab9cb1db45331e4608e5a338bf7e1770de77cfb601181b91f5b2101cf29435"
+    },
+    {
+      "bytes": 1995,
+      "path": "results/edbt_t0_b_full_b1_analysis/analysis_manifest.json",
+      "sha256": "53263f86d8c5ab2f92f78164507a1a6a623d70153351f13f7566cf30ddd56000"
+    },
+    {
+      "bytes": 1373,
+      "path": "results/edbt_t0_b_full_b1_analysis/analysis_summary.json",
+      "sha256": "a8151d14dbe3874e25127c9cf2bb10281595bae3a99d7bbe1d3f7feab76f55dd"
+    },
+    {
+      "bytes": 11873,
+      "path": "results/edbt_t0_b_full_b1_analysis/claim_state.json",
+      "sha256": "02b4ee6238b7a8436118cd301c84f9fadac3061f396643671171e153b0b6fa08"
+    },
+    {
+      "bytes": 744,
+      "path": "results/edbt_t0_b_full_b1_analysis/paper_table_1_policy.csv",
+      "sha256": "88a1390ef1a835a9c488786ce2ded22cda1f3e6f8a6933d23344008ad0d946a0"
+    },
+    {
+      "bytes": 932,
+      "path": "results/edbt_t0_b_full_b1_analysis/paper_table_2_contract.csv",
+      "sha256": "860f7eeed3665c06b3ff19304b92dc8022673688154e1e6c3d86ecdef5f450fd"
+    },
+    {
+      "bytes": 4006,
+      "path": "results/edbt_t0_b_full_b1_analysis/paper_table_3_archetype.csv",
+      "sha256": "a1bc4a184c7ae7da2f9e1fc905ead4a7a6c093e33892a6b0db02051c4596e304"
+    },
+    {
+      "bytes": 19873,
+      "path": "scripts/analyze_full_b1_r10e.py",
+      "sha256": "f3dfab24c7b36c7d45537b25fe44736b96d19ea09f50cf25db1606b5d6d5df8c"
     },
     {
       "bytes": 5646,

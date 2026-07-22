@@ -1,18 +1,15 @@
 \begin{table*}[t]
-\caption{Matched-cost governance results. Differences are P3 minus P2 strict-distance reduction (SDR); positive values favor blind MI. Probability is the fraction of paired dataset-cluster bootstrap draws above zero, not a $p$-value. Recall and retention describe P3.}
+\caption{Full-B1 policy contrasts under the primary semantic-group 20\% contract. Each entry is the learned policy minus the within-key mean of 20 matched-random P2 seeds, with task-cluster bootstrap 95\% intervals. Positive direction and full-group recall are desirable; positive overcorrection is a cost. The joint gate classifies every policy as a tradeoff.}
 \label{tab:governance}
-\centering\small
-\begin{tabular}{llrrrrr}
+\centering\scriptsize
+\begin{tabular}{@{}llcccc@{}}
 \toprule
-Scope & Budget & P3--P2 SDR & 95\% CI & $\Pr_{boot}(\Delta>0)$ & Leak recall & Legit. retention \\
+Policy & Status & $\Delta$SDR & $\Delta$direction & $\Delta$full recall & $\Delta$overcorr. \\
 \midrule
-All Mechanisms & 1\% & +0.059 & [+0.044, +0.071] & 1.000 & 40.5\% & 97.6\% \\
-All Mechanisms & 5\% & +0.061 & [+0.046, +0.073] & 1.000 & 41.0\% & 97.6\% \\
-All Mechanisms & 10\% & +0.060 & [+0.033, +0.083] & 1.000 & 49.7\% & 94.6\% \\
-All Mechanisms & 20\% & +0.050 & [+0.008, +0.087] & 0.989 & 60.1\% & 85.1\% \\
-Simple & 20\% & +0.109 & [+0.060, +0.153] & 1.000 & 92.9\% & 86.7\% \\
-Boundary & 20\% & +0.044 & [+0.002, +0.079] & 0.980 & 56.2\% & 85.7\% \\
-Structured & 20\% & -0.003 & [-0.039, +0.027] & 0.449 & 30.2\% & 83.1\% \\
+P3 & Tradeoff & \shortstack{+0.043\\[-1pt]{\scriptsize [-0.005,+0.084]}} & \shortstack{+0.095\\[-1pt]{\scriptsize [+0.079,+0.110]}} & \shortstack{+0.483\\[-1pt]{\scriptsize [+0.462,+0.503]}} & \shortstack{+0.052\\[-1pt]{\scriptsize [+0.023,+0.085]}} \\
+P4 & Tradeoff & \shortstack{+0.013\\[-1pt]{\scriptsize [-0.033,+0.053]}} & \shortstack{+0.089\\[-1pt]{\scriptsize [+0.073,+0.103]}} & \shortstack{+0.520\\[-1pt]{\scriptsize [+0.509,+0.530]}} & \shortstack{+0.075\\[-1pt]{\scriptsize [+0.049,+0.107]}} \\
+P5 & Tradeoff & \shortstack{+0.019\\[-1pt]{\scriptsize [-0.025,+0.057]}} & \shortstack{+0.089\\[-1pt]{\scriptsize [+0.074,+0.104]}} & \shortstack{+0.511\\[-1pt]{\scriptsize [+0.491,+0.527]}} & \shortstack{+0.070\\[-1pt]{\scriptsize [+0.043,+0.099]}} \\
+P6 & Tradeoff & \shortstack{+0.032\\[-1pt]{\scriptsize [-0.009,+0.068]}} & \shortstack{+0.091\\[-1pt]{\scriptsize [+0.075,+0.106]}} & \shortstack{+0.583\\[-1pt]{\scriptsize [+0.565,+0.600]}} & \shortstack{+0.059\\[-1pt]{\scriptsize [+0.036,+0.086]}} \\
 \bottomrule
 \end{tabular}
 \end{table*}

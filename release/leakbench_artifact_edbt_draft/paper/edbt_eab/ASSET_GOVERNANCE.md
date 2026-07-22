@@ -15,8 +15,9 @@ Only the following three generated CSV files are paper-table inputs:
 1. `source_data/generated/main_results.csv` combines the frozen directional
    category contrast, all eleven mechanism C/D/X profiles, and their ordered
    strength slopes. It replaces separate mechanism, strength, and claim tables.
-2. `source_data/generated/governance_results.csv` combines the four nominal
-   SP8 budgets and the simple/boundary/structured 20% breakdown.
+2. `results/edbt_t0_b_full_b1_analysis/paper_table_1_policy.csv` is the primary
+   policy repair-vector table; its contract and archetype sensitivities are the
+   two adjacent compact Full-B1 paper tables.
 3. `source_data/generated/natural_cases.csv` contains the five fixed real-data
    cases. These rows remain case-study-only evidence.
 
@@ -55,5 +56,7 @@ python paper/edbt_eab/source_data/build_paper_assets.py --check
   evidence. The EDBT manuscript uses only the three governed paper-facing CSVs
   and the generated outputs bound by the current manifest.
 
-The machine-readable disposition and all source/output hashes are recorded in
-`source_data/generated/paper_asset_manifest.json`.
+The measurement/natural disposition is recorded in
+`source_data/generated/paper_asset_manifest.json`. Full-B1 source and output
+hashes are recorded in `results/edbt_t0_b_full_b1_analysis/analysis_manifest.json`
+and the generated paper-artifact manifest.

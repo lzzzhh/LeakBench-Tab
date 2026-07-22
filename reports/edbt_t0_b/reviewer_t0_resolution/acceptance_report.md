@@ -1,6 +1,6 @@
 # Reviewer T0 Acceptance Report
 
-Status: **EXPERIMENTAL EVIDENCE COMPLETE; MANUSCRIPT INTEGRATION PENDING**
+Status: **COMPLETE**
 
 ## Evidence boundary
 
@@ -84,3 +84,20 @@ LightGBM. Forbidden conclusion: leakage governance is learner-invariant.
 Raw per-shard fragments and runner logs are recomputable execution cache and are
 excluded from Git. Canonical merged ledgers, validation receipt, deterministic
 analysis outputs, and their hash manifest are tracked.
+
+## Manuscript integration
+
+The EDBT manuscript is titled ``CDXR: A Contract-Grounded Evaluation
+Architecture for Tabular Leakage Repair.'' CDXR is specified through an
+information contract, policy-access set, encoded/semantic cost map, immutable
+selector output, repair vector, and deterministic claim-admission gate. The
+abstract, methods, results, discussion, limitations, and conclusion use the
+Full-B1 `TRADEOFF` status and explicitly forbid general repair or learner
+invariance claims. NYC311 is linked to its low-opportunity regime, and the
+RF/LightGBM study is disclosed as a post-run amendment.
+
+The official-template PDF compiles to 11 pages with no horizontal overflow,
+undefined references, or missing figures. Visual inspection covered the title,
+architecture, Full-B1 figure/table, conclusion, and references. The standalone
+source ZIP was independently extracted and compiled. Author identity and
+affiliation placeholders remain the only submission-administration blocker.

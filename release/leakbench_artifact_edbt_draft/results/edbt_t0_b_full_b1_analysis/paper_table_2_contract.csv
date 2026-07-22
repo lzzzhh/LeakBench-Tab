@@ -1,0 +1,17 @@
+policy,metric,semantic_minus_encoded,n_keys,n_tasks
+P3,legacy_sdr,"-0.001 [-0.010, +0.007]",5500,20
+P4,legacy_sdr,"-0.008 [-0.015, -0.001]",5500,20
+P5,legacy_sdr,"-0.005 [-0.012, +0.001]",5500,20
+P6,legacy_sdr,"+0.004 [-0.001, +0.008]",5500,20
+P3,directional_repair,"+0.011 [+0.008, +0.014]",5500,20
+P4,directional_repair,"+0.008 [+0.005, +0.011]",5500,20
+P5,directional_repair,"+0.009 [+0.006, +0.011]",5500,20
+P6,directional_repair,"+0.013 [+0.012, +0.015]",5500,20
+P3,overcorrection,"+0.012 [+0.005, +0.020]",5500,20
+P4,overcorrection,"+0.016 [+0.010, +0.023]",5500,20
+P5,overcorrection,"+0.014 [+0.009, +0.020]",5500,20
+P6,overcorrection,"+0.009 [+0.006, +0.013]",5500,20
+P3,semantic_group_recall_full,"+0.144 [+0.138, +0.150]",5500,20
+P4,semantic_group_recall_full,"+0.136 [+0.128, +0.144]",5500,20
+P5,semantic_group_recall_full,"+0.141 [+0.133, +0.148]",5500,20
+P6,semantic_group_recall_full,"+0.143 [+0.139, +0.148]",5500,20

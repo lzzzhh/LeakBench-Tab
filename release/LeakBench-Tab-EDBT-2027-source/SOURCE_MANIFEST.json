@@ -1,6 +1,6 @@
 {
   "entrypoint": "main.tex",
-  "file_count": 15,
+  "file_count": 14,
   "files": [
     {
       "bytes": 90749,
@@ -13,9 +13,9 @@
       "sha256": "9aeecc8107c489ec1ec0068b0313e531a760edf3493705b32ab8ab8215a8794e"
     },
     {
-      "bytes": 460,
+      "bytes": 451,
       "path": "README.md",
-      "sha256": "f906fe8da923e61806d76b7f4855ced7d8273edcc3b713b0027dff0e115dc1fc"
+      "sha256": "51de877b9c558fff2a66f6b6bfcbd8659f83e4581dbfbd3979e5bad0542b0ad7"
     },
     {
       "bytes": 119755,
@@ -33,24 +33,19 @@
       "sha256": "75d2f37a6b5f5bd71cdb47ec019b65fb52444e9fdf872c167f49f19bc31c4c4c"
     },
     {
-      "bytes": 24802,
-      "path": "figures/generated/governance_budget.pdf",
-      "sha256": "d5bb3f2827b565ae460497c58da66ee179a3a800f9c01805afef6616dd879255"
+      "bytes": 21021,
+      "path": "figures/generated/governance_tradeoff.pdf",
+      "sha256": "77fab6dade663fa0b56156799d5d05e41ae091a7f1f2cf4d78a246504cae266f"
     },
     {
-      "bytes": 21496,
-      "path": "figures/generated/governance_by_category.pdf",
-      "sha256": "232e23b3a5223b65fd7680181f588759bbc35b0dc8c830c7ca2783cd528ebd3e"
-    },
-    {
-      "bytes": 993,
+      "bytes": 1622,
       "path": "generated/result_macros.tex",
-      "sha256": "9d9c1bef5c4089cf4817d5feff9b07b7c6489d15b3f151fff6023244895a1cbb"
+      "sha256": "02f4a0c243735527d8a4d599db650dee331980caecd4826d47d41d4ac2051209"
     },
     {
-      "bytes": 1041,
+      "bytes": 1619,
       "path": "generated/table_governance.tex",
-      "sha256": "85dad61536928f094e11e1926605a1b860ba3fff1934ebf3532d2c40a0e834c2"
+      "sha256": "dd3860c08f1e1f2f82a2cde2b359479370c56abd534003e0da84617b5b9482b4"
     },
     {
       "bytes": 1378,
@@ -68,9 +63,9 @@
       "sha256": "ded714b0d3808af527438ed7a85f16933133f66a12104c4a83db4cc248888011"
     },
     {
-      "bytes": 56866,
+      "bytes": 63503,
       "path": "main.tex",
-      "sha256": "3fb913f1bbca5a12a4973db3d52396da5c5651c0834f7b728eee6eec933a9150"
+      "sha256": "fe20010ac4629a426e1beb09d508037dde6981ac5dee0bab0def6ffd2a2ff38b"
     },
     {
       "bytes": 6388,
