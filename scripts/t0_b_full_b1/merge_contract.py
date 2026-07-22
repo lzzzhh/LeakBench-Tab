@@ -115,7 +115,7 @@ def validate_plan_schema(plan_manifest: dict, expected_mode: str | None) -> list
         return errors
 
     # Mode
-    mode = plan_manifest.get("mode", "synthetic")
+    mode = plan_manifest.get("mode")
     if mode not in ("synthetic", "production"):
         errors.append(f"plan manifest invalid mode: {mode!r}")
     if expected_mode is not None and mode != expected_mode:
@@ -198,28 +198,26 @@ def validate_plan(
     if not kp_path.exists() or not kp_path.is_file():
         errors.append("key plan file missing")
     else:
-        declared_kp_sha = plan_manifest.get("key_plan_sha256")
-        if declared_kp_sha is not None:
-            actual_kp_sha = _sha256_file(kp_path)
-            if actual_kp_sha != declared_kp_sha:
-                errors.append("key plan SHA mismatch")
-        try:
-            keys = _load_jsonl_gzip_strict(kp_path, "key plan")
-        except ValueError as exc:
-            errors.append(str(exc))
+        actual_kp_sha = _sha256_file(kp_path)
+        if actual_kp_sha != plan_manifest["key_plan_sha256"]:
+            errors.append("key plan SHA mismatch")
+        else:
+            try:
+                keys = _load_jsonl_gzip_strict(kp_path, "key plan")
+            except ValueError as exc:
+                errors.append(str(exc))
 
     if not rp_path.exists() or not rp_path.is_file():
         errors.append("run plan file missing")
     else:
-        declared_rp_sha = plan_manifest.get("run_plan_sha256")
-        if declared_rp_sha is not None:
-            actual_rp_sha = _sha256_file(rp_path)
-            if actual_rp_sha != declared_rp_sha:
-                errors.append("run plan SHA mismatch")
-        try:
-            runs = _load_jsonl_gzip_strict(rp_path, "run plan")
-        except ValueError as exc:
-            errors.append(str(exc))
+        actual_rp_sha = _sha256_file(rp_path)
+        if actual_rp_sha != plan_manifest["run_plan_sha256"]:
+            errors.append("run plan SHA mismatch")
+        else:
+            try:
+                runs = _load_jsonl_gzip_strict(rp_path, "run plan")
+            except ValueError as exc:
+                errors.append(str(exc))
 
     return errors, keys, runs
 
@@ -483,17 +481,15 @@ def validate_shard_set(
     plan_dir: Path,
     shard_root: Path,
     expected_mode: str | None = None,
-    skip_plan_schema: bool = False,
 ) -> ShardSetAdmissionResult:
     """Full strict shard-set admission: schema + plan + scope + directories + per-shard + counts."""
     result = ShardSetAdmissionResult(is_valid=False)
 
     # ── Plan schema ──
-    if not skip_plan_schema:
-        schema_errors = validate_plan_schema(plan_manifest, expected_mode)
-        if schema_errors:
-            result.errors.extend(schema_errors)
-            return result
+    schema_errors = validate_plan_schema(plan_manifest, expected_mode)
+    if schema_errors:
+        result.errors.extend(schema_errors)
+        return result
 
     # ── Plan file loading ──
     plan_errors, loaded_keys, loaded_runs = validate_plan(plan_manifest, plan_dir)
@@ -644,22 +640,18 @@ def validate_shard_set(
             ("downstream_rows", result.downstream_rows, "downstream_rows"),
         ]
         for label, actual, key in count_specs:
-            if key not in plan_manifest:
-                continue  # skip if plan field absent (legacy mode)
             expected = plan_manifest[key]
-            if isinstance(expected, int) and not isinstance(expected, bool):
-                if actual != expected:
-                    result.errors.append(
-                        f"global {label} mismatch: actual={actual}, plan={expected}"
-                    )
+            if actual != expected:
+                result.errors.append(
+                    f"global {label} mismatch: actual={actual}, plan={expected}"
+                )
 
         # Validated shard count
-        if "shard_count" in plan_manifest:
-            expected_shard_count = plan_manifest["shard_count"]
-            if len(result.validated_shard_ids) != expected_shard_count:
-                result.errors.append(
-                    f"validated shard count mismatch: actual={len(result.validated_shard_ids)}, plan={expected_shard_count}"
-                )
+        expected_shard_count = plan_manifest["shard_count"]
+        if len(result.validated_shard_ids) != expected_shard_count:
+            result.errors.append(
+                f"validated shard count mismatch: actual={len(result.validated_shard_ids)}, plan={expected_shard_count}"
+            )
 
         # failure_rows must be zero
         if result.failure_rows != 0:
@@ -678,9 +670,8 @@ def validate_shard_set(
 
     return result
 
-
 # ═══════════════════════════════════════════════════════════════════
-# R10c-2 Global merge contract
+# R10c-2 Strict global merge contract
 # ═══════════════════════════════════════════════════════════════════
 
 MERGE_MANIFEST_SCHEMA_VERSION = 1
@@ -707,6 +698,7 @@ class GlobalMergeValidation:
     run_universe_valid: bool = False
     selection_multiset_valid: bool = False
     provenance_valid: bool = False
+    digest_valid: bool = False
 
     baseline_rows: int = 0
     governed_rows: int = 0
@@ -723,11 +715,11 @@ def build_source_shard_snapshot(shard_root: Path, planned_ids: list[int]) -> dic
         sm = json.loads(sm_path.read_text())
         snapshot[sid] = {
             "shard_manifest_sha256": _sha256_file(sm_path),
-            "key_count": sm.get("key_count", 0),
-            "baseline_rows": sm.get("baseline_rows", 0),
-            "governed_rows": sm.get("governed_rows", 0),
-            "selection_rows": sm.get("selection_rows", 0),
-            "failure_rows": sm.get("failure_rows", 0),
+            "key_count": sm["key_count"],
+            "baseline_rows": sm["baseline_rows"],
+            "governed_rows": sm["governed_rows"],
+            "selection_rows": sm["selection_rows"],
+            "failure_rows": sm["failure_rows"],
         }
     return snapshot
 
@@ -751,6 +743,14 @@ def build_merge_manifest(
     snapshot: dict[int, dict],
     merged_dir: Path,
     key_count: int,
+    completed_key_ids_sha256: str,
+    planned_run_ids_sha256: str,
+    produced_run_ids_sha256: str,
+    selection_hash_multiset_sha256: str,
+    baseline_rows: int,
+    governed_rows: int,
+    selection_rows: int,
+    failure_rows: int,
 ) -> dict:
     """Build deterministic global merge manifest."""
     out = Path(merged_dir)
@@ -759,28 +759,32 @@ def build_merge_manifest(
         fp = out / f"{name}_ledger.csv.gz"
         ledger_shas[name] = _sha256_file(fp)
 
+    tool_seal = plan_manifest.get("tool_seal_sha", plan_manifest.get("plan_tool_seal_sha"))
+    if not isinstance(tool_seal, str) or not all(c in "0123456789abcdef" for c in tool_seal):
+        raise ValueError(f"plan manifest tool_seal_sha invalid: {tool_seal!r}")
+
     return {
         "schema_version": MERGE_MANIFEST_SCHEMA_VERSION,
-        "mode": plan_manifest.get("mode", "synthetic"),
+        "mode": plan_manifest["mode"],
         "scientific_freeze_sha": SCIENTIFIC_FREEZE_SHA,
         "execution_contract_version": EXECUTION_CONTRACT_VERSION,
         "plan_manifest_sha256": plan_manifest_sha256,
-        "plan_declared_tool_seal_sha": plan_manifest.get("tool_seal_sha", plan_manifest.get("plan_tool_seal_sha", "")),
+        "plan_declared_tool_seal_sha": tool_seal,
         "shard_count": len(planned_shard_ids),
         "canonical_keys": key_count,
-        "baseline_rows": sum(s["baseline_rows"] for s in snapshot.values()),
-        "governed_rows": sum(s["governed_rows"] for s in snapshot.values()),
-        "selection_rows": sum(s["selection_rows"] for s in snapshot.values()),
-        "failure_rows": sum(s["failure_rows"] for s in snapshot.values()),
-        "downstream_rows": sum(s["baseline_rows"] + s["governed_rows"] for s in snapshot.values()),
+        "baseline_rows": baseline_rows,
+        "governed_rows": governed_rows,
+        "selection_rows": selection_rows,
+        "failure_rows": failure_rows,
+        "downstream_rows": baseline_rows + governed_rows,
         "baseline_sha256": ledger_shas["baseline"],
         "governed_sha256": ledger_shas["governed"],
         "selection_sha256": ledger_shas["selection"],
         "failure_sha256": ledger_shas["failure"],
-        "completed_key_ids_sha256": "",
-        "planned_run_ids_sha256": "",
-        "produced_run_ids_sha256": "",
-        "selection_hash_multiset_sha256": "",
+        "completed_key_ids_sha256": completed_key_ids_sha256,
+        "planned_run_ids_sha256": planned_run_ids_sha256,
+        "produced_run_ids_sha256": produced_run_ids_sha256,
+        "selection_hash_multiset_sha256": selection_hash_multiset_sha256,
         "planned_shard_ids_sha256": planned_shard_ids_digest(planned_shard_ids),
         "source_shard_manifest_set_sha256": source_shard_manifest_set_sha256(snapshot),
     }
@@ -795,8 +799,10 @@ def validate_global_merge_candidate(
     snapshot: dict[int, dict],
     shard_root: Path,
     run_rows: list[dict],
+    key_rows: list[dict],
 ) -> GlobalMergeValidation:
     """Validate a staged merge candidate against source shards."""
+    import csv as _csv
     out = Path(merged_dir)
     errors = []
     result = GlobalMergeValidation(is_valid=False, errors=errors)
@@ -815,20 +821,45 @@ def validate_global_merge_candidate(
         errors.append("merge manifest not a JSON object")
         return result
 
-    # Schema
-    if not isinstance(mm.get("schema_version"), int) or isinstance(mm.get("schema_version"), bool) or mm["schema_version"] != 1:
+    # Required fields
+    required = [
+        "schema_version", "mode", "scientific_freeze_sha", "execution_contract_version",
+        "plan_manifest_sha256", "plan_declared_tool_seal_sha",
+        "shard_count", "canonical_keys",
+        "baseline_rows", "governed_rows", "selection_rows", "failure_rows", "downstream_rows",
+        "baseline_sha256", "governed_sha256", "selection_sha256", "failure_sha256",
+        "completed_key_ids_sha256", "planned_run_ids_sha256", "produced_run_ids_sha256",
+        "selection_hash_multiset_sha256", "planned_shard_ids_sha256",
+        "source_shard_manifest_set_sha256",
+    ]
+    for field in required:
+        if field not in mm:
+            errors.append(f"merge manifest missing required field: {field}")
+    if errors:
+        return result
+
+    # Strict schema_version
+    sv = mm["schema_version"]
+    if isinstance(sv, bool) or not isinstance(sv, int) or sv != 1:
         errors.append("merge manifest schema_version invalid")
-    if mm.get("mode") != plan_manifest.get("mode", "synthetic"):
+    if mm["mode"] != plan_manifest["mode"]:
         errors.append("merge manifest mode mismatch")
-    if mm.get("scientific_freeze_sha") != SCIENTIFIC_FREEZE_SHA:
+    if mm["scientific_freeze_sha"] != SCIENTIFIC_FREEZE_SHA:
         errors.append("merge manifest scientific_freeze_sha mismatch")
-    if mm.get("execution_contract_version") != EXECUTION_CONTRACT_VERSION:
+    if mm["execution_contract_version"] != EXECUTION_CONTRACT_VERSION:
         errors.append("merge manifest execution_contract_version mismatch")
-    if mm.get("plan_manifest_sha256") != plan_manifest_sha256:
+    if mm["plan_manifest_sha256"] != plan_manifest_sha256:
         errors.append("merge manifest plan_manifest_sha256 mismatch")
     tool_seal = plan_manifest.get("tool_seal_sha", plan_manifest.get("plan_tool_seal_sha", ""))
-    if mm.get("plan_declared_tool_seal_sha") != tool_seal:
+    if mm["plan_declared_tool_seal_sha"] != tool_seal:
         errors.append("merge manifest plan_declared_tool_seal_sha mismatch")
+
+    # Counts must be strict integers
+    for field in ["shard_count", "canonical_keys", "baseline_rows", "governed_rows",
+                   "selection_rows", "failure_rows", "downstream_rows"]:
+        val = mm[field]
+        if isinstance(val, bool) or not isinstance(val, int):
+            errors.append(f"merge manifest {field} must be integer")
     if errors:
         return result
     result.manifest_valid = True
@@ -841,19 +872,38 @@ def validate_global_merge_candidate(
             errors.append(f"{name}_ledger.csv.gz missing")
             continue
         actual = _sha256_file(fp)
-        if mm.get(f"{name}_sha256") != actual:
+        if mm[f"{name}_sha256"] != actual:
             errors.append(f"merge manifest {name}_sha256 mismatch")
     if errors:
         return result
     result.artifact_sha_valid = True
 
-    # ── Row counts ──
+    # ── Row counts from actual files ──
     import gzip as _gz
     for name in ["baseline", "governed", "selection", "failure"]:
         fp = out / f"{name}_ledger.csv.gz"
-        text = _gz.decompress(fp.read_bytes()).decode("utf-8")
-        rows = [l for l in text.split("\n")[1:] if l != ""]
-        setattr(result, f"{name}_rows", len(rows))
+        with _gz.open(fp, "rt", encoding="utf-8", newline="") as gf:
+            gf.readline()  # skip header
+            count = 0
+            first = True
+            for line in gf:
+                if first and line == "\n":
+                    # Trailing newline after header-only file: no data rows
+                    peek = gf.readline()
+                    if peek == "":
+                        break
+                first = False
+                if line == "\n":
+                    errors.append(f"{name} merged ledger contains blank row")
+                    break
+                if "\r" in line:
+                    errors.append(f"{name} merged ledger contains CR")
+                    break
+                if not line.endswith("\n"):
+                    errors.append(f"{name} merged ledger missing trailing newline")
+                    break
+                count += 1
+        setattr(result, f"{name}_rows", count)
     result.downstream_rows = result.baseline_rows + result.governed_rows
     if result.failure_rows != 0:
         errors.append("failure rows present")
@@ -864,97 +914,133 @@ def validate_global_merge_candidate(
         ("failure_rows", result.failure_rows, "failure_rows"),
         ("downstream_rows", result.downstream_rows, "downstream_rows"),
     ]:
-        expected = mm.get(key)
-        if isinstance(expected, int) and actual != expected:
-            errors.append(f"merge manifest {key} mismatch: actual={actual}, manifest={expected}")
+        if actual != mm[key]:
+            errors.append(f"merge manifest {key} mismatch: actual={actual}, manifest={mm[key]}")
     if errors:
         return result
     result.row_counts_valid = True
 
+    # ── Digest closure ──
+    cids = sorted(k["canonical_key_id"] for k in key_rows)
+    expected_key_digest = _ids_digest(cids)
+    if mm["completed_key_ids_sha256"] != expected_key_digest:
+        errors.append("merge manifest completed_key_ids_sha256 mismatch")
+
+    planned_rids = sorted(r["run_id"] for r in run_rows)
+    expected_planned = _ids_digest(planned_rids)
+    if mm["planned_run_ids_sha256"] != expected_planned:
+        errors.append("merge manifest planned_run_ids_sha256 mismatch")
+
+    expected_shard_digest = planned_shard_ids_digest(planned_shard_ids)
+    if mm["planned_shard_ids_sha256"] != expected_shard_digest:
+        errors.append("merge manifest planned_shard_ids_sha256 mismatch")
+
+    expected_source = source_shard_manifest_set_sha256(snapshot)
+    if mm["source_shard_manifest_set_sha256"] != expected_source:
+        errors.append("merge manifest source_shard_manifest_set_sha256 mismatch")
+    if errors:
+        return result
+    result.digest_valid = True
+
     # ── Run universe ──
-    planned_run_ids = sorted(r["run_id"] for r in run_rows)
     produced = []
     for name in ["baseline", "governed"]:
         fp = out / f"{name}_ledger.csv.gz"
-        text = _gz.decompress(fp.read_bytes()).decode("utf-8")
-        for line in text.split("\n")[1:]:
-            if line:
-                produced.append(line.split(",")[0])
+        with _gz.open(fp, "rt", encoding="utf-8", newline="") as gf:
+            gf.readline()  # skip header
+            for line in gf:
+                line = line.rstrip("\n")
+                if line:
+                    parts = list(_csv.reader([line], strict=True))[0]
+                    produced.append(parts[0])
     produced_set = set(produced)
-    planned_set = set(planned_run_ids)
+    planned_set = set(planned_rids)
     if len(produced) != len(produced_set):
         errors.append("duplicate produced run IDs")
-    missing = planned_set - produced_set
-    extra = produced_set - planned_set
-    if missing:
-        errors.append(f"missing run IDs: {len(missing)}")
-    if extra:
-        errors.append(f"extra run IDs: {len(extra)}")
+    if produced_set != planned_set:
+        missing = planned_set - produced_set
+        extra = produced_set - planned_set
+        if missing:
+            errors.append(f"missing run IDs: {len(missing)}")
+        if extra:
+            errors.append(f"extra run IDs: {len(extra)}")
     if errors:
         return result
+
+    expected_produced = _ids_digest(produced)
+    if mm["produced_run_ids_sha256"] != expected_produced:
+        errors.append("merge manifest produced_run_ids_sha256 mismatch")
     result.run_universe_valid = True
 
     # ── Selection multiset ──
     from collections import Counter
-    sp = out / "selection_ledger.csv.gz"
-    sl_text = _gz.decompress(sp.read_bytes()).decode("utf-8")
-    sel_hashes = [l.split(",")[0] for l in sl_text.split("\n")[1:] if l != ""]
-    gp = out / "governed_ledger.csv.gz"
-    gl_text = _gz.decompress(gp.read_bytes()).decode("utf-8")
+    sel_hashes = []
+    fp = out / "selection_ledger.csv.gz"
+    with _gz.open(fp, "rt", encoding="utf-8", newline="") as gf:
+        gf.readline()
+        for line in gf:
+            line = line.rstrip("\n")
+            if line:
+                parts = list(_csv.reader([line], strict=True))[0]
+                sel_hashes.append(parts[0])
     gov_hashes = []
-    for line in gl_text.split("\n")[1:]:
-        if line:
-            parts = line.split(",")
-            gov_hashes.append(parts[14])  # selection_hash at index 14
+    fp = out / "governed_ledger.csv.gz"
+    with _gz.open(fp, "rt", encoding="utf-8", newline="") as gf:
+        gf.readline()
+        for line in gf:
+            line = line.rstrip("\n")
+            if line:
+                parts = list(_csv.reader([line], strict=True))[0]
+                gov_hashes.append(parts[14])
     if Counter(gov_hashes) != Counter(sel_hashes):
         errors.append("selection multiset mismatch between governed and selection ledgers")
         return result
+    expected_sel_digest = _sorted_digest(sel_hashes)
+    if mm["selection_hash_multiset_sha256"] != expected_sel_digest:
+        errors.append("merge manifest selection_hash_multiset_sha256 mismatch")
     result.selection_multiset_valid = True
 
-    # ── Source aggregate exactness: compare merged rows against source k-way merge ──
+    # ── Source aggregate exactness: streaming comparison ──
     import heapq as _hq
-    for name in ["baseline", "governed", "selection"]:
-        # Read merged candidate
-        fp = out / f"{name}_ledger.csv.gz"
-        merged_text = _gz.decompress(fp.read_bytes()).decode("utf-8")
-        merged_lines = merged_text.split("\n")
-        merged_header = merged_lines[0]
-        merged_data = iter(merged_lines[1:-1] if merged_lines[-1] == "" else merged_lines[1:])
+    for name in ["baseline", "governed", "selection", "failure"]:
+        # Candidate
+        cp = out / f"{name}_ledger.csv.gz"
+        c_header = None
+        c_iter = None
 
-        # K-way merge from source shards
+        # Source shard iterators
         source_iters = []
         for sid in sorted(planned_shard_ids):
-            sfp = shard_root / f"shard_{sid}" / f"{name}_ledger.csv.gz"
-            stext = _gz.decompress(sfp.read_bytes()).decode("utf-8")
-            slines = stext.split("\n")
+            sp = shard_root / f"shard_{sid}" / f"{name}_ledger.csv.gz"
+            s_text = _gz.decompress(sp.read_bytes()).decode("utf-8")
+            slines = s_text.split("\n")
             sheader = slines[0]
-            if sheader != merged_header:
-                errors.append(f"{name} header mismatch in shard {sid}")
-            sdata = [l for l in slines[1:] if l != ""]
-            source_iters.append(iter(sdata))
+            if c_header is None:
+                c_text = _gz.decompress(cp.read_bytes()).decode("utf-8")
+                clines = c_text.split("\n")
+                c_header = clines[0]
+                c_data = [l for l in clines[1:] if l != ""]
+                c_iter = iter(c_data)
+            if sheader != c_header:
+                errors.append(f"{name} header mismatch between shard {sid} and candidate")
+            source_iters.append(iter([l for l in slines[1:] if l != ""]))
 
         merged_iter = _hq.merge(*source_iters)
         row_idx = 0
         for expected_row in merged_iter:
             try:
-                actual_row = next(merged_data)
+                actual_row = next(c_iter)
             except StopIteration:
-                errors.append(
-                    f"{name} merged ledger ended before source aggregate at row {row_idx}"
-                )
+                errors.append(f"{name} merged ledger ended before source aggregate at row {row_idx}")
                 break
             if actual_row != expected_row:
-                errors.append(
-                    f"{name} merged ledger differs from admitted shard aggregate at row {row_idx}"
-                )
+                errors.append(f"{name} merged ledger differs from admitted shard aggregate at row {row_idx}")
                 break
             row_idx += 1
         else:
             try:
-                extra = next(merged_data)
-                errors.append(
-                    f"{name} merged ledger has extra row after expected aggregate exhausted"
-                )
+                extra = next(c_iter)
+                errors.append(f"{name} merged ledger has extra row after expected aggregate")
             except StopIteration:
                 pass
         if errors:
@@ -962,7 +1048,7 @@ def validate_global_merge_candidate(
 
     result.source_aggregate_valid = True
     result.is_valid = (
-        result.manifest_valid and result.provenance_valid
+        result.manifest_valid and result.provenance_valid and result.digest_valid
         and result.artifact_sha_valid and result.source_aggregate_valid
         and result.row_counts_valid and result.run_universe_valid
         and result.selection_multiset_valid

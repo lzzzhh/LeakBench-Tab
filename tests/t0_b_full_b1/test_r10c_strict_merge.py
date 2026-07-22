@@ -141,7 +141,7 @@ def test_candidate_payload_tamper_rejected():
         result = validate_global_merge_candidate(
             merged_dir=Path(merged_out), plan_manifest=plan, plan_manifest_sha256=plan_sha,
             planned_shard_ids=planned_ids, snapshot=snapshot,
-            shard_root=Path(shard_root), run_rows=runs,
+            shard_root=Path(shard_root), run_rows=runs, key_rows=keys,
         )
         assert not result.is_valid
         assert result.source_aggregate_valid is False
