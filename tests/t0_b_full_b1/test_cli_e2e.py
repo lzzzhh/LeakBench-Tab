@@ -94,7 +94,8 @@ def test_cli_full_contract():
         with _tf.TemporaryDirectory() as out_root:
             for suffix in ["a", "b"]:
                 r = subprocess.run([sys.executable, MERGER, "--plan-manifest", str(plan_dir/"full_b1_plan_manifest.json"),
-                    "--shard-root", str(tdp), "--output-dir", str(Path(out_root)/f"merged_{suffix}")],
+                    "--shard-root", str(tdp), "--output-dir", str(Path(out_root)/f"merged_{suffix}"),
+                    "--synthetic"],
                     capture_output=True, text=True, cwd=ROOT)
                 assert r.returncode == 0, f"Merge {suffix}: {r.stdout[:200]}\n{r.stderr[:200]}"
 

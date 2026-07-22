@@ -50,7 +50,7 @@ def main():
     plan_dir = plan_path.parent
     shard_root = Path(args.shard_root)
 
-    expected_mode = "synthetic" if args.synthetic else None
+    expected_mode = "synthetic" if args.synthetic else "production"
 
     result = validate_shard_set(
         plan_manifest=plan_manifest,

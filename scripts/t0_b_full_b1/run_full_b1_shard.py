@@ -34,6 +34,9 @@ from scripts.t0_b_full_b1.shard_contract import (
 from scripts.t0_b_full_b1.run_key_contract import (
     baseline_lookup_key, governed_lookup_key, build_run_id_lookup,
 )
+from scripts.t0_b_full_b1.merge_contract import (
+    validate_plan_schema, validate_plan, validate_global_scope,
+)
 
 # ======================================================================
 # Dependency injection
@@ -342,22 +345,34 @@ def main():
     if args.repair_invalid and not args.resume:
         print("REPAIR_INVALID_REQUIRES_RESUME"); sys.exit(2)
 
-    with open(ROOT / args.plan_manifest) as f: pm = json.load(f)
-    plan_dir = Path(args.plan_manifest).parent
+    plan_path = Path(args.plan_manifest)
+    if not plan_path.is_absolute():
+        plan_path = ROOT / plan_path
+    if not plan_path.exists() or not plan_path.is_file() or plan_path.is_symlink():
+        print(f"PLAN_VALIDATION_FAIL: invalid plan manifest path: {plan_path}")
+        sys.exit(1)
+    try:
+        pm = json.loads(plan_path.read_text())
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        print(f"PLAN_VALIDATION_FAIL: {type(exc).__name__}: {exc}")
+        sys.exit(1)
+    plan_dir = plan_path.parent
+    expected_mode = "synthetic" if args.synthetic else "production"
+
+    errors = validate_plan_schema(pm, expected_mode)
+    if errors:
+        print("PLAN_VALIDATION_FAIL: " + "; ".join(errors[:10]))
+        sys.exit(1)
+    plan_errors, keys, runs = validate_plan(pm, plan_dir)
+    errors.extend(plan_errors)
+    if not errors:
+        errors.extend(validate_global_scope(pm, keys, runs))
+    if errors:
+        print("PLAN_VALIDATION_FAIL: " + "; ".join(errors[:10]))
+        sys.exit(1)
 
     if args.validate_only:
         # Full run-plan audit — zero model calls
-        errors = []
-        for fname, sha_key in [("full_b1_key_plan.jsonl.gz", "key_plan_sha256"),
-                                ("full_b1_run_plan.jsonl.gz", "run_plan_sha256")]:
-            fp = plan_dir / fname
-            if not fp.exists():
-                errors.append(f"{fname} missing"); continue
-            actual = hashlib.sha256(fp.read_bytes()).hexdigest()
-            if actual != pm.get(sha_key, ""):
-                errors.append(f"{fname} SHA mismatch")
-        keys = [json.loads(l) for l in gzip.decompress((plan_dir / "full_b1_key_plan.jsonl.gz").read_bytes()).decode("utf-8").strip().split("\n")]
-        runs = [json.loads(l) for l in gzip.decompress((plan_dir / "full_b1_run_plan.jsonl.gz").read_bytes()).decode("utf-8").strip().split("\n")]
         shard_keys = [k for k in keys if k.get("shard_id") == args.shard_id]
         shard_runs = [r for r in runs if r.get("shard_id") == args.shard_id]
         if not shard_keys:
@@ -369,9 +384,6 @@ def main():
         print("VALIDATION_PASS"); return
 
     deps = ExecutionDependencies(mode="synthetic" if args.synthetic else "production")
-    keys = [json.loads(l) for l in gzip.decompress((plan_dir / "full_b1_key_plan.jsonl.gz").read_bytes()).decode("utf-8").strip().split("\n")]
-    runs = [json.loads(l) for l in gzip.decompress((plan_dir / "full_b1_run_plan.jsonl.gz").read_bytes()).decode("utf-8").strip().split("\n")]
-
     shard_keys = [k for k in keys if k.get("shard_id") == args.shard_id]
     shard_runs = [r for r in runs if r.get("shard_id") == args.shard_id]
     # Scope guard: reject empty/unplanned shards

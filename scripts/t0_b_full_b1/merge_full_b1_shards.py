@@ -112,7 +112,7 @@ def main():
     plan_path = Path(args.plan_manifest)
     shard_root = Path(args.shard_root)
     output_dir = Path(args.output_dir)
-    expected_mode = "synthetic" if args.synthetic else None
+    expected_mode = "synthetic" if args.synthetic else "production"
 
     # ── Path validation ──
     if not plan_path.exists() or not plan_path.is_file() or plan_path.is_symlink():
@@ -155,6 +155,10 @@ def main():
 
     # ── Locks: output parent + all source shards ──
     output_parent = output_dir.parent
+    if output_parent.exists() and (
+        not output_parent.is_dir() or output_parent.is_symlink()
+    ):
+        _fatal(f"MERGE_OUTPUT_PARENT_INVALID: {output_parent}")
     output_parent.mkdir(parents=True, exist_ok=True)
 
     try:

@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """T0-B Full-B1 Plan Generator V2 — full SHA IDs, balanced sharding, complete input closure."""
-import gzip, hashlib, io, json, sys, time
+import gzip, hashlib, io, json, re, sys, time
 from pathlib import Path
 import numpy as np, pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT))
-SCI_FREEZE = "ff347b0657e8faf5d0ec1a4ca283185ffe2f5845"
-CONTRACT_VERSION = "t0_b_full_b1_v2"
+from scripts.t0_b_full_b1.fragment_contract import (
+    SCIENTIFIC_FREEZE_SHA as SCI_FREEZE,
+    EXECUTION_CONTRACT_VERSION,
+)
+
+PLAN_CONTRACT_VERSION = "t0_b_full_b1_v2"
+_HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 def s(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 def main():
@@ -14,9 +19,54 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--output-dir", default="results/edbt_t0_b_full_b1_preflight")
     ap.add_argument("--plan-only", action="store_true"); ap.add_argument("--validate-only", action="store_true")
+    ap.add_argument(
+        "--tool-seal-sha",
+        help="Exact 40-character Git SHA of the frozen execution tool commit",
+    )
     args = ap.parse_args()
     out = ROOT / args.output_dir; out.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
+
+    if args.validate_only:
+        from scripts.t0_b_full_b1.merge_contract import (
+            validate_plan_schema, validate_plan, validate_global_scope,
+        )
+        manifest_path = out / "full_b1_plan_manifest.json"
+        receipt_path = out / "full_b1_plan_receipt.json"
+        errors = []
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            errors.append(f"plan manifest read failed: {exc}")
+            manifest = {}
+        errors.extend(validate_plan_schema(manifest, "production"))
+        keys = runs = []
+        if not errors:
+            plan_errors, keys, runs = validate_plan(manifest, out)
+            errors.extend(plan_errors)
+        if not errors:
+            errors.extend(validate_global_scope(manifest, keys, runs))
+        try:
+            receipt = json.loads(receipt_path.read_text())
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            errors.append(f"plan receipt read failed: {exc}")
+            receipt = {}
+        if receipt.get("plan_manifest_sha256") != (s(manifest_path) if manifest_path.exists() else None):
+            errors.append("plan receipt plan_manifest_sha256 mismatch")
+        if receipt.get("tool_seal_sha") != manifest.get("tool_seal_sha"):
+            errors.append("plan receipt tool_seal_sha mismatch")
+        if errors:
+            print("FULL_B1_PLAN_VALIDATION_FAIL")
+            for error in errors:
+                print(f"  {error}")
+            sys.exit(1)
+        print("FULL_B1_PLAN_VALIDATION_PASS")
+        print(f"canonical_keys={len(keys)}")
+        print(f"planned_runs={len(runs)}")
+        return
+
+    if _HEX40_RE.fullmatch(args.tool_seal_sha or "") is None:
+        ap.error("--tool-seal-sha must be an exact 40-character lowercase Git SHA")
 
     # === INPUT CLOSURE ===
     man = pd.read_csv(ROOT/"artifacts/sp6/sp6_bundle_manifest.csv")
@@ -102,7 +152,7 @@ def main():
         for bt in ["strict","full"]:
             rid = hashlib.sha256(f"t0b_fb1_bl_v2|{cid}|{bt}".encode()).hexdigest()
             assert rid not in seen_rids; seen_rids.add(rid)
-            run_plan.append({"run_id":rid,"canonical_key_id":cid,"shard_id":kp["shard_id"],"learner":"lr","run_type":"baseline","baseline_type":bt,"policy":"","contract":"","budget_bp":0,"governance_seed_index":-1,"expected_selection_required":False,"scientific_freeze_sha":SCI_FREEZE,"bundle_sha256":kp["bundle_sha256"],"execution_contract_version":CONTRACT_VERSION})
+            run_plan.append({"run_id":rid,"canonical_key_id":cid,"shard_id":kp["shard_id"],"learner":"lr","run_type":"baseline","baseline_type":bt,"policy":"","contract":"","budget_bp":0,"governance_seed_index":-1,"expected_selection_required":False,"scientific_freeze_sha":SCI_FREEZE,"bundle_sha256":kp["bundle_sha256"],"execution_contract_version":EXECUTION_CONTRACT_VERSION})
         # Governed
         for ct in CONTRACTS:
             for bp in BUDGETS:
@@ -111,11 +161,11 @@ def main():
                         for gi, gs_idx in enumerate(GOV_SEEDS):
                             rid = hashlib.sha256(f"t0b_fb1_gov_v2|{cid}|{ct}|{bp}|{pid}|{gi}".encode()).hexdigest()
                             assert rid not in seen_rids; seen_rids.add(rid)
-                            run_plan.append({"run_id":rid,"canonical_key_id":cid,"shard_id":kp["shard_id"],"learner":"lr","run_type":"governed","baseline_type":"","policy":pid,"contract":ct,"budget_bp":bp,"governance_seed_index":gi,"expected_selection_required":True,"scientific_freeze_sha":SCI_FREEZE,"bundle_sha256":kp["bundle_sha256"],"execution_contract_version":CONTRACT_VERSION})
+                            run_plan.append({"run_id":rid,"canonical_key_id":cid,"shard_id":kp["shard_id"],"learner":"lr","run_type":"governed","baseline_type":"","policy":pid,"contract":ct,"budget_bp":bp,"governance_seed_index":gi,"expected_selection_required":True,"scientific_freeze_sha":SCI_FREEZE,"bundle_sha256":kp["bundle_sha256"],"execution_contract_version":EXECUTION_CONTRACT_VERSION})
                     else:
                         rid = hashlib.sha256(f"t0b_fb1_gov_v2|{cid}|{ct}|{bp}|{pid}".encode()).hexdigest()
                         assert rid not in seen_rids; seen_rids.add(rid)
-                        run_plan.append({"run_id":rid,"canonical_key_id":cid,"shard_id":kp["shard_id"],"learner":"lr","run_type":"governed","baseline_type":"","policy":pid,"contract":ct,"budget_bp":bp,"governance_seed_index":-1,"expected_selection_required":True,"scientific_freeze_sha":SCI_FREEZE,"bundle_sha256":kp["bundle_sha256"],"execution_contract_version":CONTRACT_VERSION})
+                        run_plan.append({"run_id":rid,"canonical_key_id":cid,"shard_id":kp["shard_id"],"learner":"lr","run_type":"governed","baseline_type":"","policy":pid,"contract":ct,"budget_bp":bp,"governance_seed_index":-1,"expected_selection_required":True,"scientific_freeze_sha":SCI_FREEZE,"bundle_sha256":kp["bundle_sha256"],"execution_contract_version":EXECUTION_CONTRACT_VERSION})
 
     assert len(run_plan) == 803000
 
@@ -131,26 +181,42 @@ def main():
         shard_loads.setdefault(sid, []).append(kp["estimated_workload"])
     load_stats = {sid: {"count": len(v), "workload_sum": sum(v), "workload_mean": float(np.mean(v))} for sid, v in shard_loads.items()}
     shard_plan = {"shard_count": SHARD_COUNT, "shard_stats": load_stats}
-    with open(out/"full_b1_shard_plan.json","w") as f: json.dump(shard_plan, f, indent=2)
+    with open(out/"full_b1_shard_plan.json","w") as f:
+        json.dump(shard_plan, f, indent=2, sort_keys=True)
+        f.write("\n")
 
     # Plan manifest
     plan_manifest = {
-        "scientific_freeze_sha": SCI_FREEZE, "contract_version": CONTRACT_VERSION,
-        "canonical_keys": 5500, "baseline_rows": 11000, "governed_rows": 792000, "downstream_rows": 803000,
+        "mode": "production",
+        "scientific_freeze_sha": SCI_FREEZE,
+        "contract_version": PLAN_CONTRACT_VERSION,
+        "execution_contract_version": EXECUTION_CONTRACT_VERSION,
+        "tool_seal_sha": args.tool_seal_sha,
+        "canonical_keys": 5500, "baseline_rows": 11000, "governed_rows": 792000,
+        "selection_rows": 792000, "failure_rows": 0, "downstream_rows": 803000,
         "ranking_model_fits": 22000, "non_model_scoring": 11000, "shard_count": SHARD_COUNT,
         "key_plan_sha256": s(str(out/"full_b1_key_plan.jsonl.gz")),
         "run_plan_sha256": s(str(out/"full_b1_run_plan.jsonl.gz")),
         "shard_plan_sha256": s(str(out/"full_b1_shard_plan.json")),
+        "policy_mapping_sha256": s(str(ROOT/"results/edbt_t0_b/policy_group_mapping_v3.jsonl.gz")),
+        "semantic_mapping_sha256": s(str(ROOT/"results/edbt_t0_b/semantic_evaluation_mapping_v3.jsonl.gz")),
     }
-    with open(out/"full_b1_plan_manifest.json","w") as f: json.dump(plan_manifest, f, indent=2)
+    with open(out/"full_b1_plan_manifest.json","w") as f:
+        json.dump(plan_manifest, f, indent=2, sort_keys=True)
+        f.write("\n")
 
     receipt = {
+        "schema_version": 1,
         "canonical_keys": 5500, "downstream_rows": 803000, "run_ids_unique": len(seen_rids),
         "shard_count": SHARD_COUNT, "shard_key_min": dist.min(), "shard_key_max": dist.max(),
         "pass": len(seen_rids)==len(run_plan) and dist.max()-dist.min()<=1,
+        "plan_manifest_sha256": s(str(out/"full_b1_plan_manifest.json")),
+        "tool_seal_sha": args.tool_seal_sha,
         "wall_clock_s": round(time.time()-t0, 2),
     }
-    with open(out/"full_b1_plan_receipt.json","w") as f: json.dump(receipt, f, indent=2)
+    with open(out/"full_b1_plan_receipt.json","w") as f:
+        json.dump(receipt, f, indent=2, sort_keys=True)
+        f.write("\n")
     print(f"Plan: {receipt['canonical_keys']} keys, {receipt['downstream_rows']} rows, shards {receipt['shard_key_min']}-{receipt['shard_key_max']}, PASS={receipt['pass']}")
 
 if __name__=="__main__": main()

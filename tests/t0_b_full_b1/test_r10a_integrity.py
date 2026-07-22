@@ -52,7 +52,7 @@ def test_validate_only_passes_with_valid_plan():
     """validate-only must actually validate plan SHA."""
     synth_plan = str(ROOT/"results/edbt_t0_b_full_b1_preflight/synthetic_full_contract/full_b1_plan_manifest.json")
     r = subprocess.run([sys.executable, RUNNER, "--plan-manifest", synth_plan,
-                        "--shard-id", "0", "--validate-only"],
+                        "--shard-id", "0", "--validate-only", "--synthetic"],
                        capture_output=True, text=True, cwd=ROOT)
     assert r.returncode == 0
     assert "VALIDATION_PASS" in r.stdout

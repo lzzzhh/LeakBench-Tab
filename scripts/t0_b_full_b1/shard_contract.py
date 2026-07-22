@@ -412,7 +412,7 @@ def build_canonical_shard_ledger_bytes(
     for name, header in _SHARD_LEDGER_HEADERS.items():
         rows = sorted(collected[name])
         # Data rows are already properly quoted CSV lines (from csv.writer in _parse_fragment_csv_strict)
-        content = header + "\n" + "\n".join(rows) + ("\n" if rows else "\n")
+        content = header + "\n" + (("\n".join(rows) + "\n") if rows else "")
         result[name] = gzip.compress(content.encode("utf-8"), mtime=0)
 
     return result

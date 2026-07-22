@@ -13,6 +13,14 @@ from scripts.t0_b_full_b1.shard_contract import (
 
 _SHARD_DIR_RE = re.compile(r"^shard_(0|[1-9][0-9]*)$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
+_HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
+
+_LEDGER_HEADERS = {
+    "baseline": "run_id,dataset_index,mechanism,strength,training_seed,learner,baseline_type,auc",
+    "governed": "run_id,dataset_index,mechanism,strength,training_seed,governance_seed,learner,policy,contract,budget_bp,strict_auc,full_auc,governed_auc,legacy_sdr,selection_hash,realized_cost",
+    "selection": "selection_hash,policy,contract,budget_bp,removed_encoded_indices,removed_group_ids,realized_encoded_cost",
+    "failure": "run_id",
+}
 
 
 @dataclass
@@ -39,7 +47,11 @@ class ShardSetAdmissionResult:
 
 
 def _sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _require_strict_integer(value, field_name: str, parent: str) -> int:
@@ -133,6 +145,12 @@ def validate_plan_schema(plan_manifest: dict, expected_mode: str | None) -> list
             _require_hex64(plan_manifest.get(sha_field), sha_field, "plan manifest")
         except ValueError as exc:
             errors.append(str(exc))
+
+    tool_seal = plan_manifest.get("tool_seal_sha")
+    if not isinstance(tool_seal, str) or _HEX40_RE.fullmatch(tool_seal) is None:
+        errors.append(
+            "plan manifest tool_seal_sha must be an exact 40-char lowercase Git SHA"
+        )
 
     # Required count fields
     count_fields = [
@@ -710,21 +728,12 @@ def open_strict_sorted_ledger_rows(
 
         prev = None
         row_n = 0
-        first = True
-
         def row_iterator():
-            nonlocal prev, row_n, first
+            nonlocal prev, row_n
             for line in gf:
                 if not line.endswith("\n"):
                     raise ValueError(f"{label}: missing trailing newline at row {row_n}")
                 row = line[:-1]
-                if first and row == "":
-                    first = False
-                    peek = gf.readline()
-                    if peek == "":
-                        return  # trailing newline after header-only file
-                    raise ValueError(f"{label}: blank physical row at row {row_n}")
-                first = False
                 if row == "":
                     raise ValueError(f"{label}: blank physical row at row {row_n}")
                 if "\r" in row:
@@ -811,8 +820,8 @@ def build_merge_manifest(
         fp = out / f"{name}_ledger.csv.gz"
         ledger_shas[name] = _sha256_file(fp)
 
-    tool_seal = plan_manifest.get("tool_seal_sha", plan_manifest.get("plan_tool_seal_sha"))
-    if not isinstance(tool_seal, str) or not all(c in "0123456789abcdef" for c in tool_seal):
+    tool_seal = plan_manifest.get("tool_seal_sha")
+    if not isinstance(tool_seal, str) or _HEX40_RE.fullmatch(tool_seal) is None:
         raise ValueError(f"plan manifest tool_seal_sha invalid: {tool_seal!r}")
 
     return {
@@ -902,9 +911,13 @@ def validate_global_merge_candidate(
         errors.append("merge manifest execution_contract_version mismatch")
     if mm["plan_manifest_sha256"] != plan_manifest_sha256:
         errors.append("merge manifest plan_manifest_sha256 mismatch")
-    tool_seal = plan_manifest.get("tool_seal_sha", plan_manifest.get("plan_tool_seal_sha", ""))
+    tool_seal = plan_manifest.get("tool_seal_sha", "")
+    if _HEX40_RE.fullmatch(tool_seal) is None:
+        errors.append("plan manifest tool_seal_sha invalid")
     if mm["plan_declared_tool_seal_sha"] != tool_seal:
         errors.append("merge manifest plan_declared_tool_seal_sha mismatch")
+    if not isinstance(mm["plan_declared_tool_seal_sha"], str) or _HEX40_RE.fullmatch(mm["plan_declared_tool_seal_sha"]) is None:
+        errors.append("merge manifest plan_declared_tool_seal_sha invalid")
 
     # Counts must be strict integers
     for field in ["shard_count", "canonical_keys", "baseline_rows", "governed_rows",
@@ -937,14 +950,7 @@ def validate_global_merge_candidate(
         with _gz.open(fp, "rt", encoding="utf-8", newline="") as gf:
             gf.readline()  # skip header
             count = 0
-            first = True
             for line in gf:
-                if first and line == "\n":
-                    # Trailing newline after header-only file: no data rows
-                    peek = gf.readline()
-                    if peek == "":
-                        break
-                first = False
                 if line == "\n":
                     errors.append(f"{name} merged ledger contains blank row")
                     break
@@ -987,7 +993,15 @@ def validate_global_merge_candidate(
     if mm["planned_shard_ids_sha256"] != expected_shard_digest:
         errors.append("merge manifest planned_shard_ids_sha256 mismatch")
 
-    expected_source = source_shard_manifest_set_sha256(snapshot)
+    try:
+        current_snapshot = build_source_shard_snapshot(shard_root, planned_shard_ids)
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        errors.append(f"source shard snapshot rebuild failed: {exc}")
+        return result
+    if current_snapshot != snapshot:
+        errors.append("source shard snapshot changed after admission")
+        return result
+    expected_source = source_shard_manifest_set_sha256(current_snapshot)
     if mm["source_shard_manifest_set_sha256"] != expected_source:
         errors.append("merge manifest source_shard_manifest_set_sha256 mismatch")
     if errors:
@@ -1052,49 +1066,43 @@ def validate_global_merge_candidate(
         errors.append("merge manifest selection_hash_multiset_sha256 mismatch")
     result.selection_multiset_valid = True
 
-    # ── Source aggregate exactness: streaming comparison ──
+    # ── Source aggregate exactness: fully streaming comparison ──
     import heapq as _hq
+    import itertools as _it
     for name in ["baseline", "governed", "selection", "failure"]:
-        # Candidate
         cp = out / f"{name}_ledger.csv.gz"
-        c_header = None
-        c_iter = None
+        header = _LEDGER_HEADERS[name]
+        sentinel = object()
+        with contextlib.ExitStack() as stack:
+            candidate_iter = stack.enter_context(
+                open_strict_sorted_ledger_rows(cp, header, f"candidate {name}")
+            )
+            source_iters = []
+            for sid in sorted(planned_shard_ids):
+                sp = shard_root / f"shard_{sid}" / f"{name}_ledger.csv.gz"
+                source_iters.append(stack.enter_context(
+                    open_strict_sorted_ledger_rows(
+                        sp, header, f"source shard_{sid} {name}"
+                    )
+                ))
 
-        # Source shard iterators
-        source_iters = []
-        for sid in sorted(planned_shard_ids):
-            sp = shard_root / f"shard_{sid}" / f"{name}_ledger.csv.gz"
-            s_text = _gz.decompress(sp.read_bytes()).decode("utf-8")
-            slines = s_text.split("\n")
-            sheader = slines[0]
-            if c_header is None:
-                c_text = _gz.decompress(cp.read_bytes()).decode("utf-8")
-                clines = c_text.split("\n")
-                c_header = clines[0]
-                c_data = [l for l in clines[1:] if l != ""]
-                c_iter = iter(c_data)
-            if sheader != c_header:
-                errors.append(f"{name} header mismatch between shard {sid} and candidate")
-            source_iters.append(iter([l for l in slines[1:] if l != ""]))
-
-        merged_iter = _hq.merge(*source_iters)
-        row_idx = 0
-        for expected_row in merged_iter:
-            try:
-                actual_row = next(c_iter)
-            except StopIteration:
-                errors.append(f"{name} merged ledger ended before source aggregate at row {row_idx}")
-                break
-            if actual_row != expected_row:
-                errors.append(f"{name} merged ledger differs from admitted shard aggregate at row {row_idx}")
-                break
-            row_idx += 1
-        else:
-            try:
-                extra = next(c_iter)
-                errors.append(f"{name} merged ledger has extra row after expected aggregate")
-            except StopIteration:
-                pass
+            merged_iter = _hq.merge(*source_iters)
+            for row_idx, (expected_row, actual_row) in enumerate(
+                _it.zip_longest(merged_iter, candidate_iter, fillvalue=sentinel)
+            ):
+                if expected_row is sentinel:
+                    errors.append(f"{name} merged ledger has extra row after expected aggregate")
+                    break
+                if actual_row is sentinel:
+                    errors.append(
+                        f"{name} merged ledger ended before source aggregate at row {row_idx}"
+                    )
+                    break
+                if actual_row != expected_row:
+                    errors.append(
+                        f"{name} merged ledger differs from admitted shard aggregate at row {row_idx}"
+                    )
+                    break
         if errors:
             return result
 

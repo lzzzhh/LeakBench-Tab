@@ -78,7 +78,8 @@ def test_merge_duplicate_governed_fails():
 
 def test_validate_only_valid_plan_passes():
     r = subprocess.run([sys.executable, RUNNER,
-        "--plan-manifest", SYNTH_PLAN, "--shard-id", "0", "--validate-only"],
+        "--plan-manifest", SYNTH_PLAN, "--shard-id", "0", "--validate-only",
+        "--synthetic"],
         capture_output=True, text=True, cwd=ROOT)
     assert r.returncode == 0
     assert "VALIDATION_PASS" in r.stdout
@@ -109,7 +110,7 @@ def test_validate_only_duplicate_run_id_fails():
         with open(tdp / "full_b1_plan_manifest.json", "w") as f: json.dump(pm, f)
         r = subprocess.run([sys.executable, RUNNER,
             "--plan-manifest", str(tdp / "full_b1_plan_manifest.json"),
-            "--shard-id", "0", "--validate-only"],
+            "--shard-id", "0", "--validate-only", "--synthetic"],
             capture_output=True, text=True, cwd=ROOT)
         assert r.returncode != 0
         assert "VALIDATION_FAIL" in r.stdout
