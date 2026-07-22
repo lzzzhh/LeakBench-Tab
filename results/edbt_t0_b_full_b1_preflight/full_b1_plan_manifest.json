@@ -17,5 +17,5 @@
   "semantic_mapping_sha256": "3668b4d59bdc7f443b48cab94cda93e9ca68c11ef92ccfb600b1e3cf8d6adc56",
   "shard_count": 64,
   "shard_plan_sha256": "716b120935ad316a3fdfed09e535dd356a305f37ba9cd33bdd68b3ff4879a31f",
-  "tool_seal_sha": "f33ca0ab194c335eff226002dbffc416d203f254"
+  "tool_seal_sha": "cb6542f96bf1e2e87f8aefc30f13f8b1bb7210f7"
 }
